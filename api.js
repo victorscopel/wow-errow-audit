@@ -27,7 +27,9 @@ function proxyUrl(proxy, url, token) {
 }
 
 async function getToken(cfg) {
-    var r = await fetch(pbUrl(cfg.proxy) + '/api/token');
+    var jwt = localStorage.getItem('ga_jwt') || '';
+    var headers = jwt ? { 'Authorization': 'Bearer ' + jwt } : {};
+    var r = await fetch(pbUrl(cfg.proxy) + '/api/token', { headers: headers });
     if (!r.ok) throw new Error('Token failed: ' + r.status);
     var d = await r.json();
     if (d.error) throw new Error(d.error);
