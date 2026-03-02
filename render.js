@@ -56,7 +56,7 @@ function hasPerm(level) {
   return true;
 }
 
-var PT_CLASS = { 'Warrior': 'Guerreiro', 'Paladin': 'Paladino', 'Hunter': 'Caçador', 'Rogue': 'Ladino', 'Priest': 'Sacerdote', 'Death Knight': 'Cavaleiro da Morte', 'Shaman': 'Xamã', 'Mage': 'Mago', 'Warlock': 'Bruxo', 'Monk': 'Monge', 'Druid': 'Druida', 'Demon Hunter': 'Caçador de Demônios', 'Evoker': 'Evocador', 'Devourer': 'Devorador' };
+var PT_CLASS = { 'Warrior': 'Guerreiro', 'Paladin': 'Paladino', 'Hunter': 'Caçador', 'Rogue': 'Ladino', 'Priest': 'Sacerdote', 'Death Knight': 'Cavaleiro da Morte', 'Shaman': 'Xamã', 'Mage': 'Mago', 'Warlock': 'Bruxo', 'Monk': 'Monge', 'Druid': 'Druida', 'Demon Hunter': 'Caçador de Demônios', 'Evoker': 'Conjurante', 'Devourer': 'Devorador' };
 var PT_SPEC = { 'Blood': 'Sangue', 'Frost DK': 'Gélido (DK)', 'Unholy': 'Profano', 'Havoc': 'Devastação', 'Vengeance': 'Vingança', 'Balance': 'Equilíbrio', 'Feral': 'Feral', 'Guardian': 'Guardião', 'Restoration': 'Restauração', 'Devastation': 'Devastação', 'Preservation': 'Preservação', 'Augmentation': 'Aprimoramento', 'Beast Mastery': 'Domínio das Feras', 'Marksmanship': 'Precisão', 'Survival': 'Sobrevivência', 'Arcane': 'Arcano', 'Fire': 'Fogo', 'Frost': 'Gélido', 'Brewmaster': 'Mestre Cervejeiro', 'Mistweaver': 'Tecelão da Névoa', 'Windwalker': 'Andarilho do Vento', 'Holy': 'Sagrado', 'Protection': 'Proteção', 'Retribution': 'Retribuição', 'Discipline': 'Disciplina', 'Shadow': 'Sombra', 'Assassination': 'Assassinato', 'Outlaw': 'Fora da Lei', 'Subtlety': 'Subterfúgio', 'Elemental': 'Elemental', 'Enhancement': 'Aperfeiçoamento', 'Affliction': 'Suplício', 'Demonology': 'Demonologia', 'Destruction': 'Destruição', 'Arms': 'Armas', 'Fury': 'Fúria', 'Soulrend': 'Dilaceralma', 'Fleshcraft': 'Modelar Carne' };
 
 var PT_ARMOR = { 'Cloth': 'Tecido', 'Leather': 'Couro', 'Mail': 'Malha', 'Plate': 'Placa' };
@@ -290,7 +290,7 @@ function preloadImages(urls) {
 function buildSidebar(c, id) {
   var color = getClassColor(c.class);
   var icon = getClassIcon(c.class);
-  var armor = getArmorType(c.class);
+  var armor = locArmor(getArmorType(c.class));
   var canEdit = hasPerm('officer');
   var roleSel = canEdit
     ? '<select class="rs" style="font-size:.85rem;padding:5px 10px" onchange="changeRole(\'' + id + '\',this.value);rerenderChar(\'' + id + '\')"><option ' + (c.role === ROLE_TANK ? 'selected' : '') + '>Tank</option><option ' + (c.role === ROLE_HEALER ? 'selected' : '') + '>Healer</option><option ' + (c.role === ROLE_DPS_MELEE ? 'selected' : '') + '>DPS Melee</option><option ' + (c.role === ROLE_DPS_RANGE ? 'selected' : '') + '>DPS Ranged</option></select>'

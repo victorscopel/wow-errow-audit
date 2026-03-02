@@ -22,22 +22,22 @@ var I18N = {
   max_ilvl: { en: 'Max iLvl', pt_BR: 'iLvl Máx' },
   highest: { en: 'highest', pt_BR: 'melhor' },
   ready: { en: 'Ready', pt_BR: 'Prontos' },
-  no_issues: { en: 'no issues', pt_BR: 'sem issues' },
-  issues: { en: 'Issues', pt_BR: 'Issues' },
+  no_issues: { en: 'no issues', pt_BR: 'sem problemas' },
+  issues: { en: 'Issues', pt_BR: 'Problemas' },
   with_problems: { en: 'with problems', pt_BR: 'com problema' },
   missing: { en: 'Missing', pt_BR: 'Faltando' },
   enchants_gems: { en: 'enchants/gems', pt_BR: 'encantamentos/gemas' },
   overview: { en: 'Overview', pt_BR: 'Visão Geral' },
   roster: { en: 'Roster', pt_BR: 'Roster' },
-  great_vault: { en: 'Great Vault', pt_BR: 'Great Vault' },
+  great_vault: { en: 'Great Vault', pt_BR: 'Grande Cofre' },
   settings: { en: 'Settings', pt_BR: 'Configurações' },
   character: { en: 'Character', pt_BR: 'Personagem' },
-  role: { en: 'Role', pt_BR: 'Role' },
+  role: { en: 'Role', pt_BR: 'Função' },
   ilvl: { en: 'iLvl', pt_BR: 'iLvl' },
-  spec: { en: 'Spec', pt_BR: 'Spec' },
-  m_rating: { en: 'M+ Rating', pt_BR: 'M+ Rating' },
+  spec: { en: 'Spec', pt_BR: 'Especialização' },
+  m_rating: { en: 'M+ Rating', pt_BR: 'Mítico+' },
   note: { en: 'Note', pt_BR: 'Nota' },
-  vault: { en: 'Vault', pt_BR: 'Vault' },
+  vault: { en: 'Vault', pt_BR: 'Cofre' },
   search: { en: 'Search...', pt_BR: 'Buscar...' },
   refresh: { en: 'Refresh', pt_BR: 'Atualizar' },
   export_btn: { en: 'Export', pt_BR: 'Exportar' },
@@ -101,13 +101,6 @@ var I18N = {
   refresh_done: { en: 'Refresh complete!', pt_BR: 'Atualização concluída!' },
 };
 
-function T(key) {
-  var entry = I18N[key];
-  if (!entry) return key;
-  var lang = (typeof CFG !== 'undefined' && CFG.dispLang) || 'en';
-  return entry[lang] || entry['en'] || key;
-}
-
 var SLOT_LABELS_EN = {
   head: 'Head', neck: 'Neck', shoulder: 'Shoulders', back: 'Back', chest: 'Chest',
   wrist: 'Wrists', hands: 'Gloves', waist: 'Belt', legs: 'Legs', feet: 'Boots',
@@ -136,7 +129,7 @@ const CLS_COLOR = {
 const CLS_EN = {
   'Guerreiro': 'Warrior', 'Paladino': 'Paladin', 'Caçador': 'Hunter', 'Ladino': 'Rogue',
   'Sacerdote': 'Priest', 'Cavaleiro da Morte': 'Death Knight', 'Xamã': 'Shaman', 'Mago': 'Mage',
-  'Bruxo': 'Warlock', 'Monge': 'Monk', 'Druida': 'Druid', 'Caçador de Demônios': 'Demon Hunter', 'Evocador': 'Evoker'
+  'Bruxo': 'Warlock', 'Monge': 'Monk', 'Druida': 'Druid', 'Caçador de Demônios': 'Demon Hunter', 'Conjurante': 'Evoker'
 };
 
 const CLS_ICON = {
