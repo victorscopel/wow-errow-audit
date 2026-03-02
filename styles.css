@@ -283,8 +283,10 @@ body {
 }
 
 .lang-select option {
-  background-color: var(--bg-card);
+  background-color: var(--bg);
   color: var(--text);
+  font-weight: 600;
+  padding: 8px;
 }
 
 /* ── Section title ──────────────────────────────────────── */

@@ -130,15 +130,13 @@ function slotLabel(slot) {
 const CLS_COLOR = {
   'Warrior': '#C69B3A', 'Paladin': '#F48CBA', 'Hunter': '#AAD372', 'Rogue': '#FFF468',
   'Priest': '#d0d0d0', 'Death Knight': '#C41E3A', 'Shaman': '#0070DD', 'Mage': '#3FC7EB',
-  'Warlock': '#9d80ee', 'Monk': '#00FF98', 'Druid': '#FF7C0A', 'Demon Hunter': '#A330C9', 'Evoker': '#33C79A',
-  'Devourer': '#5B8A1C',
+  'Warlock': '#9d80ee', 'Monk': '#00FF98', 'Druid': '#FF7C0A', 'Demon Hunter': '#A330C9', 'Evoker': '#33C79A'
 };
 
 const CLS_EN = {
   'Guerreiro': 'Warrior', 'Paladino': 'Paladin', 'Caçador': 'Hunter', 'Ladino': 'Rogue',
   'Sacerdote': 'Priest', 'Cavaleiro da Morte': 'Death Knight', 'Xamã': 'Shaman', 'Mago': 'Mage',
-  'Bruxo': 'Warlock', 'Monge': 'Monk', 'Druida': 'Druid', 'Caçador de Demônios': 'Demon Hunter', 'Evocador': 'Evoker',
-  'Devorador': 'Devourer',
+  'Bruxo': 'Warlock', 'Monge': 'Monk', 'Druida': 'Druid', 'Caçador de Demônios': 'Demon Hunter', 'Evocador': 'Evoker'
 };
 
 const CLS_ICON = {
@@ -154,16 +152,14 @@ const CLS_ICON = {
   'Monk': 'https://render.worldofwarcraft.com/us/icons/56/classicon_monk.jpg',
   'Druid': 'https://render.worldofwarcraft.com/us/icons/56/classicon_druid.jpg',
   'Demon Hunter': 'https://render.worldofwarcraft.com/us/icons/56/classicon_demonhunter.jpg',
-  'Evoker': 'https://render.worldofwarcraft.com/us/icons/56/classicon_evoker.jpg',
-  'Devourer': 'https://render.worldofwarcraft.com/us/icons/56/classicon_devourer.jpg',
+  'Evoker': 'https://render.worldofwarcraft.com/us/icons/56/classicon_evoker.jpg'
 };
 
 const ARMOR_TYPE = {
   'Warrior': 'Plate', 'Paladin': 'Plate', 'Death Knight': 'Plate',
   'Hunter': 'Mail', 'Shaman': 'Mail', 'Evoker': 'Mail',
   'Druid': 'Leather', 'Monk': 'Leather', 'Rogue': 'Leather', 'Demon Hunter': 'Leather',
-  'Mage': 'Cloth', 'Priest': 'Cloth', 'Warlock': 'Cloth',
-  'Devourer': 'Mail',
+  'Mage': 'Cloth', 'Priest': 'Cloth', 'Warlock': 'Cloth'
 };
 
 const SPEC_ID_ROLE = {
@@ -189,10 +185,10 @@ const SPEC_NAME_ROLE = {
   'Beast Mastery': ROLE_DPS_RANGE, 'Marksmanship': ROLE_DPS_RANGE, 'Balance': ROLE_DPS_RANGE, 'Elemental': ROLE_DPS_RANGE,
   'Arcane': ROLE_DPS_RANGE, 'Fire': ROLE_DPS_RANGE, 'Affliction': ROLE_DPS_RANGE, 'Demonology': ROLE_DPS_RANGE, 'Destruction': ROLE_DPS_RANGE,
   'Shadow': ROLE_DPS_RANGE, 'Devastation': ROLE_DPS_RANGE, 'Augmentation': ROLE_DPS_RANGE,
-  'Arms': ROLE_DPS_MELEE, 'Fury': ROLE_DPS_MELEE, 'Havoc': ROLE_DPS_MELEE, 'Feral': ROLE_DPS_MELEE,
-  'Survival': ROLE_DPS_MELEE, 'Enhancement': ROLE_DPS_MELEE, 'Assassination': ROLE_DPS_MELEE, 'Outlaw': ROLE_DPS_MELEE,
-  'Subtlety': ROLE_DPS_MELEE, 'Retribution': ROLE_DPS_MELEE, 'Windwalker': ROLE_DPS_MELEE, 'Unholy': ROLE_DPS_MELEE,
-  'Soulrend': ROLE_DPS_RANGE, 'Fleshcraft': ROLE_DPS_RANGE,
+  'Arms': 'DPS Melee', 'Fury': 'DPS Melee', 'Havoc': 'DPS Melee', 'Feral': 'DPS Melee',
+  'Survival': 'DPS Melee', 'Enhancement': 'DPS Melee', 'Assassination': 'DPS Melee', 'Outlaw': 'DPS Melee',
+  'Subtlety': 'DPS Melee', 'Retribution': 'DPS Melee', 'Windwalker': 'DPS Melee', 'Unholy': 'DPS Melee',
+  'Soulrend': 'DPS Ranged', 'Fleshcraft': 'DPS Ranged', 'Devourer': 'DPS Melee',
 };
 
 function inferRoleFromSpecId(specId) { return SPEC_ID_ROLE[specId] || null; }
@@ -219,4 +215,4 @@ var SLOT_MAP = {
   MAIN_HAND: 'mainhand', OFF_HAND: 'offhand'
 };
 
-var ALL_CLASSES = ['Warrior', 'Paladin', 'Hunter', 'Rogue', 'Priest', 'Death Knight', 'Shaman', 'Mage', 'Warlock', 'Monk', 'Druid', 'Demon Hunter', 'Evoker', 'Devourer'];
+var ALL_CLASSES = ['Warrior', 'Paladin', 'Hunter', 'Rogue', 'Priest', 'Death Knight', 'Shaman', 'Mage', 'Warlock', 'Monk', 'Druid', 'Demon Hunter', 'Evoker'];
