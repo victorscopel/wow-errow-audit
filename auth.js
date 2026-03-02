@@ -68,16 +68,7 @@ function applyPermissions() {
 
 function loginBattleNet() {
     var api = JSON.parse(localStorage.getItem('ga_api') || '{}');
-    var proxy = api.proxy || '';
-    if (!proxy) {
-        proxy = prompt('URL do Worker (ex: https://midnight.victorscopel.workers.dev)');
-        if (!proxy) return;
-        proxy = proxy.trim().replace(/\/+$/, '');
-        api.proxy = proxy;
-        localStorage.setItem('ga_api', JSON.stringify(api));
-        var el = document.getElementById('cfg-proxy');
-        if (el) el.value = proxy;
-    }
+    var proxy = api.proxy || 'https://midnight.victorscopel.workers.dev';
     var workerUrl = proxy.replace(/\/+$/, '');
     window.location.href = workerUrl + '/auth/login';
 }

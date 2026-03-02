@@ -6,17 +6,17 @@
 function getAPICfg() {
     var saved = JSON.parse(localStorage.getItem('ga_api') || '{}');
     return {
-        proxy: (document.getElementById('cfg-proxy')?.value?.trim() || saved.proxy || ''),
+        proxy: (document.getElementById('cfg-proxy')?.value?.trim() || saved.proxy || 'https://midnight.victorscopel.workers.dev'),
         reg: (document.getElementById('cfg-reg')?.value || saved.reg || 'us'),
         loc: 'en_US',
-        realm: ((document.getElementById('imp-realm')?.value || document.getElementById('cfg-realm')?.value || saved.realm || '').trim().toLowerCase().replace(/ /g, '-')),
-        guild: ((document.getElementById('imp-guild')?.value || document.getElementById('cfg-guild')?.value || saved.guild || '').trim().toLowerCase().replace(/ /g, '-')),
+        realm: ((document.getElementById('imp-realm')?.value || document.getElementById('cfg-realm')?.value || saved.realm || 'azralon').trim().toLowerCase().replace(/ /g, '-')),
+        guild: ((document.getElementById('imp-guild')?.value || document.getElementById('cfg-guild')?.value || saved.guild || 'errow').trim().toLowerCase().replace(/ /g, '-')),
     };
 }
 
 function hasAPICfg() {
-    var a = JSON.parse(localStorage.getItem('ga_api') || '{}');
-    return !!(a.proxy && a.realm && a.guild);
+    var c = getAPICfg();
+    return !!(c.proxy && c.realm && c.guild);
 }
 
 function pbUrl(proxy) { return proxy.replace(/\/+$/, ''); }
