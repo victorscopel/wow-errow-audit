@@ -59,8 +59,11 @@ function hasPerm(level) {
 var PT_CLASS = { 'Warrior': 'Guerreiro', 'Paladin': 'Paladino', 'Hunter': 'Caçador', 'Rogue': 'Ladino', 'Priest': 'Sacerdote', 'Death Knight': 'Cavaleiro da Morte', 'Shaman': 'Xamã', 'Mage': 'Mago', 'Warlock': 'Bruxo', 'Monk': 'Monge', 'Druid': 'Druida', 'Demon Hunter': 'Caçador de Demônios', 'Evoker': 'Evocador', 'Devourer': 'Devorador' };
 var PT_SPEC = { 'Blood': 'Sangue', 'Frost DK': 'Gélido (DK)', 'Unholy': 'Profano', 'Havoc': 'Devastação', 'Vengeance': 'Vingança', 'Balance': 'Equilíbrio', 'Feral': 'Feral', 'Guardian': 'Guardião', 'Restoration': 'Restauração', 'Devastation': 'Devastação', 'Preservation': 'Preservação', 'Augmentation': 'Aprimoramento', 'Beast Mastery': 'Domínio das Feras', 'Marksmanship': 'Precisão', 'Survival': 'Sobrevivência', 'Arcane': 'Arcano', 'Fire': 'Fogo', 'Frost': 'Gélido', 'Brewmaster': 'Mestre Cervejeiro', 'Mistweaver': 'Tecelão da Névoa', 'Windwalker': 'Andarilho do Vento', 'Holy': 'Sagrado', 'Protection': 'Proteção', 'Retribution': 'Retribuição', 'Discipline': 'Disciplina', 'Shadow': 'Sombra', 'Assassination': 'Assassinato', 'Outlaw': 'Fora da Lei', 'Subtlety': 'Subterfúgio', 'Elemental': 'Elemental', 'Enhancement': 'Aperfeiçoamento', 'Affliction': 'Suplício', 'Demonology': 'Demonologia', 'Destruction': 'Destruição', 'Arms': 'Armas', 'Fury': 'Fúria', 'Soulrend': 'Dilaceralma', 'Fleshcraft': 'Modelar Carne' };
 
+var PT_ARMOR = { 'Cloth': 'Tecido', 'Leather': 'Couro', 'Mail': 'Malha', 'Plate': 'Placa' };
+
 function locClass(c) { return window._lang === 'pt-BR' ? (PT_CLASS[c] || c) : c; }
 function locSpec(s) { return window._lang === 'pt-BR' ? (PT_SPEC[s] || s) : s; }
+function locArmor(a) { return window._lang === 'pt-BR' ? (PT_ARMOR[a] || a) : a; }
 
 function translateIssue(raw) {
   if (raw.indexOf(':') !== -1) {
@@ -162,7 +165,7 @@ function renderRosterComp() {
     '<div class="comp-card"><div class="comp-title">' + T('role') + '</div>' +
     Object.entries(roles).map(function (e) { return '<div class="comp-row"><span class="comp-name">' + e[0] + '</span><span class="comp-val">' + e[1] + '</span></div>'; }).join('') + '</div>' +
     '<div class="comp-card"><div class="comp-title">' + T('armor') + '</div>' +
-    Object.entries(armCnt).map(function (e) { return '<div class="comp-row"><span class="comp-name">' + e[0] + '</span><span class="comp-val">' + e[1] + '</span></div>'; }).join('') + '</div>' +
+    Object.entries(armCnt).map(function (e) { return '<div class="comp-row"><span class="comp-name">' + locArmor(e[0]) + '</span><span class="comp-val">' + e[1] + '</span></div>'; }).join('') + '</div>' +
     '<div class="comp-card" style="min-width:300px"><div class="comp-title">' + T('classes') + '</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:0 10px">' + mkClsCol(clsCol1) + mkClsCol(clsCol2) + '</div></div>';
 }
 

@@ -188,7 +188,7 @@ const SPEC_NAME_ROLE = {
   'Arms': 'DPS Melee', 'Fury': 'DPS Melee', 'Havoc': 'DPS Melee', 'Feral': 'DPS Melee',
   'Survival': 'DPS Melee', 'Enhancement': 'DPS Melee', 'Assassination': 'DPS Melee', 'Outlaw': 'DPS Melee',
   'Subtlety': 'DPS Melee', 'Retribution': 'DPS Melee', 'Windwalker': 'DPS Melee', 'Unholy': 'DPS Melee',
-  'Soulrend': 'DPS Ranged', 'Fleshcraft': 'DPS Ranged', 'Devourer': 'DPS Melee',
+  'Soulrend': 'DPS Ranged', 'Fleshcraft': 'DPS Ranged', 'Devourer': 'DPS Ranged',
 };
 
 function inferRoleFromSpecId(specId) { return SPEC_ID_ROLE[specId] || null; }
