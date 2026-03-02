@@ -43,8 +43,9 @@ function saveLang() {
 }
 
 function T(k) {
-    var l = window._lang === 'pt-BR' ? ptBR : enUS;
-    return l[k] || enUS[k] || k;
+    var l = window._lang === 'pt-BR' ? 'pt_BR' : 'en';
+    if (I18N[k]) return I18N[k][l] || I18N[k]['en'] || k;
+    return k;
 }
 
 // ── Init ──────────────────────────────────────────────────
