@@ -16,8 +16,12 @@ var prevPage = 'overview';
 function ls(k) { return localStorage.getItem(k); }
 function lss(k, v) { localStorage.setItem(k, v); }
 function saveRoster() {
-    lss('ga_data', JSON.stringify(roster));
-    if (typeof startSyncRoster !== 'undefined') startSyncRoster();
+    var o = ls('ga_data') || '[]';
+    var n = JSON.stringify(roster);
+    if (o !== n) {
+        lss('ga_data', n);
+        if (typeof startSyncRoster !== 'undefined') startSyncRoster();
+    }
 }
 
 // ── API logger ────────────────────────────────────────────
@@ -95,10 +99,13 @@ function init() {
 }
 
 function saveCfg() {
-    ['si', 'sv', 'sr', 'sn', 'ar'].forEach(function (k) { CFG[k] = document.getElementById('cfg-' + k).checked; });
-    CFG.dispLang = document.getElementById('cfg-dispLang')?.value || 'en';
+    var oc = JSON.stringify(CFG);
+    ['si', 'sv', 'sr', 'sn', 'ar'].forEach(function (k) { CFG[k] = document.getElementById('cfg-' + k)?.checked || false; });
     CFG.ilvlMin = parseInt(document.getElementById('cfg-ilvlMin')?.value) || 0;
-    lss('ga_cfg', JSON.stringify(CFG));
+    var nc = JSON.stringify(CFG);
+    lss('ga_cfg', nc);
+    if (oc !== nc && typeof startSyncCfg !== 'undefined') startSyncCfg();
+    setupAR();
 }
 
 function saveAPI() {
@@ -126,7 +133,7 @@ function forceRefresh() {
     if (!hasPerm('officer')) { notify(T('Sem permissão. Faça Login.')); return; }
     if (!hasAPICfg()) { openImport(); return; }
     if (!roster.length) { notify(T('no_data')); return; }
-    refreshExisting();
+    refreshExisting(true);
 }
 
 // ── Navigation ────────────────────────────────────────────

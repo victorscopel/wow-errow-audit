@@ -15,7 +15,7 @@ function ilvlC(v) {
 }
 
 function qClass(q) { return { common: 'q-c', uncommon: 'q-u', rare: 'q-r', epic: 'q-e', legendary: 'q-l' }[q] || 'q-c'; }
-function whDomain() { return CFG && CFG.dispLang === 'pt_BR' ? 'pt.wowhead.com' : 'www.wowhead.com'; }
+function whDomain() { return window._lang === 'pt-BR' ? 'pt.wowhead.com' : 'www.wowhead.com'; }
 
 function ratingCol(r) {
   if (!r) return 'var(--text-dim)';
@@ -59,8 +59,8 @@ function hasPerm(level) {
 var PT_CLASS = { 'Warrior': 'Guerreiro', 'Paladin': 'Paladino', 'Hunter': 'Caçador', 'Rogue': 'Ladino', 'Priest': 'Sacerdote', 'Death Knight': 'Cavaleiro da Morte', 'Shaman': 'Xamã', 'Mage': 'Mago', 'Warlock': 'Bruxo', 'Monk': 'Monge', 'Druid': 'Druida', 'Demon Hunter': 'Caçador de Demônios', 'Evoker': 'Evocador', 'Devourer': 'Devorador' };
 var PT_SPEC = { 'Blood': 'Sangue', 'Frost DK': 'Glacial (DK)', 'Unholy': 'Profano', 'Havoc': 'Ruína', 'Vengeance': 'Vingança', 'Balance': 'Equilíbrio', 'Feral': 'Feral', 'Guardian': 'Guardião', 'Restoration': 'Restauração', 'Devastation': 'Devastação', 'Preservation': 'Preservação', 'Augmentation': 'Ampliação', 'Beast Mastery': 'Domínio das Feras', 'Marksmanship': 'Pontaria', 'Survival': 'Sobrevivência', 'Arcane': 'Arcano', 'Fire': 'Fogo', 'Frost': 'Glacial', 'Brewmaster': 'Mestre Cervejeiro', 'Mistweaver': 'Tecedora de Névoa', 'Windwalker': 'Andarilho do Vento', 'Holy': 'Sagrado', 'Protection': 'Proteção', 'Retribution': 'Retribuição', 'Discipline': 'Disciplina', 'Shadow': 'Sombra', 'Assassination': 'Assassinato', 'Outlaw': 'Fora-da-lei', 'Subtlety': 'Sutileza', 'Elemental': 'Elemental', 'Enhancement': 'Aprimoramento', 'Affliction': 'Aflição', 'Demonology': 'Demonologia', 'Destruction': 'Destruição', 'Arms': 'Armas', 'Fury': 'Fúria', 'Soulrend': 'Dilaceralma', 'Fleshcraft': 'Modelar Carne' };
 
-function locClass(c) { return CFG.dispLang === 'pt_BR' ? (PT_CLASS[c] || c) : c; }
-function locSpec(s) { return CFG.dispLang === 'pt_BR' ? (PT_SPEC[s] || s) : s; }
+function locClass(c) { return window._lang === 'pt-BR' ? (PT_CLASS[c] || c) : c; }
+function locSpec(s) { return window._lang === 'pt-BR' ? (PT_SPEC[s] || s) : s; }
 
 function translateIssue(raw) {
   if (raw.indexOf(':') !== -1) {
@@ -310,7 +310,7 @@ function buildSidebar(c, id) {
     '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
     '<a href="https://raider.io/characters/us/' + (c.realm || 'azralon') + '/' + c.name.toLowerCase() + '" target="_blank" class="btn btn-secondary btn-sm">Raider.IO</a>' +
     '<a href="https://www.warcraftlogs.com/character/us/' + (c.realm || 'azralon') + '/' + c.name.toLowerCase() + '" target="_blank" class="btn btn-secondary btn-sm">WCL</a>' +
-    '<a href="https://worldofwarcraft.blizzard.com/' + (CFG.dispLang === 'pt_BR' ? 'pt-br' : 'en-us') + '/character/us/' + (c.realm || 'azralon') + '/' + c.name.toLowerCase() + '" target="_blank" class="btn btn-secondary btn-sm">Armory</a>' +
+    '<a href="https://worldofwarcraft.blizzard.com/' + (window._lang === 'pt-BR' ? 'pt-br' : 'en-us') + '/character/us/' + (c.realm || 'azralon') + '/' + c.name.toLowerCase() + '" target="_blank" class="btn btn-secondary btn-sm">Armory</a>' +
     '</div></div>' +
     (c.mythicRating ? '<div class="info-card"><div class="info-card-title">Mythic+</div><div style="font-family:\'Syne\',sans-serif;font-size:1.5rem;font-weight:800;color:' + ratingCol(c.mythicRating) + '">' + c.mythicRating + '</div><div style="font-size:.85rem;color:var(--text-dim);margin-top:3px">' + ratingTier(c.mythicRating) + '</div></div>' : '') +
     '<div class="info-card"><div class="info-card-title">' + T('note') + '</div>' +

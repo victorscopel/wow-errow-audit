@@ -292,12 +292,12 @@ async function fetchAPI(silent) {
     }
 }
 
-async function refreshExisting() {
+async function refreshExisting(force) {
     var cfg = getAPICfg();
     if (!cfg.proxy) return;
     if (window._perm === 'guest') return;
 
-    if (roster.length > 0 && roster[0].lastUpdated) {
+    if (!force && roster.length > 0 && roster[0].lastUpdated) {
         var lu = new Date(roster[0].lastUpdated).getTime();
         var diffMinutes = (Date.now() - lu) / 60000;
         if (diffMinutes < 15) return;
@@ -444,7 +444,7 @@ async function loadBackendRoster() {
     var cfg = getAPICfg();
     if (!cfg.proxy) return;
     try {
-        var r = await fetch(pbUrl(cfg.proxy) + '/api/roster');
+        var r = await fetch(pbUrl(cfg.proxy) + '/api/roster?t=' + Date.now());
         if (r.ok) {
             var data = await r.json();
             if (Array.isArray(data) && data.length) {
@@ -473,7 +473,7 @@ async function loadBackendCfg() {
     var cfg = getAPICfg();
     if (!cfg.proxy) return;
     try {
-        var r = await fetch(pbUrl(cfg.proxy) + '/api/cfg');
+        var r = await fetch(pbUrl(cfg.proxy) + '/api/cfg?t=' + Date.now());
         if (r.ok) {
             var data = await r.json();
             if (data && typeof data === 'object') {
