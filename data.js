@@ -115,8 +115,8 @@ var SLOT_LABELS_PT = {
 };
 
 function slotLabel(slot) {
-  var lang = (typeof CFG !== 'undefined' && CFG.dispLang) || 'en';
-  return lang === 'pt_BR' ? (SLOT_LABELS_PT[slot] || slot) : (SLOT_LABELS_EN[slot] || slot);
+  var lang = window._lang || 'en';
+  return lang === 'pt-BR' ? (SLOT_LABELS_PT[slot] || slot) : (SLOT_LABELS_EN[slot] || slot);
 }
 
 // ── Class/Spec data ──────────────────────────────────────
