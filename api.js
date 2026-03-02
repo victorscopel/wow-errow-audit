@@ -295,10 +295,23 @@ async function fetchAPI(silent) {
 async function refreshExisting() {
     var cfg = getAPICfg();
     if (!cfg.proxy) return;
+    if (window._perm === 'guest') return;
+
+    if (roster.length > 0 && roster[0].lastUpdated) {
+        var lu = new Date(roster[0].lastUpdated).getTime();
+        var diffMinutes = (Date.now() - lu) / 60000;
+        if (diffMinutes < 15) return;
+    }
+
     var btn = document.getElementById('btnRefresh');
     if (btn) { btn.textContent = '↻ ...'; btn.disabled = true; }
+
+    var token = await getToken(cfg).catch(function () { return null; });
+    if (!token) {
+        if (btn) { btn.textContent = '↻ ' + T('refresh'); btn.disabled = false; }
+        return;
+    }
     try {
-        var token = await getToken(cfg);
         var updated = 0;
         for (var i = 0; i < roster.length; i++) {
             var c = roster[i];
@@ -452,6 +465,44 @@ async function startSyncRoster() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
             body: JSON.stringify(roster)
+        }).catch(function () { });
+    } catch (e) { }
+}
+
+async function loadBackendCfg() {
+    var cfg = getAPICfg();
+    if (!cfg.proxy) return;
+    try {
+        var r = await fetch(pbUrl(cfg.proxy) + '/api/cfg');
+        if (r.ok) {
+            var data = await r.json();
+            if (data && typeof data === 'object') {
+                CFG = Object.assign({}, CFG, data);
+                localStorage.setItem('ga_cfg', JSON.stringify(CFG));
+
+                ['si', 'sv', 'sr', 'sn', 'ar'].forEach(function (k) {
+                    var el = document.getElementById('cfg-' + k);
+                    if (el) el.checked = !!CFG[k];
+                });
+                var imEl = document.getElementById('cfg-ilvlMin');
+                if (imEl) imEl.value = CFG.ilvlMin || 0;
+
+                renderAll();
+                setupAR();
+            }
+        }
+    } catch (e) { }
+}
+
+async function startSyncCfg() {
+    var cfg = getAPICfg();
+    var jwt = localStorage.getItem('ga_jwt') || '';
+    if (!cfg.proxy || !jwt || window._perm === 'guest') return;
+    try {
+        fetch(pbUrl(cfg.proxy) + '/api/cfg', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
+            body: JSON.stringify(CFG)
         }).catch(function () { });
     } catch (e) { }
 }

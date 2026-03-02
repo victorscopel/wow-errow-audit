@@ -5,7 +5,8 @@
 
 // ── State ─────────────────────────────────────────────────
 var roster = [];
-var CFG = { si: true, sv: true, sr: true, sn: true, ar: true, dispLang: 'en', ilvlMin: 0 };
+var CFG = { si: true, sv: true, sr: true, sn: true, ar: true, ilvlMin: 0 };
+window._lang = localStorage.getItem('ga_lang') || 'pt-BR';
 var sortC = 'ilvl', sortD = -1;
 var ovSortC = 'ilvl', ovSortD = -1;
 var arTimer = null;
@@ -32,6 +33,20 @@ function lg(msg, type) {
 }
 function sprog(p) { var el = document.getElementById('aprog'); if (el) el.style.width = p + '%'; }
 
+// ── Locales ───────────────────────────────────────────────
+function saveLang() {
+    var dlEl = document.getElementById('cfg-dispLang');
+    if (dlEl) {
+        window._lang = dlEl.value;
+        localStorage.setItem('ga_lang', window._lang);
+    }
+}
+
+function T(k) {
+    var l = window._lang === 'pt-BR' ? ptBR : enUS;
+    return l[k] || enUS[k] || k;
+}
+
 // ── Init ──────────────────────────────────────────────────
 function init() {
     initAuth();
@@ -45,10 +60,10 @@ function init() {
         var el = document.getElementById('cfg-' + k);
         if (el) el.checked = CFG[k];
     });
-    var dlEl = document.getElementById('cfg-dispLang');
-    if (dlEl) dlEl.value = CFG.dispLang || 'en';
     var imEl = document.getElementById('cfg-ilvlMin');
     if (imEl) imEl.value = CFG.ilvlMin || 0;
+    var dlEl = document.getElementById('cfg-dispLang');
+    if (dlEl) dlEl.value = window._lang;
 
     var sa = ls('ga_api');
     if (sa) {
@@ -70,9 +85,10 @@ function init() {
 
     if (hasAPICfg()) {
         if (typeof loadBackendRoster !== 'undefined') loadBackendRoster();
+        if (typeof loadBackendCfg !== 'undefined') loadBackendCfg();
     }
 
-    if (CFG.ar && hasAPICfg() && roster.length) {
+    if (CFG.ar && hasAPICfg() && roster.length && hasPerm('officer')) {
         setTimeout(function () { refreshExisting(); }, 2000);
     }
 }
@@ -98,7 +114,7 @@ function saveAPI() {
 function setupAR() {
     clearInterval(arTimer);
     document.getElementById('rdot').classList.toggle('off', !CFG.ar);
-    if (CFG.ar) {
+    if (CFG.ar && hasPerm('officer')) {
         arTimer = setInterval(function () {
             if (hasAPICfg() && roster.length) refreshExisting();
         }, 15 * 60 * 1000);
@@ -106,6 +122,7 @@ function setupAR() {
 }
 
 function forceRefresh() {
+    if (!hasPerm('officer')) { notify(T('Sem permissão. Faça Login.')); return; }
     if (!hasAPICfg()) { openImport(); return; }
     if (!roster.length) { notify(T('no_data')); return; }
     refreshExisting();
