@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GuildAudit</title>
+  <meta name="description" content="WoW Guild Audit — track gear, enchants, gems and M+ ratings for your raid roster.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+  <div class="app-container">
+
+    <header class="hdr">
+      <div class="hdr-left">
+        <div class="hdr-title" id="hdr-title">GuildAudit</div>
+        <div class="hdr-meta"><span id="rdot"></span><span id="rts">—</span></div>
+      </div>
+      <div class="hdr-right">
+        <span id="hmeta" style="font-size:.85rem;color:var(--text-dim)"></span>
+        <button class="btn btn-secondary btn-sm perm-admin perm-inline" onclick="forceRefresh()" id="btnRefresh">↻ <span
+            class="t-refresh">Atualizar</span></button>
+        <button class="btn btn-secondary btn-sm perm-admin perm-inline" onclick="exportJSON()">⬇ <span
+            class="t-export">Exportar</span></button>
+        <button class="btn btn-primary btn-sm perm-admin perm-inline" onclick="openImport()">⬆ <span
+            class="t-import">Importar</span></button>
+        <div id="user-info" style="display:none;align-items:center;gap:8px">
+          <span id="user-battletag" style="font-size:.85rem;color:var(--text)"></span>
+          <span id="user-perm" class="perm-badge"></span>
+          <button class="btn btn-secondary btn-sm" onclick="logoutBattleNet()" title="Logout">⏻</button>
+        </div>
+        <button id="btn-login" class="btn btn-primary btn-sm" onclick="loginBattleNet()">🔗 Login</button>
+      </div>
+    </header>
+
+    <div class="nav" id="navTabs">
+      <button class="nav-tab active" data-page="overview" onclick="showPage('overview',this)"><span
+          class="t-overview">Overview</span></button>
+      <button class="nav-tab perm-officer" data-page="roster" onclick="showPage('roster',this)"><span
+          class="t-roster">Roster</span></button>
+      <button class="nav-tab" data-page="vault" onclick="showPage('vault',this)"><span class="t-vault">Great
+          Vault</span></button>
+      <button class="nav-tab perm-officer" data-page="settings" onclick="showPage('settings',this)"><span
+          class="t-settings">Configurações</span></button>
+    </div>
+
+    <!-- ═══ OVERVIEW ══════════════════════════════════════════════ -->
+    <div class="page active" id="page-overview">
+      <div class="stat-grid" id="statsGrid">
+        <div class="stat-card">
+          <div class="stat-label" id="sl-members">Membros</div>
+          <div class="stat-val" id="st-t">0</div>
+          <div class="stat-sub" id="ss-raiders">raiders</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label" id="sl-avgilvl">iLvl Médio</div>
+          <div class="stat-val" id="st-a">—</div>
+          <div class="stat-sub" id="ss-equipped">equipado</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label" id="sl-maxilvl">iLvl Máx</div>
+          <div class="stat-val" id="st-m">—</div>
+          <div class="stat-sub" id="ss-highest">melhor</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label" id="sl-ready">Prontos</div>
+          <div class="stat-val" id="st-r">0</div>
+          <div class="stat-sub" id="ss-noissues">sem issues</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label" id="sl-issues">Issues</div>
+          <div class="stat-val" id="st-i">0</div>
+          <div class="stat-sub" id="ss-problems">com problema</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label" id="sl-missing">Faltando</div>
+          <div class="stat-val" id="st-e">0</div>
+          <div class="stat-sub" id="ss-enchgems">enchants/gems</div>
+        </div>
+      </div>
+      <div class="comp-grid" id="compGrid"></div>
+      <div class="section-title" id="st-ranking">Ranking por iLvl</div>
+      <div id="ovTable"></div>
+    </div>
+
+    <!-- ═══ ROSTER (officer only) ═════════════════════════════════ -->
+    <div class="page" id="page-roster">
+      <div class="comp-grid" id="rosterCompGrid"></div>
+      <div class="toolbar">
+        <input type="text" id="srch" placeholder="Buscar..." oninput="debouncedRoster()">
+      </div>
+
+      <div style="margin-bottom:16px">
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px">
+          <div
+            style="font-weight:700;font-size:.85rem;color:var(--gold-light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">
+            Adicionar Membro</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+            <div style="flex:1;min-width:140px"><label style="font-size:.75rem;color:var(--text-dim)">Nome</label><input
+                type="text" id="add-n" placeholder="Arthas" class="form-input"></div>
+            <div style="flex:1;min-width:140px"><label
+                style="font-size:.75rem;color:var(--text-dim)">Realm</label><input type="text" id="add-r"
+                placeholder="azralon" class="form-input"></div>
+            <button class="btn btn-primary btn-sm" onclick="trackChar()">🔍 Buscar e Adicionar</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="rosterTable"></div>
+    </div>
+
+    <!-- ═══ GREAT VAULT ═══════════════════════════════════════════ -->
+    <div class="page" id="page-vault">
+      <div class="section-title">Great Vault</div>
+      <div id="vaultTable"></div>
+    </div>
+
+    <!-- ═══ SETTINGS (officer+) ═══════════════════════════════════ -->
+    <div class="page" id="page-settings">
+      <div class="settings-grid">
+
+        <div class="settings-card">
+          <h3 id="sc-display">Exibição</h3>
+          <label><span class="toggle"><input type="checkbox" id="cfg-si" checked onchange="saveCfg();renderAll()"><span
+                class="toggle-slider"></span></span> <span class="t-show-issues">Exibir Issues</span></label>
+          <label><span class="toggle"><input type="checkbox" id="cfg-sv" checked onchange="saveCfg();renderAll()"><span
+                class="toggle-slider"></span></span> <span class="t-show-vault">Exibir Vault</span></label>
+          <label><span class="toggle"><input type="checkbox" id="cfg-sr" checked onchange="saveCfg();renderAll()"><span
+                class="toggle-slider"></span></span> <span class="t-show-rating">Exibir M+ Rating</span></label>
+          <label><span class="toggle"><input type="checkbox" id="cfg-sn" checked onchange="saveCfg();renderAll()"><span
+                class="toggle-slider"></span></span> <span class="t-show-notes">Exibir Notas</span></label>
+          <label><span class="toggle"><input type="checkbox" id="cfg-ar" checked onchange="saveCfg();setupAR()"><span
+                class="toggle-slider"></span></span> <span class="t-auto-refresh">Auto-refresh (15min)</span></label>
+          <div style="margin-top:12px">
+            <label style="font-weight:600" id="lbl-lang">Idioma de Exibição</label>
+            <select id="cfg-dispLang" class="form-select" style="width:100%;margin-top:4px"
+              onchange="saveCfg();applyI18n();renderAll()">
+              <option value="en">English</option>
+              <option value="pt_BR">Português (BR)</option>
+            </select>
+          </div>
+          <div style="margin-top:12px">
+            <label style="font-weight:600" id="lbl-ilvl-min">iLvl Mínimo</label>
+            <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:4px" class="t-ilvl-min-desc">Destacar
+              jogadores abaixo deste iLvl</div>
+            <input type="number" id="cfg-ilvlMin" class="form-input" placeholder="0" value="0"
+              onchange="saveCfg();renderAll()" style="width:120px">
+          </div>
+        </div>
+
+        <div class="settings-card perm-admin perm-block">
+          <h3 id="sc-api">API Blizzard</h3>
+          <label style="font-size:.8rem">URL do Proxy</label>
+          <input type="text" id="cfg-proxy" placeholder="https://your-worker.workers.dev/">
+          <label style="font-size:.8rem">Client ID</label>
+          <input type="text" id="cfg-cid">
+          <label style="font-size:.8rem">Client Secret</label>
+          <input type="password" id="cfg-cs">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div><label style="font-size:.8rem">Região</label><select id="cfg-reg" class="form-select"
+                style="width:100%">
+                <option value="us">US</option>
+                <option value="eu">EU</option>
+              </select></div>
+            <div><label style="font-size:.8rem">Realm</label><input type="text" id="cfg-realm" placeholder="azralon">
+            </div>
+          </div>
+          <label style="font-size:.8rem">Guild</label>
+          <input type="text" id="cfg-guild" placeholder="errow">
+          <div class="warn-box">⚠ O client_secret fica no localStorage. Para produção, mova a autenticação para o
+            Worker.</div>
+          <button class="btn btn-primary" onclick="saveAPI()" style="width:100%">💾 Salvar</button>
+        </div>
+
+        <div class="settings-card perm-admin perm-block">
+          <h3 id="sc-data">Dados</h3>
+          <div style="display:grid;gap:8px">
+            <button class="btn btn-secondary" onclick="exportJSON()">⬇ Exportar JSON</button>
+            <button class="btn btn-secondary" onclick="exportCSV()">📊 Exportar CSV</button>
+            <label style="font-size:.8rem">Importar JSON</label>
+            <textarea id="json-in" class="form-input" style="height:60px;resize:vertical"></textarea>
+            <button class="btn btn-secondary" onclick="importJSON()">📥 Importar</button>
+            <button class="btn btn-secondary" onclick="loadDemo()">🎮 Carregar Demo</button>
+            <button class="btn btn-danger" onclick="clearAll()">🗑 Limpar Todos os Dados</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ CHARACTER PAGE ════════════════════════════════════════ -->
+    <div id="charPage">
+      <div class="char-page-header">
+        <button class="btn btn-secondary btn-sm" onclick="backFromChar()"><span class="t-back">← Voltar</span></button>
+        <span id="cp-bc" style="font-size:.8rem;color:var(--text-dim)"></span>
+      </div>
+      <div class="char-page-body">
+        <div class="char-sidebar" id="cp-sidebar"></div>
+        <div class="char-main" id="cp-main"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ IMPORT MODAL ══════════════════════════════════════════ -->
+  <div class="mo" id="importMo">
+    <div class="mo-box">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div class="mo-title" style="margin:0">Importar — Blizzard API</div>
+        <button class="btn btn-secondary btn-sm" onclick="closeMo('importMo')">✕</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <div><label style="font-size:.85rem">Realm</label><input type="text" id="imp-realm" placeholder="azralon"
+            class="form-input"></div>
+        <div><label style="font-size:.85rem">Guild</label><input type="text" id="imp-guild" placeholder="errow"
+            class="form-input"></div>
+      </div>
+      <button class="btn btn-primary" onclick="fetchAPI()" style="width:100%">🔗 Importar (ranks 0–2)</button>
+      <div class="progress-bar">
+        <div class="progress-bar-fill" id="aprog"></div>
+      </div>
+      <div id="alog"></div>
+    </div>
+  </div>
+
+  <div id="notif"></div>
+
+  <script src="data.js"></script>
+  <script src="api.js"></script>
+  <script src="render.js"></script>
+  <script src="auth.js"></script>
+  <script src="app.js"></script>
+  <script>
+    window.whTooltips = { colorLinks: false, iconizeLinks: false, renameLinks: true };
+  </script>
+  <script src="https://wow.zamimg.com/widgets/power.js" async></script>
+
+</body>
+
+</html>
