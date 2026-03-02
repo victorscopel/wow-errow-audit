@@ -14,7 +14,10 @@ var prevPage = 'overview';
 // ── Storage helpers ───────────────────────────────────────
 function ls(k) { return localStorage.getItem(k); }
 function lss(k, v) { localStorage.setItem(k, v); }
-function saveRoster() { lss('ga_data', JSON.stringify(roster)); }
+function saveRoster() {
+    lss('ga_data', JSON.stringify(roster));
+    if (typeof startSyncRoster !== 'undefined') startSyncRoster();
+}
 
 // ── API logger ────────────────────────────────────────────
 var alog = [];
@@ -64,6 +67,10 @@ function init() {
     renderAll();
     setupAR();
     refreshWowheadTooltips();
+
+    if (hasAPICfg()) {
+        if (typeof loadBackendRoster !== 'undefined') loadBackendRoster();
+    }
 
     if (CFG.ar && hasAPICfg() && roster.length) {
         setTimeout(function () { refreshExisting(); }, 2000);

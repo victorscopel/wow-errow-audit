@@ -426,3 +426,32 @@ async function trackChar() {
         getToken(cfg).then(function (tok) { fetchItemIcons(cfg, tok); }).catch(function () { });
     } catch (e) { notify('Erro: ' + e.message); }
 }
+
+async function loadBackendRoster() {
+    var cfg = getAPICfg();
+    if (!cfg.proxy) return;
+    try {
+        var r = await fetch(pbUrl(cfg.proxy) + '/api/roster');
+        if (r.ok) {
+            var data = await r.json();
+            if (Array.isArray(data) && data.length) {
+                roster = data;
+                localStorage.setItem('ga_data', JSON.stringify(roster));
+                renderAll();
+            }
+        }
+    } catch (e) { }
+}
+
+async function startSyncRoster() {
+    var cfg = getAPICfg();
+    var jwt = localStorage.getItem('ga_jwt') || '';
+    if (!cfg.proxy || !jwt || window._perm === 'guest') return;
+    try {
+        fetch(pbUrl(cfg.proxy) + '/api/roster', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
+            body: JSON.stringify(roster)
+        }).catch(function () { });
+    } catch (e) { }
+}
