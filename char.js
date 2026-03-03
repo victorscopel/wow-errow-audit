@@ -79,7 +79,7 @@ function buildStatsCard(c) {
     ];
     var maxSec = Math.max.apply(null, secondaries.map(function (x) { return x.value; }));
     if (maxSec < 1) maxSec = 1;
-    var html = '<div class="info-card"><div class="info-card-title" style="margin-bottom:10px">' + T('attributes') + '</div>';
+    var html = '<div class="info-card"><div class="info-card-title" style="margin-bottom:18px">' + T('attributes') + '</div>';
     html += '<div class="stat-row"><span class="stat-label">' + T(primaryKey) + '</span>';
     html += '<span class="stat-val" style="color:var(--gold)">' + primary + '</span></div>';
     html += '<div class="stat-row" style="margin-bottom:10px"><span class="stat-label">' + T('stamina') + '</span>';
@@ -106,7 +106,7 @@ function buildTalentIcons(talents) {
     for (var i = 0; i < talents.length; i++) {
         var t = talents[i];
         var href = t.spellId ? 'https://' + whDomain() + '/spell=' + t.spellId : '#';
-        var whAttr = t.spellId ? ' data-wowhead="spell=' + t.spellId + '" data-wh-icon-size="medium"' : '';
+        var whAttr = t.spellId ? ' data-wowhead="spell=' + t.spellId + '" data-wh-icon-size="medium" data-wh-rename-link="false"' : '';
         html += '<a href="' + href + '" target="_blank" class="talent-icon-link"' + whAttr + '>';
         if (t.rank > 1) html += '<span class="talent-rank-badge">' + t.rank + '</span>';
         html += '</a>';
