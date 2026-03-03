@@ -336,6 +336,59 @@ function buildSidebar(c, id) {
     (canEdit ? '<button class="btn btn-danger" style="width:100%;margin-top:4px" onclick="rmMember(\'' + id + '\');backFromChar()">' + T('remove') + '</button>' : '');
 }
 
+function buildStatsCard(c) {
+  if (!c.stats) return '';
+  var s = c.stats;
+  var primary = s.intellect || s.strength || s.agility || 0;
+  var primaryLabel = s.intellect ? 'Intelecto' : (s.strength ? 'Força' : 'Agilidade');
+  var secondaries = [
+    { label: 'Crítico', value: s.crit, color: '#e74c3c' },
+    { label: 'Aceleração', value: s.haste, color: '#f1c40f' },
+    { label: 'Maestria', value: s.mastery, color: '#3498db' },
+    { label: 'Versatilidade', value: s.versatility, color: '#2ecc71' },
+  ];
+  var maxSec = Math.max.apply(null, secondaries.map(function (x) { return x.value; }));
+  if (maxSec < 1) maxSec = 1;
+  var html = '<div class="info-card"><div class="info-card-title">Atributos</div>';
+  html += '<div style="display:flex;justify-content:space-between;margin-bottom:12px;padding:6px 0;border-bottom:1px solid var(--border)">';
+  html += '<span style="color:var(--text-dim);font-size:.8rem">' + primaryLabel + '</span>';
+  html += '<span style="font-weight:700;font-size:.9rem;color:var(--gold)">' + primary + '</span></div>';
+  html += '<div style="display:flex;justify-content:space-between;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">';
+  html += '<span style="color:var(--text-dim);font-size:.8rem">Vigor</span>';
+  html += '<span style="font-weight:700;font-size:.9rem;color:var(--text)">' + s.stamina + '</span></div>';
+  for (var i = 0; i < secondaries.length; i++) {
+    var sec = secondaries[i];
+    var pct = Math.min((sec.value / maxSec) * 100, 100);
+    html += '<div style="margin-bottom:8px">';
+    html += '<div style="display:flex;justify-content:space-between;margin-bottom:3px">';
+    html += '<span style="font-size:.8rem;color:var(--text-dim)">' + sec.label + '</span>';
+    html += '<span style="font-size:.85rem;font-weight:700;color:' + sec.color + '">' + sec.value.toFixed(2) + '%</span>';
+    html += '</div>';
+    html += '<div style="background:var(--bg1);border-radius:4px;height:6px;overflow:hidden">';
+    html += '<div style="width:' + pct.toFixed(1) + '%;height:100%;background:' + sec.color + ';border-radius:4px;transition:width .4s ease"></div>';
+    html += '</div></div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function buildTalentsSection(c) {
+  if (!c.talents || !c.talents.length) return '';
+  var html = '<div class="info-card"><div class="info-card-title">Talentos (' + c.talents.length + ')</div>';
+  html += '<div class="talent-grid">';
+  for (var i = 0; i < c.talents.length; i++) {
+    var t = c.talents[i];
+    var whAttr = t.spellId ? ' data-wowhead="spell=' + t.spellId + '"' : '';
+    var href = t.spellId ? 'https://' + whDomain() + '/spell=' + t.spellId : '#';
+    html += '<a href="' + href + '" target="_blank" class="talent-node"' + whAttr + ' title="' + esc(t.name) + '">';
+    html += '<span class="talent-name">' + esc(t.name) + '</span>';
+    if (t.rank > 1) html += '<span class="talent-rank">' + t.rank + '</span>';
+    html += '</a>';
+  }
+  html += '</div></div>';
+  return html;
+}
+
 function buildGearGrid(c) {
   var imgUrls = [];
   var html = '<div class="gear-grid">';
@@ -381,7 +434,11 @@ function renderCharPage(id) {
   var gearResult = buildGearGrid(c);
   preloadImages(gearResult.imgUrls).then(function () {
     document.getElementById('cp-sidebar').innerHTML = sidebar;
-    document.getElementById('cp-main').innerHTML = gearResult.html;
+    var mainHtml = '';
+    mainHtml += buildStatsCard(c);
+    mainHtml += buildTalentsSection(c);
+    mainHtml += gearResult.html;
+    document.getElementById('cp-main').innerHTML = mainHtml;
     refreshWowheadTooltips();
   });
 }

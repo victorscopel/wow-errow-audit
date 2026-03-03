@@ -998,6 +998,51 @@ a.whl {
   width: 0;
 }
 
+/* ── Talent Grid ───────────────────────────────────────── */
+.talent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 6px;
+}
+
+.talent-node {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 6px 10px;
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all .15s;
+  cursor: pointer;
+}
+
+.talent-node:hover {
+  border-color: var(--gold);
+  background: var(--bg3);
+  box-shadow: 0 0 8px rgba(255, 204, 0, .15);
+}
+
+.talent-name {
+  font-size: .75rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.talent-rank {
+  font-size: .65rem;
+  font-weight: 700;
+  color: var(--gold);
+  background: rgba(255, 204, 0, .12);
+  padding: 1px 5px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
 /* ── Warning box ────────────────────────────────────────── */
 .warn-box {
   background: rgba(248, 81, 73, .08);

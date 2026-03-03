@@ -189,8 +189,10 @@ async function fetchAPI(silent) {
                     apiFetch(cfg, charUrl(cfg, charRealm, cn, '/equipment'), token),
                     apiFetch(cfg, charUrl(cfg, charRealm, cn), token),
                     apiFetch(cfg, charUrl(cfg, charRealm, cn, '/mythic-keystone-profile'), token),
+                    apiFetch(cfg, charUrl(cfg, charRealm, cn, '/statistics'), token),
+                    apiFetch(cfg, charUrl(cfg, charRealm, cn, '/specializations'), token),
                 ]);
-                var eqR = fetches[0], sumR = fetches[1], mpR = fetches[2];
+                var eqR = fetches[0], sumR = fetches[1], mpR = fetches[2], statsR = fetches[3], specR = fetches[4];
 
                 if (!sumR.ok) {
                     if (!silent) lg('⚠ ' + m.character.name + ' (' + charRealm + '): perfil não encontrado', 'warn');
@@ -220,6 +222,45 @@ async function fetchAPI(silent) {
                         x.realm === charRealm;
                 });
 
+                var charStats = null;
+                if (statsR.ok && statsR.json) {
+                    var s = statsR.json;
+                    charStats = {
+                        stamina: s.stamina?.effective || 0,
+                        intellect: s.intellect?.effective || 0,
+                        strength: s.strength?.effective || 0,
+                        agility: s.agility?.effective || 0,
+                        crit: s.melee_crit?.value || s.ranged_crit?.value || s.spell_crit?.value || 0,
+                        haste: s.melee_haste?.value || s.ranged_haste?.value || s.spell_haste?.value || 0,
+                        mastery: s.mastery?.value || 0,
+                        versatility: s.versatility_damage_done_bonus || 0,
+                        versDR: s.versatility_damage_taken_reduction_bonus || 0,
+                    };
+                }
+
+                var charTalents = null;
+                if (specR.ok && specR.json) {
+                    var activeSpec = specR.json.active_specialization;
+                    var specs = specR.json.specializations || [];
+                    var activeTree = specs.find(function (sp) {
+                        return sp.specialization && activeSpec &&
+                            sp.specialization.id === activeSpec.id;
+                    });
+                    if (activeTree && activeTree.loadouts && activeTree.loadouts.length > 0) {
+                        var loadout = activeTree.loadouts[0];
+                        var nodes = (loadout.selected_class_talents || []).concat(loadout.selected_spec_talents || []);
+                        charTalents = nodes.map(function (n) {
+                            return {
+                                id: n.id,
+                                rank: n.rank || 1,
+                                name: n.tooltip?.talent?.name || n.tooltip?.spell_tooltip?.spell?.name || '?',
+                                spellId: n.tooltip?.spell_tooltip?.spell?.id || null,
+                                icon: n.tooltip?.spell_tooltip?.spell?.key?.href || null,
+                            };
+                        });
+                    }
+                }
+
                 results.push({
                     name: sum.name || m.character.name,
                     realm: charRealm,
@@ -234,6 +275,8 @@ async function fetchAPI(silent) {
                     vault: vault,
                     gear: parsed.gear,
                     issues: parsed.issues,
+                    stats: charStats,
+                    talents: charTalents,
                     renderUrl: existing?.renderUrl || null,
                     lastUpdated: new Date().toISOString(),
                 });
@@ -397,8 +440,10 @@ async function trackChar() {
             apiFetch(cfg, charUrl(cfg, realm, name, '/equipment'), token),
             apiFetch(cfg, charUrl(cfg, realm, name), token),
             apiFetch(cfg, charUrl(cfg, realm, name, '/mythic-keystone-profile'), token),
+            apiFetch(cfg, charUrl(cfg, realm, name, '/statistics'), token),
+            apiFetch(cfg, charUrl(cfg, realm, name, '/specializations'), token),
         ]);
-        var eqR = fetches[0], sumR = fetches[1], mpR = fetches[2];
+        var eqR = fetches[0], sumR = fetches[1], mpR = fetches[2], statsR = fetches[3], specR = fetches[4];
         if (!sumR.ok) { notify('"' + name + '" não encontrado em ' + realm + '.'); return; }
 
         var sum = sumR.json;
@@ -417,11 +462,51 @@ async function trackChar() {
         var existingIdx = roster.findIndex(function (x) {
             return x.name.toLowerCase() === (sum.name || name).toLowerCase() && x.realm === charRealm;
         });
+        var charStats = null;
+        if (statsR.ok && statsR.json) {
+            var s = statsR.json;
+            charStats = {
+                stamina: s.stamina?.effective || 0,
+                intellect: s.intellect?.effective || 0,
+                strength: s.strength?.effective || 0,
+                agility: s.agility?.effective || 0,
+                crit: s.melee_crit?.value || s.ranged_crit?.value || s.spell_crit?.value || 0,
+                haste: s.melee_haste?.value || s.ranged_haste?.value || s.spell_haste?.value || 0,
+                mastery: s.mastery?.value || 0,
+                versatility: s.versatility_damage_done_bonus || 0,
+                versDR: s.versatility_damage_taken_reduction_bonus || 0,
+            };
+        }
+
+        var charTalents = null;
+        if (specR.ok && specR.json) {
+            var activeSpecObj = specR.json.active_specialization;
+            var specsList = specR.json.specializations || [];
+            var activeTreeObj = specsList.find(function (sp) {
+                return sp.specialization && activeSpecObj &&
+                    sp.specialization.id === activeSpecObj.id;
+            });
+            if (activeTreeObj && activeTreeObj.loadouts && activeTreeObj.loadouts.length > 0) {
+                var ld = activeTreeObj.loadouts[0];
+                var nds = (ld.selected_class_talents || []).concat(ld.selected_spec_talents || []);
+                charTalents = nds.map(function (n) {
+                    return {
+                        id: n.id,
+                        rank: n.rank || 1,
+                        name: n.tooltip?.talent?.name || n.tooltip?.spell_tooltip?.spell?.name || '?',
+                        spellId: n.tooltip?.spell_tooltip?.spell?.id || null,
+                        icon: n.tooltip?.spell_tooltip?.spell?.key?.href || null,
+                    };
+                });
+            }
+        }
+
         var entry = {
             name: sum.name || name, realm: charRealm, class: charClassEN,
             spec: specName, specId: specId, role: role, note: '', ilvl: sum.equipped_item_level,
             mythicRating: mpR.ok ? (mpR.json?.current_mythic_rating?.rating | 0) || null : null,
             vault: vault, gear: parsed.gear, issues: parsed.issues,
+            stats: charStats, talents: charTalents,
             renderUrl: renderUrl,
             lastUpdated: new Date().toISOString()
         };
