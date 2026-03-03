@@ -231,9 +231,13 @@ async function fetchAPI(silent) {
                         strength: s.strength?.effective || 0,
                         agility: s.agility?.effective || 0,
                         crit: s.melee_crit?.value || s.ranged_crit?.value || s.spell_crit?.value || 0,
+                        critRating: s.melee_crit?.rating || s.ranged_crit?.rating || s.spell_crit?.rating || 0,
                         haste: s.melee_haste?.value || s.ranged_haste?.value || s.spell_haste?.value || 0,
+                        hasteRating: s.melee_haste?.rating || s.ranged_haste?.rating || s.spell_haste?.rating || 0,
                         mastery: s.mastery?.value || 0,
+                        masteryRating: s.mastery?.rating || 0,
                         versatility: s.versatility_damage_done_bonus || 0,
+                        versRating: s.versatility || 0,
                         versDR: s.versatility_damage_taken_reduction_bonus || 0,
                     };
                 }
@@ -248,16 +252,20 @@ async function fetchAPI(silent) {
                     });
                     if (activeTree && activeTree.loadouts && activeTree.loadouts.length > 0) {
                         var loadout = activeTree.loadouts[0];
-                        var nodes = (loadout.selected_class_talents || []).concat(loadout.selected_spec_talents || []);
-                        charTalents = nodes.map(function (n) {
-                            return {
-                                id: n.id,
-                                rank: n.rank || 1,
-                                name: n.tooltip?.talent?.name || n.tooltip?.spell_tooltip?.spell?.name || '?',
-                                spellId: n.tooltip?.spell_tooltip?.spell?.id || null,
-                                icon: n.tooltip?.spell_tooltip?.spell?.key?.href || null,
-                            };
-                        });
+                        function mapTalentNodes(arr) {
+                            return (arr || []).map(function (n) {
+                                return {
+                                    id: n.id,
+                                    rank: n.rank || 1,
+                                    name: n.tooltip?.talent?.name || n.tooltip?.spell_tooltip?.spell?.name || '',
+                                    spellId: n.tooltip?.spell_tooltip?.spell?.id || null,
+                                };
+                            }).filter(function (t) { return t.name && t.name !== '?'; });
+                        }
+                        charTalents = {
+                            class: mapTalentNodes(loadout.selected_class_talents),
+                            spec: mapTalentNodes(loadout.selected_spec_talents),
+                        };
                     }
                 }
 
@@ -399,9 +407,13 @@ async function refreshExisting(force) {
                         strength: st.strength?.effective || 0,
                         agility: st.agility?.effective || 0,
                         crit: st.melee_crit?.value || st.ranged_crit?.value || st.spell_crit?.value || 0,
+                        critRating: st.melee_crit?.rating || st.ranged_crit?.rating || st.spell_crit?.rating || 0,
                         haste: st.melee_haste?.value || st.ranged_haste?.value || st.spell_haste?.value || 0,
+                        hasteRating: st.melee_haste?.rating || st.ranged_haste?.rating || st.spell_haste?.rating || 0,
                         mastery: st.mastery?.value || 0,
+                        masteryRating: st.mastery?.rating || 0,
                         versatility: st.versatility_damage_done_bonus || 0,
+                        versRating: st.versatility || 0,
                         versDR: st.versatility_damage_taken_reduction_bonus || 0,
                     };
                 }
@@ -414,16 +426,20 @@ async function refreshExisting(force) {
                     });
                     if (activeTreeR && activeTreeR.loadouts && activeTreeR.loadouts.length > 0) {
                         var ldR = activeTreeR.loadouts[0];
-                        var ndsR = (ldR.selected_class_talents || []).concat(ldR.selected_spec_talents || []);
-                        c.talents = ndsR.map(function (n) {
-                            return {
-                                id: n.id,
-                                rank: n.rank || 1,
-                                name: n.tooltip?.talent?.name || n.tooltip?.spell_tooltip?.spell?.name || '?',
-                                spellId: n.tooltip?.spell_tooltip?.spell?.id || null,
-                                icon: n.tooltip?.spell_tooltip?.spell?.key?.href || null,
-                            };
-                        });
+                        function mapNodesR(arr) {
+                            return (arr || []).map(function (n) {
+                                return {
+                                    id: n.id,
+                                    rank: n.rank || 1,
+                                    name: n.tooltip?.talent?.name || n.tooltip?.spell_tooltip?.spell?.name || '',
+                                    spellId: n.tooltip?.spell_tooltip?.spell?.id || null,
+                                };
+                            }).filter(function (t) { return t.name && t.name !== '?'; });
+                        }
+                        c.talents = {
+                            class: mapNodesR(ldR.selected_class_talents),
+                            spec: mapNodesR(ldR.selected_spec_talents),
+                        };
                     }
                 }
                 if (!c.renderUrl) {
@@ -508,9 +524,13 @@ async function trackChar() {
                 strength: s.strength?.effective || 0,
                 agility: s.agility?.effective || 0,
                 crit: s.melee_crit?.value || s.ranged_crit?.value || s.spell_crit?.value || 0,
+                critRating: s.melee_crit?.rating || s.ranged_crit?.rating || s.spell_crit?.rating || 0,
                 haste: s.melee_haste?.value || s.ranged_haste?.value || s.spell_haste?.value || 0,
+                hasteRating: s.melee_haste?.rating || s.ranged_haste?.rating || s.spell_haste?.rating || 0,
                 mastery: s.mastery?.value || 0,
+                masteryRating: s.mastery?.rating || 0,
                 versatility: s.versatility_damage_done_bonus || 0,
+                versRating: s.versatility || 0,
                 versDR: s.versatility_damage_taken_reduction_bonus || 0,
             };
         }
@@ -525,16 +545,20 @@ async function trackChar() {
             });
             if (activeTreeObj && activeTreeObj.loadouts && activeTreeObj.loadouts.length > 0) {
                 var ld = activeTreeObj.loadouts[0];
-                var nds = (ld.selected_class_talents || []).concat(ld.selected_spec_talents || []);
-                charTalents = nds.map(function (n) {
-                    return {
-                        id: n.id,
-                        rank: n.rank || 1,
-                        name: n.tooltip?.talent?.name || n.tooltip?.spell_tooltip?.spell?.name || '?',
-                        spellId: n.tooltip?.spell_tooltip?.spell?.id || null,
-                        icon: n.tooltip?.spell_tooltip?.spell?.key?.href || null,
-                    };
-                });
+                function mapNodesT(arr) {
+                    return (arr || []).map(function (n) {
+                        return {
+                            id: n.id,
+                            rank: n.rank || 1,
+                            name: n.tooltip?.talent?.name || n.tooltip?.spell_tooltip?.spell?.name || '',
+                            spellId: n.tooltip?.spell_tooltip?.spell?.id || null,
+                        };
+                    }).filter(function (t) { return t.name && t.name !== '?'; });
+                }
+                charTalents = {
+                    class: mapNodesT(ld.selected_class_talents),
+                    spec: mapNodesT(ld.selected_spec_talents),
+                };
             }
         }
 

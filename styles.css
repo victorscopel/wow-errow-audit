@@ -1041,6 +1041,19 @@ a.whl {
   border-radius: 10px;
 }
 
+.talent-group-label {
+  font-size: .7rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin: 12px 0 6px;
+}
+
+.talent-group-label:first-child {
+  margin-top: 0;
+}
+
 .talent-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));

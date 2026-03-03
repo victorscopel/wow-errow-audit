@@ -326,10 +326,12 @@ function buildSidebar(c, id) {
     '<a href="https://www.warcraftlogs.com/character/us/' + (c.realm || 'azralon') + '/' + c.name.toLowerCase() + '" target="_blank" class="btn btn-secondary btn-sm">WCL</a>' +
     '<a href="https://worldofwarcraft.blizzard.com/' + (window._lang === 'pt-BR' ? 'pt-br' : 'en-us') + '/character/us/' + (c.realm || 'azralon') + '/' + c.name.toLowerCase() + '" target="_blank" class="btn btn-secondary btn-sm">Armory</a>' +
     '</div></div>' +
+    buildStatsCard(c) +
     (c.mythicRating ? '<div class="info-card"><div class="info-card-title">Mythic+</div><div style="font-family:\'Inter\',sans-serif;font-size:1.5rem;font-weight:800;color:' + ratingCol(c.mythicRating) + '">' + c.mythicRating + '</div><div style="font-size:.85rem;color:var(--text-dim);margin-top:3px">' + ratingTier(c.mythicRating) + '</div></div>' : '') +
     '<div class="info-card"><div class="info-card-title">' + T('note') + '</div>' +
     (canEdit
-      ? '<input type="text" id="cp-note" value="' + esc(c.note || '') + '" placeholder="' + T('add_note') + '" class="form-input" style="margin-bottom:8px"><button class="btn btn-secondary" style="width:100%" onclick="saveNote(\'' + id + '\')">' + T('save') + '</button>'
+      ? '<input type="text" id="cp-note" value="' + esc(c.note || '') + '" placeholder="' + T('add_note') + '" class="form-input" style="margin-bottom:8px"><button class="btn btn-secondary" style="width:100%" onclick="saveNote(\'' + id + '\')">'
+      + T('save') + '</button>'
       : '<div style="font-size:.9rem;color:var(--text);white-space:pre-wrap">' + (c.note ? esc(c.note) : '<span style="color:var(--text-dim)">' + T('no_data') + '</span>') + '</div>') +
     '</div>' +
     (c.issues?.length ? '<div class="info-card"><div class="info-card-title">' + T('problems') + ' (' + c.issues.length + ')</div>' + c.issues.map(function (i) { return '<div class="issue-row"><span style="color:var(--red)">⚠</span><span style="font-size:.9rem">' + esc(translateIssue(i)) + '</span></div>'; }).join('') + '</div>' : '<div class="info-card" style="border-color:rgba(76,175,112,.3)"><div style="color:var(--green);font-size:.9rem">' + T('no_problems') + '</div></div>') +
@@ -341,6 +343,7 @@ function buildStatsCard(c) {
   var s = c.stats;
   var primary = s.intellect || s.strength || s.agility || 0;
   var primaryKey = s.intellect ? 'intellect' : (s.strength ? 'strength' : 'agility');
+  var ratingKeys = { crit: 'critRating', haste: 'hasteRating', mastery: 'masteryRating', versatility: 'versRating' };
   var secondaries = [
     { key: 'crit', value: s.crit, color: '#e74c3c' },
     { key: 'haste', value: s.haste, color: '#f1c40f' },
@@ -352,15 +355,16 @@ function buildStatsCard(c) {
   var html = '<div class="info-card"><div class="info-card-title">' + T('attributes') + '</div>';
   html += '<div class="stat-row"><span class="stat-label">' + T(primaryKey) + '</span>';
   html += '<span class="stat-val" style="color:var(--gold)">' + primary + '</span></div>';
-  html += '<div class="stat-row" style="margin-bottom:12px"><span class="stat-label">' + T('stamina') + '</span>';
+  html += '<div class="stat-row" style="margin-bottom:10px"><span class="stat-label">' + T('stamina') + '</span>';
   html += '<span class="stat-val">' + s.stamina + '</span></div>';
   for (var i = 0; i < secondaries.length; i++) {
     var sec = secondaries[i];
+    var rawVal = s[ratingKeys[sec.key]] || 0;
     var pct = Math.min((sec.value / maxSec) * 100, 100);
-    html += '<div style="margin-bottom:8px">';
-    html += '<div class="stat-row" style="margin-bottom:2px">';
+    html += '<div style="margin-bottom:6px">';
+    html += '<div class="stat-row" style="border:none;padding-bottom:2px">';
     html += '<span class="stat-label">' + T(sec.key) + '</span>';
-    html += '<span class="stat-val" style="color:' + sec.color + '">' + sec.value.toFixed(2) + '%</span>';
+    html += '<span class="stat-val" style="color:' + sec.color + '">' + sec.value.toFixed(2) + '% <span style="color:var(--text-dim);font-size:.75rem">(' + rawVal + ')</span></span>';
     html += '</div>';
     html += '<div class="stat-bar-bg"><div class="stat-bar-fill" style="width:' + pct.toFixed(1) + '%;background:' + sec.color + '"></div></div>';
     html += '</div>';
@@ -369,12 +373,12 @@ function buildStatsCard(c) {
   return html;
 }
 
-function buildTalentsSection(c) {
-  if (!c.talents || !c.talents.length) return '';
-  var html = '<div class="talent-section"><div class="info-card-title" style="margin-bottom:10px">' + T('talents') + ' (' + c.talents.length + ')</div>';
+function buildTalentGroup(talents, label) {
+  if (!talents || !talents.length) return '';
+  var html = '<div class="talent-group-label">' + label + '</div>';
   html += '<div class="talent-grid">';
-  for (var i = 0; i < c.talents.length; i++) {
-    var t = c.talents[i];
+  for (var i = 0; i < talents.length; i++) {
+    var t = talents[i];
     var href = t.spellId ? 'https://' + whDomain() + '/spell=' + t.spellId : '#';
     var whAttr = t.spellId ? ' data-wowhead="spell=' + t.spellId + '" data-wh-icon-size="small" data-wh-rename-link="false"' : '';
     html += '<a href="' + href + '" target="_blank" class="talent-node"' + whAttr + '>';
@@ -383,7 +387,30 @@ function buildTalentsSection(c) {
     if (t.rank > 1) html += '<span class="talent-rank">' + t.rank + '</span>';
     html += '</a>';
   }
-  html += '</div></div>';
+  html += '</div>';
+  return html;
+}
+
+function buildTalentsSection(c) {
+  if (!c.talents) return '';
+  var isNewFormat = c.talents.class || c.talents.spec;
+  if (!isNewFormat) {
+    var arr = Array.isArray(c.talents) ? c.talents.filter(function (t) { return t.name && t.name !== '?'; }) : [];
+    if (!arr.length) return '';
+    var total = arr.length;
+    var html = '<div class="talent-section"><div class="info-card-title" style="margin-bottom:10px">' + T('talents') + ' (' + total + ')</div>';
+    html += buildTalentGroup(arr, '');
+    html += '</div>';
+    return html;
+  }
+  var classTalents = c.talents.class || [];
+  var specTalents = c.talents.spec || [];
+  var total = classTalents.length + specTalents.length;
+  if (!total) return '';
+  var html = '<div class="talent-section"><div class="info-card-title" style="margin-bottom:10px">' + T('talents') + ' (' + total + ')</div>';
+  html += buildTalentGroup(classTalents, 'CLASS TALENTS');
+  html += buildTalentGroup(specTalents, 'SPEC TALENTS');
+  html += '</div>';
   return html;
 }
 
@@ -431,7 +458,7 @@ function renderCharPage(id) {
   var sidebar = buildSidebar(c, id);
   var gearResult = buildGearGrid(c);
   preloadImages(gearResult.imgUrls).then(function () {
-    document.getElementById('cp-sidebar').innerHTML = sidebar + buildStatsCard(c);
+    document.getElementById('cp-sidebar').innerHTML = sidebar;
     var mainHtml = gearResult.html + buildTalentsSection(c);
     document.getElementById('cp-main').innerHTML = mainHtml;
     refreshWowheadTooltips();
