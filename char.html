@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character — Audit</title>
+    <meta name="description" content="WoW Guild Audit — character details.">
+    <link rel="icon" type="image/x-icon" href="https://wow.zamimg.com/images/wow/icons/medium/inv_scroll_11.jpg">
+    <link rel="stylesheet" href="styles.css?v=7">
+</head>
+
+<body>
+
+    <div class="app-container">
+
+        <div class="char-page-header">
+            <button class="btn btn-secondary btn-sm" onclick="goBack()"><span class="t-back">← Voltar</span></button>
+            <span id="cp-bc" style="font-size:.8rem;color:var(--text-dim)"></span>
+        </div>
+        <div class="char-page-body">
+            <div class="char-sidebar" id="cp-sidebar"></div>
+            <div class="char-main" id="cp-main"></div>
+        </div>
+
+    </div>
+
+    <div id="notif"></div>
+
+    <script src="data.js?v=7"></script>
+    <script src="api.js?v=7"></script>
+    <script src="render.js?v=7"></script>
+    <script src="auth.js?v=7"></script>
+    <script src="char.js?v=7"></script>
+    <script>
+        window.whTooltips = { colorLinks: false, iconizeLinks: false, renameLinks: true };
+    </script>
+    <script src="https://wow.zamimg.com/js/tooltips.js"></script>
+</body>
+
+</html>

@@ -143,29 +143,14 @@ function showPage(id, btn) {
     document.getElementById('page-' + id).classList.add('active');
     if (btn) btn.classList.add('active');
     prevPage = id;
-    document.getElementById('charPage').classList.remove('active');
 }
 
 function openChar(id) {
-    var activeTab = document.querySelector('.nav-tab.active');
-    prevPage = activeTab?.dataset?.page || prevPage;
-
-    document.querySelectorAll('.page').forEach(function (p) { p.classList.remove('active'); });
-    document.querySelectorAll('.nav-tab').forEach(function (t) { t.classList.remove('active'); });
-    document.getElementById('charPage').classList.add('active');
-    renderCharPage(id);
-}
-
-function backFromChar() {
-    document.querySelectorAll('.page').forEach(function (p) { p.classList.remove('active'); });
-    document.querySelectorAll('.nav-tab').forEach(function (t) { t.classList.remove('active'); });
-    document.getElementById('charPage').classList.remove('active');
-
-    var pageMap = { overview: 0, roster: 1, vault: 2, settings: 3 };
-    var idx = pageMap[prevPage] !== undefined ? pageMap[prevPage] : 0;
-    var pages = ['overview', 'roster', 'vault', 'settings'];
-    document.getElementById('page-' + pages[idx]).classList.add('active');
-    document.querySelectorAll('.nav-tab')[idx]?.classList.add('active');
+    var parts = id.split('|');
+    var name = parts[0] || '';
+    var realm = parts[1] || 'azralon';
+    if (!name) return;
+    window.location.href = 'char.html?name=' + encodeURIComponent(name) + '&realm=' + encodeURIComponent(realm);
 }
 
 // ── Member actions ────────────────────────────────────────
