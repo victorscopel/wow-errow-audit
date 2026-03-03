@@ -247,13 +247,24 @@ function renderVault() {
   el.innerHTML = '<table><thead><tr><th>' + T('character') + '</th><th>' + T('ilvl') + '</th><th>M+ Runs</th><th>Raid Bosses</th></tr></thead><tbody>' + rows + '</tbody></table>';
 }
 
-function buildWHData(item) {
+function buildWHData(item, charData) {
   if (!item.itemId) return '';
   var parts = ['item=' + item.itemId];
   if (item.ilvl) parts.push('ilvl=' + item.ilvl);
   if (item.enchantIds?.length) parts.push('ench=' + item.enchantIds[0]);
   if (item.gemIds?.length) parts.push('gems=' + item.gemIds.join(':'));
   if (item.bonusIds?.length) parts.push('bonus=' + item.bonusIds.join(':'));
+
+  if (charData && charData.gear) {
+    var pcs = [];
+    for (var s in charData.gear) {
+      if (charData.gear[s] && charData.gear[s].itemId) {
+        pcs.push(charData.gear[s].itemId);
+      }
+    }
+    if (pcs.length > 0) parts.push('pcs=' + pcs.join(':'));
+  }
+
   return parts.join('&');
 }
 
@@ -343,7 +354,7 @@ function buildGearGrid(c) {
     var imgSrc = item.iconSlug ? (item.iconSlug.startsWith('http') ? item.iconSlug : 'https://wow.zamimg.com/images/wow/icons/medium/' + item.iconSlug + '.jpg') : 'https://wow.zamimg.com/images/wow/icons/medium/inv_misc_questionmark.jpg';
     imgUrls.push(imgSrc);
     var whHref = item.itemId ? 'https://' + whDomain() + '/item=' + item.itemId : '#';
-    var whData = buildWHData(item);
+    var whData = buildWHData(item, c);
     var whAttr = whData ? ' data-wowhead="' + whData + '"' : '';
     var statusBits = '';
     if (item.enchanted) statusBits += '<span style="color:var(--green);font-size:.75rem">✦ ' + T('enchant') + '</span>';
