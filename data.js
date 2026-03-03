@@ -99,6 +99,16 @@ var I18N = {
   missing_gem: { en: 'Missing gem', pt_BR: 'Sem gema' },
   refreshing: { en: 'Refreshing existing members...', pt_BR: 'Atualizando membros existentes...' },
   refresh_done: { en: 'Refresh complete!', pt_BR: 'Atualização concluída!' },
+  attributes: { en: 'Attributes', pt_BR: 'Atributos' },
+  stamina: { en: 'Stamina', pt_BR: 'Vigor' },
+  intellect: { en: 'Intellect', pt_BR: 'Intelecto' },
+  strength: { en: 'Strength', pt_BR: 'Força' },
+  agility: { en: 'Agility', pt_BR: 'Agilidade' },
+  crit: { en: 'Critical Strike', pt_BR: 'Crítico' },
+  haste: { en: 'Haste', pt_BR: 'Aceleração' },
+  mastery: { en: 'Mastery', pt_BR: 'Maestria' },
+  versatility: { en: 'Versatility', pt_BR: 'Versatilidade' },
+  talents: { en: 'Talents', pt_BR: 'Talentos' },
 };
 
 var SLOT_LABELS_EN = {
