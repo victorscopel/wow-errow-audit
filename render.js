@@ -100,11 +100,12 @@ function applyI18n() {
   if (srch) srch.placeholder = T('search');
 }
 
-function cnCell(c, onclick) {
-  return '<div class="cn" onclick="' + onclick + '"><img src="' + getClassIcon(c.class) + '" onerror="this.style.display=\'none\'" alt="">' +
+function cnCell(c) {
+  var href = 'char.html?name=' + encodeURIComponent(c.name) + '&realm=' + encodeURIComponent(c.realm || 'azralon');
+  return '<a class="cn" href="' + href + '"><img src="' + getClassIcon(c.class) + '" onerror="this.style.display=\'none\'" alt="">' +
     '<div><span class="cn-name" style="color:' + getClassColor(c.class) + '">' + esc(c.name) + '</span>' +
     '<span class="cn-realm">' + esc(c.realm || '') + '</span>' +
-    '<div class="cn-spec">' + locSpec(c.spec || '') + '</div></div></div>';
+    '<div class="cn-spec">' + locSpec(c.spec || '') + '</div></div></a>';
 }
 
 function roleBadge(r) {
@@ -135,7 +136,7 @@ function renderComp() {
   function mkList(arr, titleKey, emoji) {
     var col1 = [], col2 = [];
     arr.forEach(function (c, i) { if (i % 2 === 0) col1.push(c); else col2.push(c); });
-    function mkCol(col) { return col.map(function (c) { return '<div class="comp-name-row" onclick="openChar(\'' + cid(c) + '\')" title="' + (c.realm || '') + '"><img src="' + getClassIcon(c.class) + '" style="width:14px;height:14px;border-radius:3px;flex-shrink:0" onerror="this.style.display=\'none\'" alt=""><span style="color:' + getClassColor(c.class) + ';cursor:pointer;font-size:.85rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(c.name) + '</span></div>'; }).join(''); }
+    function mkCol(col) { return col.map(function (c) { var href = 'char.html?name=' + encodeURIComponent(c.name) + '&realm=' + encodeURIComponent(c.realm || 'azralon'); return '<a class="comp-name-row" href="' + href + '" title="' + (c.realm || '') + '" style="text-decoration:none"><img src="' + getClassIcon(c.class) + '" style="width:14px;height:14px;border-radius:3px;flex-shrink:0" onerror="this.style.display=\'none\'" alt=""><span style="color:' + getClassColor(c.class) + ';cursor:pointer;font-size:.85rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(c.name) + '</span></a>'; }).join(''); }
     return '<div class="comp-card"><div class="comp-title">' + emoji + ' ' + T(titleKey) + ' <span style="color:var(--gold-light)">(' + arr.length + ')</span></div>' + (arr.length ? '<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 8px">' + mkCol(col1) + mkCol(col2) + '</div>' : '<div style="color:var(--text-dim);font-size:.8rem;padding:4px 0">' + T('none') + '</div>') + '</div>';
   }
   el.innerHTML = mkList(groups[ROLE_TANK], 'tanks', '🛡') + mkList(groups[ROLE_HEALER], 'healers', '💚') + mkList(groups[ROLE_DPS_RANGE], 'ranged', '🏹') + mkList(groups[ROLE_DPS_MELEE], 'melee', '⚔️');
@@ -194,7 +195,7 @@ function renderOverview() {
     var rTd = CFG.sr ? '<td><span style="font-weight:700;color:' + ratingCol(c.mythicRating) + '">' + (c.mythicRating || '—') + '</span></td>' : '';
     var nTd = CFG.sn ? '<td><span class="note-c" onclick="editNote(\'' + id + '\')">' + (c.note ? esc(c.note) : '<span style="opacity:.3">+</span>') + '</span></td>' : '';
     var rmTd = hasPerm('officer') ? '<td><button class="btn btn-danger btn-sm" onclick="rmMember(\'' + id + '\')">✕</button></td>' : '';
-    return '<tr' + (isUnder ? ' class="row-under-min"' : '') + '><td style="color:var(--text-dim);width:35px">' + (i + 1) + '</td><td>' + cnCell(c, "openChar('" + id + "')") + '</td><td>' + roleBadge(c.role) + '</td><td><span class="ilvl ' + ilvlC(c.ilvl) + '">' + (c.ilvl || '—') + '</span></td>' + isTd + vTd + rTd + nTd + rmTd + '</tr>';
+    return '<tr' + (isUnder ? ' class="row-under-min"' : '') + '><td style="color:var(--text-dim);width:35px">' + (i + 1) + '</td><td>' + cnCell(c) + '</td><td>' + roleBadge(c.role) + '</td><td><span class="ilvl ' + ilvlC(c.ilvl) + '">' + (c.ilvl || '—') + '</span></td>' + isTd + vTd + rTd + nTd + rmTd + '</tr>';
   }).join('');
   el.innerHTML = '<table><thead><tr><th>#</th>' + ovSth('name', T('character')) + ovSth('role', T('role')) + ovSth('ilvl', T('ilvl')) + isTh + vTh + rTh + nTh + rmTh + '</tr></thead><tbody>' + rows + '</tbody></table>';
 }
@@ -231,7 +232,7 @@ function renderRoster() {
       ? '<select class="rs" onchange="changeRole(\'' + id + '\',this.value)"><option ' + (c.role === ROLE_TANK ? 'selected' : '') + '>Tank</option><option ' + (c.role === ROLE_HEALER ? 'selected' : '') + '>Healer</option><option ' + (c.role === ROLE_DPS_MELEE ? 'selected' : '') + '>DPS Melee</option><option ' + (c.role === ROLE_DPS_RANGE ? 'selected' : '') + '>DPS Ranged</option></select>'
       : roleBadge(c.role);
     var rmTd = hasPerm('officer') ? '<td><button class="btn btn-danger btn-sm" onclick="rmMember(\'' + id + '\')">✕</button></td>' : '';
-    return '<tr' + (isUnder ? ' class="row-under-min"' : '') + '><td>' + cnCell(c, "openChar('" + id + "')") + '</td><td>' + roleCell + '</td><td><span class="ilvl ' + ilvlC(c.ilvl) + '">' + (c.ilvl || '—') + '</span></td>' + isTd + rTd + nTd + rmTd + '</tr>';
+    return '<tr' + (isUnder ? ' class="row-under-min"' : '') + '><td>' + cnCell(c) + '</td><td>' + roleCell + '</td><td><span class="ilvl ' + ilvlC(c.ilvl) + '">' + (c.ilvl || '—') + '</span></td>' + isTd + rTd + nTd + rmTd + '</tr>';
   }).join('');
   el.innerHTML = '<table><thead><tr>' + sth('name', T('character')) + sth('role', T('role')) + sth('ilvl', T('ilvl')) + isTh + rTh + nTh + rmTh + '</tr></thead><tbody>' + rows + '</tbody></table>';
 }
@@ -242,7 +243,7 @@ function renderVault() {
   var sorted = roster.slice().sort(function (a, b) { return (b.ilvl || 0) - (a.ilvl || 0); });
   var rows = sorted.map(function (c) {
     var v = c.vault || {};
-    return '<tr><td>' + cnCell(c, "openChar('" + cid(c) + "')") + '</td><td><span class="ilvl ' + ilvlC(c.ilvl) + '">' + (c.ilvl || '—') + '</span></td><td style="color:var(--text-dim)">' + (v.mythic || 0) + '/8</td><td style="color:var(--text-dim)">' + (v.raid || 0) + '/10</td></tr>';
+    return '<tr><td>' + cnCell(c) + '</td><td><span class="ilvl ' + ilvlC(c.ilvl) + '">' + (c.ilvl || '—') + '</span></td><td style="color:var(--text-dim)">' + (v.mythic || 0) + '/8</td><td style="color:var(--text-dim)">' + (v.raid || 0) + '/10</td></tr>';
   }).join('');
   el.innerHTML = '<table><thead><tr><th>' + T('character') + '</th><th>' + T('ilvl') + '</th><th>M+ Runs</th><th>Raid Bosses</th></tr></thead><tbody>' + rows + '</tbody></table>';
 }

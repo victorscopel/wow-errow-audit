@@ -14,8 +14,39 @@
 
     <div class="app-container">
 
+        <header class="hdr">
+            <div class="hdr-left">
+                <a href="index.html" class="hdr-title" id="hdr-title"
+                    style="text-decoration:none;color:inherit">GuildAudit</a>
+                <div class="hdr-meta"><span id="rdot"></span><span id="rts">—</span></div>
+            </div>
+            <div class="hdr-right">
+                <span id="hmeta" style="font-size:.85rem;color:var(--text-dim)"></span>
+                <div id="user-info" style="display:none;align-items:center;gap:8px">
+                    <span id="user-battletag" style="font-size:.85rem;color:var(--text)"></span>
+                    <span id="user-perm" class="perm-badge"></span>
+                    <button class="btn btn-secondary btn-sm" onclick="logoutBattleNet()" title="Logout">⏻</button>
+                </div>
+                <button id="btn-login" class="btn btn-primary btn-sm" onclick="loginBattleNet()">🔗 Login</button>
+            </div>
+        </header>
+
+        <div class="nav" id="navTabs">
+            <a class="nav-tab" href="index.html"><span class="t-overview">Overview</span></a>
+            <a class="nav-tab perm-officer" href="index.html"><span class="t-roster">Roster</span></a>
+            <a class="nav-tab" href="index.html"><span class="t-vault">Great Vault</span></a>
+            <a class="nav-tab perm-officer" href="index.html"><span class="t-settings">Configurações</span></a>
+
+            <div style="margin-left:auto; display:flex; align-items:center; padding-right:12px;">
+                <select id="cfg-dispLang" class="lang-select" onchange="saveLang();applyI18n();rerenderChar()">
+                    <option value="pt-BR">PT-BR</option>
+                    <option value="en">EN</option>
+                </select>
+            </div>
+        </div>
+
         <div class="char-page-header">
-            <button class="btn btn-secondary btn-sm" onclick="goBack()"><span class="t-back">← Voltar</span></button>
+            <a href="index.html" class="btn btn-secondary btn-sm"><span class="t-back">← Voltar</span></a>
             <span id="cp-bc" style="font-size:.8rem;color:var(--text-dim)"></span>
         </div>
         <div class="char-page-body">

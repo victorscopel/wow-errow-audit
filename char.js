@@ -6,6 +6,17 @@
 var roster = [];
 window._lang = localStorage.getItem('ga_lang') || 'pt-BR';
 
+function T(k) {
+    var l = window._lang === 'pt-BR' ? 'pt_BR' : 'en';
+    if (I18N[k]) return I18N[k][l] || I18N[k]['en'] || k;
+    return k;
+}
+
+function saveLang() {
+    var sel = document.getElementById('cfg-dispLang');
+    if (sel) { window._lang = sel.value; localStorage.setItem('ga_lang', window._lang); }
+}
+
 function goBack() { window.location.href = 'index.html'; }
 
 function notify(msg) {
@@ -214,6 +225,8 @@ function rmMember(id) {
 (function initChar() {
     initAuth();
     applyI18n();
+    var langSel = document.getElementById('cfg-dispLang');
+    if (langSel) langSel.value = window._lang;
 
     var sd = localStorage.getItem('ga_data');
     if (sd) try { roster = JSON.parse(sd); } catch (e) { }
