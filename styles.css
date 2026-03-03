@@ -1069,18 +1069,20 @@ a.whl {
 }
 
 .talent-grid {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, 36px);
   justify-content: center;
-  gap: 4px;
+  gap: 6px;
+  margin-top: 10px;
 }
 
 .talent-icon-link {
   position: relative;
-  display: inline-block;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 36px;
   height: 36px;
-  margin: 3px;
   text-decoration: none;
 }
 
@@ -1110,6 +1112,7 @@ a.whl {
 .talent-icon-link img.talent-icon-img {
   width: 34px;
   height: 34px;
+  object-fit: cover;
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, .15);
   transition: border-color .15s;
