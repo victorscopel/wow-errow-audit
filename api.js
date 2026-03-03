@@ -262,10 +262,12 @@ async function fetchAPI(silent) {
                                 };
                             }).filter(function (t) { return t.name && t.name !== '?'; });
                         }
+                        console.log('[GuildAudit] Loadout keys:', Object.keys(loadout));
                         charTalents = {
                             class: mapTalentNodes(loadout.selected_class_talents),
                             spec: mapTalentNodes(loadout.selected_spec_talents),
                             hero: mapTalentNodes(loadout.selected_hero_talents),
+                            heroTree: loadout.selected_hero_talent_tree?.hero_talent_tree?.name || loadout.selected_hero_talent_tree?.name || null,
                         };
                     }
                 }
@@ -437,10 +439,12 @@ async function refreshExisting(force) {
                                 };
                             }).filter(function (t) { return t.name && t.name !== '?'; });
                         }
+                        console.log('[GuildAudit] Loadout keys (refresh):', Object.keys(ldR));
                         c.talents = {
                             class: mapNodesR(ldR.selected_class_talents),
                             spec: mapNodesR(ldR.selected_spec_talents),
                             hero: mapNodesR(ldR.selected_hero_talents),
+                            heroTree: ldR.selected_hero_talent_tree?.hero_talent_tree?.name || ldR.selected_hero_talent_tree?.name || null,
                         };
                     }
                 }

@@ -79,7 +79,7 @@ function buildStatsCard(c) {
     ];
     var maxSec = Math.max.apply(null, secondaries.map(function (x) { return x.value; }));
     if (maxSec < 1) maxSec = 1;
-    var html = '<div class="info-card"><div class="info-card-title">' + T('attributes') + '</div>';
+    var html = '<div class="info-card"><div class="info-card-title" style="margin-bottom:10px">' + T('attributes') + '</div>';
     html += '<div class="stat-row"><span class="stat-label">' + T(primaryKey) + '</span>';
     html += '<span class="stat-val" style="color:var(--gold)">' + primary + '</span></div>';
     html += '<div class="stat-row" style="margin-bottom:10px"><span class="stat-label">' + T('stamina') + '</span>';
@@ -100,18 +100,15 @@ function buildStatsCard(c) {
     return html;
 }
 
-function buildTalentGroup(talents, label) {
+function buildTalentIcons(talents) {
     if (!talents || !talents.length) return '';
-    var html = '';
-    if (label) html += '<div class="talent-group-label">' + label + '</div>';
-    html += '<div class="talent-grid">';
+    var html = '<div class="talent-grid">';
     for (var i = 0; i < talents.length; i++) {
         var t = talents[i];
         var href = t.spellId ? 'https://' + whDomain() + '/spell=' + t.spellId : '#';
-        var whAttr = t.spellId ? ' data-wowhead="spell=' + t.spellId + '" data-wh-icon-size="small" data-wh-rename-link="false"' : '';
-        html += '<a href="' + href + '" target="_blank" class="talent-node"' + whAttr + '>';
-        html += '<span class="talent-name">' + esc(t.name) + '</span>';
-        if (t.rank > 1) html += '<span class="talent-rank">' + t.rank + '</span>';
+        var whAttr = t.spellId ? ' data-wowhead="spell=' + t.spellId + '" data-wh-icon-size="medium"' : '';
+        html += '<a href="' + href + '" target="_blank" class="talent-icon-link"' + whAttr + '>';
+        if (t.rank > 1) html += '<span class="talent-rank-badge">' + t.rank + '</span>';
         html += '</a>';
     }
     html += '</div>';
@@ -120,25 +117,29 @@ function buildTalentGroup(talents, label) {
 
 function buildTalentsSection(c) {
     if (!c.talents) return '';
-    var isNewFormat = c.talents.class || c.talents.spec || c.talents.hero;
-    if (!isNewFormat) {
-        var arr = Array.isArray(c.talents) ? c.talents.filter(function (t) { return t.name && t.name !== '?'; }) : [];
-        if (!arr.length) return '';
-        var html = '<div class="talent-section"><div class="info-card-title" style="margin-bottom:10px">' + T('talents') + ' (' + arr.length + ')</div>';
-        html += buildTalentGroup(arr, '');
-        html += '</div>';
-        return html;
-    }
     var classTalents = c.talents.class || [];
     var specTalents = c.talents.spec || [];
     var heroTalents = c.talents.hero || [];
+    if (!classTalents.length && !specTalents.length && !heroTalents.length) {
+        if (Array.isArray(c.talents)) {
+            var arr = c.talents.filter(function (t) { return t.name && t.name !== '?'; });
+            if (!arr.length) return '';
+            classTalents = arr;
+        } else return '';
+    }
     var total = classTalents.length + specTalents.length + heroTalents.length;
-    if (!total) return '';
-    var html = '<div class="talent-section"><div class="info-card-title" style="margin-bottom:10px">' + T('talents') + ' (' + total + ')</div>';
-    if (heroTalents.length) html += buildTalentGroup(heroTalents, 'HERO TALENTS');
-    html += buildTalentGroup(classTalents, 'CLASS TALENTS');
-    html += buildTalentGroup(specTalents, 'SPEC TALENTS');
-    html += '</div>';
+    var html = '<div class="talent-section">';
+    html += '<div class="info-card-title" style="margin-bottom:10px">' + T('talents') + ' (' + total + ')</div>';
+    html += '<div class="talent-columns">';
+    html += '<div class="talent-col"><div class="talent-col-label">CLASS TALENTS</div>' + buildTalentIcons(classTalents) + '</div>';
+
+    var heroHeader = '<div class="talent-col-label">HERO TALENTS</div>';
+    if (c.talents.heroTree) {
+        heroHeader += '<div style="text-align:center; color:var(--gold); font-size:0.75rem; margin-bottom:8px; font-weight:700;">' + esc(c.talents.heroTree) + '</div>';
+    }
+    html += '<div class="talent-col talent-col--hero">' + heroHeader + buildTalentIcons(heroTalents) + '</div>';
+    html += '<div class="talent-col"><div class="talent-col-label">SPEC TALENTS</div>' + buildTalentIcons(specTalents) + '</div>';
+    html += '</div></div>';
     return html;
 }
 
@@ -233,20 +234,23 @@ function rmMember(id) {
     var sd = localStorage.getItem('ga_data');
     if (sd) try { roster = JSON.parse(sd); } catch (e) { }
 
+    var rdot = document.getElementById('rdot');
+    if (rdot) rdot.className = 'off';
+
+    var guildName = null;
+    try { var a = JSON.parse(localStorage.getItem('ga_api') || '{}'); guildName = a.guild; } catch (e) { }
+    if (roster.length && roster[0].guild) guildName = roster[0].guild;
+    if (guildName) {
+        var ht = document.getElementById('hdr-title');
+        if (ht) ht.textContent = guildName.charAt(0).toUpperCase() + guildName.slice(1);
+    }
     if (roster.length) {
-        var g = roster[0];
         var hm = document.getElementById('hmeta');
         if (hm) hm.textContent = roster.length + ' ' + T('members');
         var rts = document.getElementById('rts');
-        if (rts) rts.textContent = relativeTime(g.lastUpdated);
-        var guildName = null;
-        try { var a = JSON.parse(localStorage.getItem('ga_api') || '{}'); guildName = a.guild; } catch (e) { }
-        if (g.guild) guildName = g.guild;
-        if (guildName) {
-            var ht = document.getElementById('hdr-title');
-            if (ht) ht.textContent = guildName.charAt(0).toUpperCase() + guildName.slice(1);
-        }
+        if (rts) rts.textContent = relativeTime(roster[0].lastUpdated);
     }
+
     var params = new URLSearchParams(window.location.search);
     var name = params.get('name');
     var realm = params.get('realm') || 'azralon';
