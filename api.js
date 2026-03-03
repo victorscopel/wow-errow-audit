@@ -231,11 +231,11 @@ async function fetchAPI(silent) {
                         strength: s.strength?.effective || 0,
                         agility: s.agility?.effective || 0,
                         crit: s.melee_crit?.value || s.ranged_crit?.value || s.spell_crit?.value || 0,
-                        critRating: s.melee_crit?.rating || s.ranged_crit?.rating || s.spell_crit?.rating || 0,
+                        critRating: s.melee_crit?.rating_normalized || s.melee_crit?.rating || s.ranged_crit?.rating_normalized || s.ranged_crit?.rating || s.spell_crit?.rating_normalized || s.spell_crit?.rating || 0,
                         haste: s.melee_haste?.value || s.ranged_haste?.value || s.spell_haste?.value || 0,
-                        hasteRating: s.melee_haste?.rating || s.ranged_haste?.rating || s.spell_haste?.rating || 0,
+                        hasteRating: s.melee_haste?.rating_normalized || s.melee_haste?.rating || s.ranged_haste?.rating_normalized || s.ranged_haste?.rating || s.spell_haste?.rating_normalized || s.spell_haste?.rating || 0,
                         mastery: s.mastery?.value || 0,
-                        masteryRating: s.mastery?.rating || 0,
+                        masteryRating: s.mastery?.rating_normalized || s.mastery?.rating || 0,
                         versatility: s.versatility_damage_done_bonus || 0,
                         versRating: s.versatility || 0,
                         versDR: s.versatility_damage_taken_reduction_bonus || 0,
@@ -265,6 +265,7 @@ async function fetchAPI(silent) {
                         charTalents = {
                             class: mapTalentNodes(loadout.selected_class_talents),
                             spec: mapTalentNodes(loadout.selected_spec_talents),
+                            hero: mapTalentNodes(loadout.selected_hero_talents),
                         };
                     }
                 }
@@ -407,11 +408,11 @@ async function refreshExisting(force) {
                         strength: st.strength?.effective || 0,
                         agility: st.agility?.effective || 0,
                         crit: st.melee_crit?.value || st.ranged_crit?.value || st.spell_crit?.value || 0,
-                        critRating: st.melee_crit?.rating || st.ranged_crit?.rating || st.spell_crit?.rating || 0,
+                        critRating: st.melee_crit?.rating_normalized || st.melee_crit?.rating || st.ranged_crit?.rating_normalized || st.ranged_crit?.rating || st.spell_crit?.rating_normalized || st.spell_crit?.rating || 0,
                         haste: st.melee_haste?.value || st.ranged_haste?.value || st.spell_haste?.value || 0,
-                        hasteRating: st.melee_haste?.rating || st.ranged_haste?.rating || st.spell_haste?.rating || 0,
+                        hasteRating: st.melee_haste?.rating_normalized || st.melee_haste?.rating || st.ranged_haste?.rating_normalized || st.ranged_haste?.rating || st.spell_haste?.rating_normalized || st.spell_haste?.rating || 0,
                         mastery: st.mastery?.value || 0,
-                        masteryRating: st.mastery?.rating || 0,
+                        masteryRating: st.mastery?.rating_normalized || st.mastery?.rating || 0,
                         versatility: st.versatility_damage_done_bonus || 0,
                         versRating: st.versatility || 0,
                         versDR: st.versatility_damage_taken_reduction_bonus || 0,
@@ -439,6 +440,7 @@ async function refreshExisting(force) {
                         c.talents = {
                             class: mapNodesR(ldR.selected_class_talents),
                             spec: mapNodesR(ldR.selected_spec_talents),
+                            hero: mapNodesR(ldR.selected_hero_talents),
                         };
                     }
                 }

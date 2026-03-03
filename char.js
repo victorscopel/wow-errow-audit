@@ -120,7 +120,7 @@ function buildTalentGroup(talents, label) {
 
 function buildTalentsSection(c) {
     if (!c.talents) return '';
-    var isNewFormat = c.talents.class || c.talents.spec;
+    var isNewFormat = c.talents.class || c.talents.spec || c.talents.hero;
     if (!isNewFormat) {
         var arr = Array.isArray(c.talents) ? c.talents.filter(function (t) { return t.name && t.name !== '?'; }) : [];
         if (!arr.length) return '';
@@ -131,9 +131,11 @@ function buildTalentsSection(c) {
     }
     var classTalents = c.talents.class || [];
     var specTalents = c.talents.spec || [];
-    var total = classTalents.length + specTalents.length;
+    var heroTalents = c.talents.hero || [];
+    var total = classTalents.length + specTalents.length + heroTalents.length;
     if (!total) return '';
     var html = '<div class="talent-section"><div class="info-card-title" style="margin-bottom:10px">' + T('talents') + ' (' + total + ')</div>';
+    if (heroTalents.length) html += buildTalentGroup(heroTalents, 'HERO TALENTS');
     html += buildTalentGroup(classTalents, 'CLASS TALENTS');
     html += buildTalentGroup(specTalents, 'SPEC TALENTS');
     html += '</div>';
@@ -231,6 +233,20 @@ function rmMember(id) {
     var sd = localStorage.getItem('ga_data');
     if (sd) try { roster = JSON.parse(sd); } catch (e) { }
 
+    if (roster.length) {
+        var g = roster[0];
+        var hm = document.getElementById('hmeta');
+        if (hm) hm.textContent = roster.length + ' ' + T('members');
+        var rts = document.getElementById('rts');
+        if (rts) rts.textContent = relativeTime(g.lastUpdated);
+        var guildName = null;
+        try { var a = JSON.parse(localStorage.getItem('ga_api') || '{}'); guildName = a.guild; } catch (e) { }
+        if (g.guild) guildName = g.guild;
+        if (guildName) {
+            var ht = document.getElementById('hdr-title');
+            if (ht) ht.textContent = guildName.charAt(0).toUpperCase() + guildName.slice(1);
+        }
+    }
     var params = new URLSearchParams(window.location.search);
     var name = params.get('name');
     var realm = params.get('realm') || 'azralon';
