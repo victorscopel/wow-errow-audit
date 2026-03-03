@@ -365,8 +365,10 @@ async function refreshExisting(force) {
                     apiFetch(cfg, charUrl(cfg, charRealm, cn, '/equipment'), token),
                     apiFetch(cfg, charUrl(cfg, charRealm, cn), token),
                     apiFetch(cfg, charUrl(cfg, charRealm, cn, '/mythic-keystone-profile'), token),
+                    apiFetch(cfg, charUrl(cfg, charRealm, cn, '/statistics'), token),
+                    apiFetch(cfg, charUrl(cfg, charRealm, cn, '/specializations'), token),
                 ]);
-                var eqR = fetches[0], sumR = fetches[1], mpR = fetches[2];
+                var eqR = fetches[0], sumR = fetches[1], mpR = fetches[2], statsR = fetches[3], specR = fetches[4];
                 if (!sumR.ok) continue;
                 var sum = sumR.json;
                 var parsed = parseEquipment(eqR.json?.equipped_items);
@@ -388,6 +390,41 @@ async function refreshExisting(force) {
                 if (mpR.ok && mpR.json) {
                     c.mythicRating = (mpR.json.current_mythic_rating?.rating | 0) || c.mythicRating;
                     c.vault = { mythic: mpR.json.current_period?.best_runs?.length || 0, raid: 0, world: 0 };
+                }
+                if (statsR.ok && statsR.json) {
+                    var st = statsR.json;
+                    c.stats = {
+                        stamina: st.stamina?.effective || 0,
+                        intellect: st.intellect?.effective || 0,
+                        strength: st.strength?.effective || 0,
+                        agility: st.agility?.effective || 0,
+                        crit: st.melee_crit?.value || st.ranged_crit?.value || st.spell_crit?.value || 0,
+                        haste: st.melee_haste?.value || st.ranged_haste?.value || st.spell_haste?.value || 0,
+                        mastery: st.mastery?.value || 0,
+                        versatility: st.versatility_damage_done_bonus || 0,
+                        versDR: st.versatility_damage_taken_reduction_bonus || 0,
+                    };
+                }
+                if (specR.ok && specR.json) {
+                    var activeSpecR = specR.json.active_specialization;
+                    var specsR = specR.json.specializations || [];
+                    var activeTreeR = specsR.find(function (sp) {
+                        return sp.specialization && activeSpecR &&
+                            sp.specialization.id === activeSpecR.id;
+                    });
+                    if (activeTreeR && activeTreeR.loadouts && activeTreeR.loadouts.length > 0) {
+                        var ldR = activeTreeR.loadouts[0];
+                        var ndsR = (ldR.selected_class_talents || []).concat(ldR.selected_spec_talents || []);
+                        c.talents = ndsR.map(function (n) {
+                            return {
+                                id: n.id,
+                                rank: n.rank || 1,
+                                name: n.tooltip?.talent?.name || n.tooltip?.spell_tooltip?.spell?.name || '?',
+                                spellId: n.tooltip?.spell_tooltip?.spell?.id || null,
+                                icon: n.tooltip?.spell_tooltip?.spell?.key?.href || null,
+                            };
+                        });
+                    }
                 }
                 if (!c.renderUrl) {
                     var rUrl = await fetchCharMedia(cfg, token, charRealm, cn);
