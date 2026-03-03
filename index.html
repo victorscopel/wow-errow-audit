@@ -22,11 +22,11 @@
             </div>
             <div class="hdr-right">
                 <span id="hmeta" style="font-size:.85rem;color:var(--text-dim)"></span>
-                <button class="btn btn-secondary btn-sm perm-admin perm-inline" onclick="forceRefresh()"
+                <button class="btn btn-secondary btn-sm perm-officer perm-inline" onclick="forceRefresh()"
                     id="btnRefresh">↻ <span class="t-refresh">Atualizar</span></button>
-                <button class="btn btn-secondary btn-sm perm-admin perm-inline" onclick="exportJSON()">⬇ <span
+                <button class="btn btn-secondary btn-sm perm-officer perm-inline" onclick="exportJSON()">⬇ <span
                         class="t-export">Exportar</span></button>
-                <button class="btn btn-primary btn-sm perm-admin perm-inline" onclick="openImport()">⬆ <span
+                <button class="btn btn-primary btn-sm perm-officer perm-inline" onclick="openImport()">⬆ <span
                         class="t-import">Importar</span></button>
                 <div id="user-info" style="display:none;align-items:center;gap:8px">
                     <span id="user-battletag" style="font-size:.85rem;color:var(--text)"></span>
@@ -131,7 +131,7 @@
         <div class="page" id="page-settings">
             <div class="settings-grid">
 
-                <div class="settings-card">
+                <div class="settings-card perm-officer perm-block">
                     <h3 id="sc-display">Exibição</h3>
                     <label><span class="toggle"><input type="checkbox" id="cfg-si" checked
                                 onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span
