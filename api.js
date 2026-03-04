@@ -251,7 +251,7 @@ async function fetchAPI(silent) {
                             sp.specialization.id === activeSpec.id;
                     });
                     if (activeTree && activeTree.loadouts && activeTree.loadouts.length > 0) {
-                        var loadout = activeTree.loadouts[0];
+                        var loadout = activeTree.loadouts.find(function (l) { return l.is_active; }) || activeTree.loadouts[0];
                         function mapTalentNodes(arr) {
                             var seen = {};
                             return (arr || []).map(function (n) {
@@ -269,11 +269,15 @@ async function fetchAPI(silent) {
                             });
                         }
                         console.log('[GuildAudit] Loadout keys:', Object.keys(loadout));
+                        console.log('[GuildAudit] selected_hero_talent_tree:', JSON.stringify(loadout.selected_hero_talent_tree));
+                        var heroTreeName = null;
+                        var sht = loadout.selected_hero_talent_tree;
+                        if (sht) heroTreeName = sht.hero_talent_tree?.name || sht.name || null;
                         charTalents = {
                             class: mapTalentNodes(loadout.selected_class_talents),
                             spec: mapTalentNodes(loadout.selected_spec_talents),
                             hero: mapTalentNodes(loadout.selected_hero_talents),
-                            heroTree: loadout.selected_hero_talent_tree?.hero_talent_tree?.name || loadout.selected_hero_talent_tree?.name || null,
+                            heroTree: heroTreeName,
                         };
                     }
                 }
@@ -434,7 +438,7 @@ async function refreshExisting(force) {
                             sp.specialization.id === activeSpecR.id;
                     });
                     if (activeTreeR && activeTreeR.loadouts && activeTreeR.loadouts.length > 0) {
-                        var ldR = activeTreeR.loadouts[0];
+                        var ldR = activeTreeR.loadouts.find(function (l) { return l.is_active; }) || activeTreeR.loadouts[0];
                         function mapNodesR(arr) {
                             var seen = {};
                             return (arr || []).map(function (n) {
@@ -452,11 +456,15 @@ async function refreshExisting(force) {
                             });
                         }
                         console.log('[GuildAudit] Loadout keys (refresh):', Object.keys(ldR));
+                        console.log('[GuildAudit] selected_hero_talent_tree (refresh):', JSON.stringify(ldR.selected_hero_talent_tree));
+                        var heroTreeNameR = null;
+                        var shtR = ldR.selected_hero_talent_tree;
+                        if (shtR) heroTreeNameR = shtR.hero_talent_tree?.name || shtR.name || null;
                         c.talents = {
                             class: mapNodesR(ldR.selected_class_talents),
                             spec: mapNodesR(ldR.selected_spec_talents),
                             hero: mapNodesR(ldR.selected_hero_talents),
-                            heroTree: ldR.selected_hero_talent_tree?.hero_talent_tree?.name || ldR.selected_hero_talent_tree?.name || null,
+                            heroTree: heroTreeNameR,
                         };
                     }
                 }

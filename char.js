@@ -136,22 +136,9 @@ function buildTalentsSection(c) {
     var heroHeader = '<div class="talent-col-label">HERO TALENTS</div>';
     if (c.talents.heroTree) {
         heroHeader += '<div style="text-align:center; color:var(--gold); font-size:0.75rem; margin-bottom:8px; font-weight:700;">' + esc(c.talents.heroTree) + '</div>';
-
-        // Blizzard API omits 0-cost keystone nodes. Inject them manually if known.
-        var HERO_KEYSTONES = {
-            "Druid of the Claw": { spellId: 441583, name: "Ravage" },
-            // Add other keystones here as needed
-        };
-        var keystone = HERO_KEYSTONES[c.talents.heroTree];
-        if (keystone) {
-            heroTalents.unshift({
-                id: 0,
-                spellId: keystone.spellId,
-                name: keystone.name,
-                rank: 1
-            });
-        }
     }
+    console.log('[GuildAudit] Hero talents count:', heroTalents.length, 'Tree:', c.talents.heroTree);
+    console.log('[GuildAudit] Hero talent names:', heroTalents.map(function (t) { return t.name + ' (' + t.spellId + ')'; }));
     html += '<div class="talent-col talent-col--hero">' + heroHeader + buildTalentIcons(heroTalents) + '</div>';
     html += '<div class="talent-col"><div class="talent-col-label">SPEC TALENTS</div>' + buildTalentIcons(specTalents) + '</div>';
     html += '</div></div>';
