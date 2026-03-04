@@ -421,6 +421,10 @@ function rmMember(id) {
                 if (Array.isArray(data) && data.length) {
                     roster = data;
                     localStorage.setItem('ga_data', JSON.stringify(roster));
+                    getToken(cfg).then(function (tok) {
+                        fetchItemIcons(cfg, tok);
+                        fetchAllCharMedia(cfg, tok);
+                    }).catch(function () { });
                 }
                 var found = findChar(roster);
                 if (found) renderChar(found);

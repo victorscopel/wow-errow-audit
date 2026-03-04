@@ -268,8 +268,7 @@ async function fetchAPI(silent) {
                                 return true;
                             });
                         }
-                        console.log('[GuildAudit] Loadout keys:', Object.keys(loadout));
-                        console.log('[GuildAudit] selected_hero_talent_tree:', JSON.stringify(loadout.selected_hero_talent_tree));
+                        // Talent logs removed
                         var heroTreeName = null;
                         var sht = loadout.selected_hero_talent_tree;
                         if (sht) heroTreeName = sht.hero_talent_tree?.name || sht.name || null;
@@ -347,7 +346,7 @@ async function fetchAPI(silent) {
             fetchAllCharMedia(cfg, tok);
         }).catch(function () { });
 
-        autoRefreshMetaBuilds();
+        // autoRefreshMetaBuilds removed
 
     } catch (e) {
         if (!silent) lg('❌ ' + e.message, 'err');
@@ -458,8 +457,7 @@ async function refreshExisting(force) {
                                 return true;
                             });
                         }
-                        console.log('[GuildAudit] Loadout keys (refresh):', Object.keys(ldR));
-                        console.log('[GuildAudit] selected_hero_talent_tree (refresh):', JSON.stringify(ldR.selected_hero_talent_tree));
+                        // Talent logs removed
                         var heroTreeNameR = null;
                         var shtR = ldR.selected_hero_talent_tree;
                         if (shtR) heroTreeNameR = shtR.hero_talent_tree?.name || shtR.name || null;
@@ -483,7 +481,7 @@ async function refreshExisting(force) {
         saveRoster();
         renderAll();
         notify('↻ ' + updated + ' ' + T('updated'));
-        autoRefreshMetaBuilds();
+        // autoRefreshMetaBuilds removed
     } catch (e) {
         notify('Erro: ' + e.message);
     } finally {
@@ -629,6 +627,12 @@ async function loadBackendRoster() {
                 roster = data;
                 localStorage.setItem('ga_data', JSON.stringify(roster));
                 renderAll();
+
+                // Trigger background media fetching on first load
+                getToken(cfg).then(function (tok) {
+                    fetchItemIcons(cfg, tok);
+                    fetchAllCharMedia(cfg, tok);
+                }).catch(function () { });
             }
         }
     } catch (e) { }

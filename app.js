@@ -153,27 +153,6 @@ function forceRefresh() {
     refreshExisting(true);
 }
 
-function loadBackendCfg() {
-    var cfg = JSON.parse(ls('ga_api') || '{}');
-    var proxy = cfg.proxy || '';
-    if (!proxy) return;
-    if (!proxy.endsWith('/')) proxy += '/';
-    fetch(proxy + 'api/cfg', { credentials: 'include' })
-        .then(function (r) { return r.json(); })
-        .then(function (data) {
-            if (data && data.archon) {
-                var cur = JSON.parse(ls('ga_cfg') || '{}');
-                if (!cur.archon || cur.archon.length < data.archon.length) {
-                    cur.archon = data.archon;
-                    lss('ga_cfg', JSON.stringify(cur));
-                    CFG.archon = data.archon;
-                    var el = document.getElementById('cfg-archon');
-                    if (el) el.value = data.archon;
-                }
-            }
-        })
-        .catch(function () { });
-}
 
 // forceRefreshAllMeta removed
 
