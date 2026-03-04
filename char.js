@@ -257,27 +257,31 @@ function loadMetaBuild(c) {
 
             var recPriority = STAT_PRIORITY[specClean];
             if (recPriority && c.stats) {
-                var statValues = [
-                    { key: 'crit', value: c.stats.crit || 0 },
-                    { key: 'haste', value: c.stats.haste || 0 },
-                    { key: 'mastery', value: c.stats.mastery || 0 },
-                    { key: 'versatility', value: c.stats.versatility || 0 },
-                ];
-                statValues.sort(function (a, b) { return b.value - a.value; });
-                var playerOrder = statValues.map(function (s) { return s.key; });
+                var sv = {};
+                sv.crit = c.stats.crit || 0;
+                sv.haste = c.stats.haste || 0;
+                sv.mastery = c.stats.mastery || 0;
+                sv.versatility = c.stats.versatility || 0;
 
-                var top2match = playerOrder[0] === recPriority[0] && playerOrder[1] === recPriority[1];
                 var recLabels = recPriority.map(function (s) { return T(s); }).join(' > ');
+                var issues = [];
+                for (var si = 0; si < recPriority.length - 1; si++) {
+                    var higher = recPriority[si];
+                    var lower = recPriority[si + 1];
+                    if (sv[lower] > sv[higher]) {
+                        issues.push(T(higher) + ' está abaixo de ' + T(lower));
+                    }
+                }
 
                 cardHtml += '<div style="margin-bottom:8px">';
                 cardHtml += '<div class="suggestion-item" style="font-weight:600;margin-bottom:2px">' + T('attributes') + '</div>';
                 cardHtml += '<div class="suggestion-item" style="font-size:.78rem;color:var(--text-dim)">' + T('stat_rec') + ': ' + recLabels + '</div>';
-                if (top2match) {
+                if (issues.length === 0) {
                     cardHtml += '<div class="suggestion-item" style="color:var(--green)">✓ ' + T('stat_ok') + '</div>';
                 } else {
-                    var shouldBe1 = T(recPriority[0]);
-                    var has1 = T(playerOrder[0]);
-                    cardHtml += '<div class="suggestion-item" style="color:var(--gold)">△ ' + T('stat_warn') + ': ' + shouldBe1 + ' > ' + has1 + '</div>';
+                    for (var si2 = 0; si2 < issues.length; si2++) {
+                        cardHtml += '<div class="suggestion-item" style="color:var(--gold)">△ ' + issues[si2] + '</div>';
+                    }
                 }
                 cardHtml += '</div>';
             }
