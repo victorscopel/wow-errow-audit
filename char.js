@@ -269,7 +269,9 @@ function loadMetaBuild(c) {
                     var higher = recPriority[si];
                     var lower = recPriority[si + 1];
                     if (sv[lower] > sv[higher]) {
-                        var msg = T(higher) + ' ' + T('stat_under');
+                        var vH = sv[higher].toFixed(1) + '%';
+                        var vL = sv[lower].toFixed(1) + '%';
+                        var msg = T(higher) + ' (' + vH + ') ' + T('stat_under') + ' ' + T(lower) + ' (' + vL + ')';
                         if (issues.indexOf(msg) === -1) issues.push(msg);
                     }
                 }
