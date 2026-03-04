@@ -253,6 +253,7 @@ async function fetchAPI(silent) {
                     if (activeTree && activeTree.loadouts && activeTree.loadouts.length > 0) {
                         var loadout = activeTree.loadouts[0];
                         function mapTalentNodes(arr) {
+                            var seen = {};
                             return (arr || []).map(function (n) {
                                 return {
                                     id: n.id,
@@ -260,7 +261,12 @@ async function fetchAPI(silent) {
                                     name: n.tooltip?.talent?.name || n.tooltip?.spell_tooltip?.spell?.name || '',
                                     spellId: n.tooltip?.spell_tooltip?.spell?.id || null,
                                 };
-                            }).filter(function (t) { return t.name && t.name !== '?'; });
+                            }).filter(function (t) {
+                                if (!t.name || t.name === '?' || !t.spellId) return false;
+                                if (seen[t.spellId]) return false;
+                                seen[t.spellId] = true;
+                                return true;
+                            });
                         }
                         console.log('[GuildAudit] Loadout keys:', Object.keys(loadout));
                         charTalents = {
@@ -430,6 +436,7 @@ async function refreshExisting(force) {
                     if (activeTreeR && activeTreeR.loadouts && activeTreeR.loadouts.length > 0) {
                         var ldR = activeTreeR.loadouts[0];
                         function mapNodesR(arr) {
+                            var seen = {};
                             return (arr || []).map(function (n) {
                                 return {
                                     id: n.id,
@@ -437,7 +444,12 @@ async function refreshExisting(force) {
                                     name: n.tooltip?.talent?.name || n.tooltip?.spell_tooltip?.spell?.name || '',
                                     spellId: n.tooltip?.spell_tooltip?.spell?.id || null,
                                 };
-                            }).filter(function (t) { return t.name && t.name !== '?'; });
+                            }).filter(function (t) {
+                                if (!t.name || t.name === '?' || !t.spellId) return false;
+                                if (seen[t.spellId]) return false;
+                                seen[t.spellId] = true;
+                                return true;
+                            });
                         }
                         console.log('[GuildAudit] Loadout keys (refresh):', Object.keys(ldR));
                         c.talents = {
