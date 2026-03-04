@@ -255,7 +255,30 @@ function loadMetaBuild(c) {
             }
             var cardHtml = '<div class="suggestion-card-title">⚡ ' + T('meta_build') + '</div>';
 
-            var recPriority = STAT_PRIORITY[specClean];
+            var cfgData = {};
+            try { cfgData = JSON.parse(localStorage.getItem('ga_cfg') || '{}'); } catch (e) { }
+            var archonText = cfgData.archon || '';
+            var archonDate = null;
+
+            var recPriority = typeof STAT_PRIORITY !== 'undefined' ? STAT_PRIORITY[specClean] : null;
+            if (archonText) {
+                var lines = archonText.split('\n');
+                for (var li = 0; li < lines.length; li++) {
+                    var l = lines[li].trim();
+                    if (l.startsWith(specClean + ':')) {
+                        var valStr = l.substring(specClean.length + 1).trim();
+                        var parts = valStr.split('>');
+                        recPriority = parts.map(function (p) {
+                            var statRaw = p.split('(')[0].trim().toLowerCase();
+                            if (statRaw === 'vers') return 'versatility';
+                            return statRaw;
+                        }).filter(Boolean);
+                    } else if (l.startsWith('last_updated:')) {
+                        archonDate = l.substring('last_updated:'.length).trim();
+                    }
+                }
+            }
+
             if (recPriority && c.stats) {
                 var sv = {};
                 sv.crit = c.stats.crit || 0;
@@ -264,6 +287,9 @@ function loadMetaBuild(c) {
                 sv.versatility = c.stats.versatility || 0;
 
                 var recLabels = recPriority.map(function (s) { return T(s); }).join(' > ');
+                if (archonDate) {
+                    recLabels += ' <span style="font-size:0.7rem;color:var(--text-dim)">(' + relativeTime(archonDate) + ')</span>';
+                }
                 var issues = [];
                 for (var si = 0; si < recPriority.length - 1; si++) {
                     var higher = recPriority[si];

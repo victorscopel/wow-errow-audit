@@ -5,7 +5,7 @@
 
 // ── State ─────────────────────────────────────────────────
 var roster = [];
-var CFG = { si: true, sv: true, sr: true, sn: true, ar: true, ilvlMin: 0 };
+var CFG = { si: true, sv: true, sr: true, sn: true, ar: true, ilvlMin: 0, archon: "" };
 window._lang = localStorage.getItem('ga_lang') || 'pt-BR';
 var sortC = 'ilvl', sortD = -1;
 var ovSortC = 'ilvl', ovSortD = -1;
@@ -67,6 +67,8 @@ function init() {
     });
     var imEl = document.getElementById('cfg-ilvlMin');
     if (imEl) imEl.value = CFG.ilvlMin || 0;
+    var archonEl = document.getElementById('cfg-archon');
+    if (archonEl) archonEl.value = CFG.archon || '';
     var dlEl = document.getElementById('cfg-dispLang');
     if (dlEl) dlEl.value = window._lang;
 
@@ -103,6 +105,8 @@ function saveCfg() {
     var oc = JSON.stringify(CFG);
     ['si', 'sv', 'sr', 'sn', 'ar'].forEach(function (k) { CFG[k] = document.getElementById('cfg-' + k)?.checked || false; });
     CFG.ilvlMin = parseInt(document.getElementById('cfg-ilvlMin')?.value) || 0;
+    var archonEl = document.getElementById('cfg-archon');
+    if (archonEl) CFG.archon = archonEl.value.trim();
     var nc = JSON.stringify(CFG);
     lss('ga_cfg', nc);
     if (oc !== nc && typeof startSyncCfg !== 'undefined') startSyncCfg();
