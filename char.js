@@ -268,15 +268,16 @@ function loadMetaBuild(c) {
 
                 var top2match = playerOrder[0] === recPriority[0] && playerOrder[1] === recPriority[1];
                 var recLabels = recPriority.map(function (s) { return T(s); }).join(' > ');
-                var playerLabels = statValues.map(function (s) { return T(s.key) + ' ' + s.value.toFixed(1) + '%'; }).join(' > ');
 
                 cardHtml += '<div style="margin-bottom:8px">';
                 cardHtml += '<div class="suggestion-item" style="font-weight:600;margin-bottom:2px">' + T('attributes') + '</div>';
-                cardHtml += '<div class="suggestion-item" style="font-size:.78rem;color:var(--text-dim)">' + playerLabels + '</div>';
+                cardHtml += '<div class="suggestion-item" style="font-size:.78rem;color:var(--text-dim)">' + T('stat_rec') + ': ' + recLabels + '</div>';
                 if (top2match) {
-                    cardHtml += '<div class="suggestion-item" style="color:var(--green)">✓ Prioridade de atributos de acordo com o recomendado</div>';
+                    cardHtml += '<div class="suggestion-item" style="color:var(--green)">✓ ' + T('stat_ok') + '</div>';
                 } else {
-                    cardHtml += '<div class="suggestion-item" style="color:var(--gold)">△ Prioridade recomendada: ' + recLabels + '</div>';
+                    var shouldBe1 = T(recPriority[0]);
+                    var has1 = T(playerOrder[0]);
+                    cardHtml += '<div class="suggestion-item" style="color:var(--gold)">△ ' + T('stat_warn') + ': ' + shouldBe1 + ' > ' + has1 + '</div>';
                 }
                 cardHtml += '</div>';
             }
@@ -315,8 +316,8 @@ function loadMetaBuild(c) {
             }
             cardHtml += '</div>';
 
-            var footer = meta.totalLogs + ' logs analisados';
-            if (meta.avgDps) footer += ' · ~' + Math.round(meta.avgDps).toLocaleString() + ' DPS médio';
+            var footer = (meta.raidName || '') + ' · ' + meta.totalLogs + ' logs';
+            if (meta.avgDps) footer += ' · ~' + Math.round(meta.avgDps).toLocaleString() + ' DPS';
             footer += ' · ' + relativeTime(meta.lastUpdated);
             cardHtml += '<div style="font-size:.7rem;color:var(--text-dim);margin-top:6px">' + footer + '</div>';
             el.innerHTML = cardHtml;

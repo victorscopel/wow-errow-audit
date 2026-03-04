@@ -128,6 +128,9 @@ var I18N = {
   meta_loading: { en: 'Loading meta data...', pt_BR: 'Carregando dados do meta...' },
   meta_no_data: { en: 'No meta data available. Import from WarcraftLogs first.', pt_BR: 'Sem dados do meta. Importe do WarcraftLogs primeiro.' },
   all_good: { en: 'All good!', pt_BR: 'Tudo certo!' },
+  stat_rec: { en: 'Recommended', pt_BR: 'Recomendado' },
+  stat_ok: { en: 'Stat priority matches recommendation', pt_BR: 'Prioridade de atributos de acordo com o recomendado' },
+  stat_warn: { en: 'Your top stat should be', pt_BR: 'Seu atributo principal deveria ser' },
 };
 
 var HERO_TREE_PT = {
@@ -180,7 +183,7 @@ var STAT_PRIORITY = {
   "Outlaw": ["haste", "versatility", "crit", "mastery"],
   "Subtlety": ["crit", "mastery", "versatility", "haste"],
   "Balance": ["mastery", "haste", "crit", "versatility"],
-  "Feral": ["crit", "mastery", "haste", "versatility"],
+  "Feral": ["mastery", "haste", "crit", "versatility"],
   "Guardian": ["versatility", "haste", "mastery", "crit"],
   "Restoration": ["haste", "mastery", "crit", "versatility"],
   "Holy": ["haste", "crit", "mastery", "versatility"],

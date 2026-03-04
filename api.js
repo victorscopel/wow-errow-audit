@@ -730,17 +730,40 @@ function forceRefreshAllMeta() {
     }
     var keys = Object.keys(specs);
     if (!keys.length) { notify('Nenhuma spec no roster'); return; }
+    var zoneEl = document.getElementById('cfg-wclZone');
+    var zoneId = zoneEl ? parseInt(zoneEl.value) || null : null;
     notify('⚡ Atualizando meta builds para ' + keys.length + ' specs...');
     var done = 0;
     keys.forEach(function (k) {
         var s = specs[k];
+        var bodyData = { class: s.class, spec: s.spec };
+        if (zoneId) bodyData.zoneId = zoneId;
         fetch(pbUrl(cfg.proxy) + '/api/meta-builds', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ class: s.class, spec: s.spec }),
+            body: JSON.stringify(bodyData),
         }).then(function () {
             done++;
             if (done === keys.length) notify('✅ Meta builds atualizados (' + keys.length + ' specs)');
         }).catch(function () { done++; });
     });
+}
+
+function loadRaidZones() {
+    var cfg = getAPICfg();
+    if (!cfg.proxy) return;
+    var sel = document.getElementById('cfg-wclZone');
+    if (!sel) return;
+    fetch(pbUrl(cfg.proxy) + '/api/wcl-zones')
+        .then(function (r) { return r.json(); })
+        .then(function (zones) {
+            if (!Array.isArray(zones)) return;
+            for (var i = 0; i < zones.length; i++) {
+                var opt = document.createElement('option');
+                opt.value = zones[i].id;
+                opt.textContent = zones[i].name + ' (' + zones[i].bosses + ' bosses)';
+                sel.appendChild(opt);
+            }
+        })
+        .catch(function () { });
 }

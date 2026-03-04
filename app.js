@@ -91,6 +91,7 @@ function init() {
     if (hasAPICfg()) {
         if (typeof loadBackendRoster !== 'undefined') loadBackendRoster();
         if (typeof loadBackendCfg !== 'undefined') loadBackendCfg();
+        if (typeof loadRaidZones !== 'undefined') loadRaidZones();
     }
 
     if (CFG.ar && hasAPICfg() && roster.length && hasPerm('officer')) {
