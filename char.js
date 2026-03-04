@@ -339,7 +339,7 @@ function loadMetaBuild(c) {
             if (c.talents && !Array.isArray(c.talents)) {
                 var all = [].concat(c.talents.class || [], c.talents.spec || [], c.talents.hero || []);
                 for (var i = 0; i < all.length; i++) {
-                    if (all[i].spellId) playerSpells[all[i].spellId] = true;
+                    if (all[i].id) playerSpells[all[i].id] = true;
                 }
             }
             var metaKeys = Object.keys(meta.talentHeatmap);
