@@ -195,31 +195,6 @@ function buildSuggestionsSection(c) {
     var html = '<div class="suggestions-section">';
     html += '<div class="info-card-title" style="margin-bottom:10px">' + T('suggestions') + '</div>';
 
-    var gearItems = [];
-    if (c.gear) {
-        var avgIlvl = c.ilvl || 0;
-        for (var i = 0; i < SLOT_ORDER.length; i++) {
-            var slot = SLOT_ORDER[i];
-            var item = c.gear[slot];
-            if (!item) continue;
-            if (ENCHANTABLE.includes(slot) && !item.enchanted) {
-                gearItems.push('<div class="suggestion-item"><span class="s-icon">✦</span>' + T('missing_enchant_on') + ' <strong>' + slotLabel(slot) + '</strong></div>');
-            }
-            if (item.hasSockets && !item.gemmed) {
-                gearItems.push('<div class="suggestion-item"><span class="s-icon">◆</span>' + T('missing_gem_on') + ' <strong>' + slotLabel(slot) + '</strong></div>');
-            }
-            if (item.ilvl && avgIlvl && item.ilvl < avgIlvl - 20) {
-                gearItems.push('<div class="suggestion-item"><span class="s-icon">▼</span>' + T('low_ilvl_slot') + ' <strong>' + slotLabel(slot) + '</strong> (' + item.ilvl + ' vs ' + avgIlvl + ' avg)</div>');
-            }
-        }
-    }
-    if (gearItems.length) {
-        html += '<div class="suggestion-card suggestion-card--gear">';
-        html += '<div class="suggestion-card-title">⚠ ' + T('gear_check') + '</div>';
-        html += gearItems.join('');
-        html += '</div>';
-    }
-
     var readyItems = [];
     var cfgData = null;
     try { cfgData = JSON.parse(localStorage.getItem('ga_cfg') || '{}'); } catch (e) { }
@@ -249,9 +224,9 @@ function buildSuggestionsSection(c) {
     html += '<div class="suggestion-item" style="color:var(--text-dim)">' + T('meta_loading') + '</div>';
     html += '</div>';
 
-    if (!gearItems.length && !readyItems.length) {
+    if (!readyItems.length) {
         html += '<div class="suggestion-card suggestion-card--ok">';
-        html += '<div class="suggestion-card-title">✓ ' + T('gear_check') + ' & ' + T('readiness') + '</div>';
+        html += '<div class="suggestion-card-title">✓ ' + T('readiness') + '</div>';
         html += '<div class="suggestion-item" style="color:var(--green)">' + T('all_good') + '</div>';
         html += '</div>';
     }

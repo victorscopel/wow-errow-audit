@@ -346,6 +346,8 @@ async function fetchAPI(silent) {
             fetchAllCharMedia(cfg, tok);
         }).catch(function () { });
 
+        autoRefreshMetaBuilds();
+
     } catch (e) {
         if (!silent) lg('❌ ' + e.message, 'err');
         else notify('Erro ao atualizar: ' + e.message);
@@ -479,6 +481,7 @@ async function refreshExisting(force) {
         saveRoster();
         renderAll();
         notify('↻ ' + updated + ' ' + T('updated'));
+        autoRefreshMetaBuilds();
     } catch (e) {
         notify('Erro: ' + e.message);
     } finally {
@@ -677,4 +680,67 @@ async function startSyncCfg() {
             body: JSON.stringify(CFG)
         }).catch(function () { });
     } catch (e) { }
+}
+
+function autoRefreshMetaBuilds() {
+    var cfg = getAPICfg();
+    if (!cfg.proxy) return;
+    var specs = {};
+    for (var i = 0; i < roster.length; i++) {
+        var c = roster[i];
+        if (c.class && c.spec) {
+            var key = c.class.replace(/\s+/g, '') + ':' + c.spec.replace(/\s+/g, '');
+            specs[key] = { class: c.class.replace(/\s+/g, ''), spec: c.spec.replace(/\s+/g, '') };
+        }
+    }
+    var keys = Object.keys(specs);
+    var oneWeek = 7 * 24 * 60 * 60 * 1000;
+    keys.forEach(function (k) {
+        var s = specs[k];
+        fetch(pbUrl(cfg.proxy) + '/api/meta-builds?class=' + encodeURIComponent(s.class) + '&spec=' + encodeURIComponent(s.spec))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                var needsRefresh = !data || !data.talentHeatmap;
+                if (data && data.lastUpdated) {
+                    var age = Date.now() - new Date(data.lastUpdated).getTime();
+                    if (age > oneWeek) needsRefresh = true;
+                }
+                if (needsRefresh) {
+                    fetch(pbUrl(cfg.proxy) + '/api/meta-builds', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ class: s.class, spec: s.spec }),
+                    }).catch(function () { });
+                }
+            })
+            .catch(function () { });
+    });
+}
+
+function forceRefreshAllMeta() {
+    var cfg = getAPICfg();
+    if (!cfg.proxy) { notify('Proxy não configurado'); return; }
+    var specs = {};
+    for (var i = 0; i < roster.length; i++) {
+        var c = roster[i];
+        if (c.class && c.spec) {
+            var key = c.class.replace(/\s+/g, '') + ':' + c.spec.replace(/\s+/g, '');
+            specs[key] = { class: c.class.replace(/\s+/g, ''), spec: c.spec.replace(/\s+/g, '') };
+        }
+    }
+    var keys = Object.keys(specs);
+    if (!keys.length) { notify('Nenhuma spec no roster'); return; }
+    notify('⚡ Atualizando meta builds para ' + keys.length + ' specs...');
+    var done = 0;
+    keys.forEach(function (k) {
+        var s = specs[k];
+        fetch(pbUrl(cfg.proxy) + '/api/meta-builds', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ class: s.class, spec: s.spec }),
+        }).then(function () {
+            done++;
+            if (done === keys.length) notify('✅ Meta builds atualizados (' + keys.length + ' specs)');
+        }).catch(function () { done++; });
+    });
 }

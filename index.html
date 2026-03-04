@@ -156,6 +156,13 @@
                         <input type="number" id="cfg-ilvlMin" class="form-input" placeholder="0" value="0"
                             onchange="saveCfg();renderAll()" style="width:120px">
                     </div>
+                    <div style="margin-top:12px">
+                        <label style="font-weight:600">Meta Builds (WarcraftLogs)</label>
+                        <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:6px">
+                            Buscar top 100 logs heroicos para comparar talentos</div>
+                        <button class="btn btn-secondary" onclick="forceRefreshAllMeta()" style="width:100%">⚡ Forçar
+                            Atualização</button>
+                    </div>
                 </div>
 
                 <div class="settings-card perm-admin perm-block">
