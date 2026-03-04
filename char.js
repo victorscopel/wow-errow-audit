@@ -147,8 +147,6 @@ function buildTalentsSection(c) {
         }
         heroHeader += '<div style="text-align:center; color:var(--gold); font-size:0.75rem; margin-bottom:8px; font-weight:700;">' + esc(heroTreeDisplay) + '</div>';
     }
-    console.log('[GuildAudit] Hero talents count:', heroTalents.length, 'Tree:', c.talents.heroTree);
-    console.log('[GuildAudit] Hero talent names:', heroTalents.map(function (t) { return t.name + ' (' + t.spellId + ')'; }));
     html += '<div class="talent-col talent-col--hero">' + heroHeader + buildTalentIcons(heroTalents) + '</div>';
     html += '<div class="talent-col"><div class="talent-col-label">' + T('spec_talents') + '</div>' + buildTalentIcons(specTalents) + '</div>';
     html += '</div></div>';
@@ -384,10 +382,11 @@ function rmMember(id) {
     var rdot = document.getElementById('rdot');
     if (rdot) rdot.className = 'off';
 
-    function updateHeader() {
+    function updateHeader(guildInfo) {
         var guildName = null;
         try { var a = JSON.parse(localStorage.getItem('ga_api') || '{}'); guildName = a.guild; } catch (e) { }
         if (roster.length && roster[0].guild) guildName = roster[0].guild;
+        if (!guildName && guildInfo && guildInfo.guild) guildName = guildInfo.guild;
         if (guildName) {
             var ht = document.getElementById('hdr-title');
             if (ht) ht.textContent = guildName.charAt(0).toUpperCase() + guildName.slice(1);
@@ -421,7 +420,7 @@ function rmMember(id) {
             .then(function (r) { return r.json(); })
             .catch(function () { return null; });
 
-        var fetchCfg = fetch(proxyBase + '/api/cfg?t=' + Date.now())
+        var fetchCfgData = fetch(proxyBase + '/api/cfg?t=' + Date.now())
             .then(function (r) { return r.json(); })
             .catch(function () { return null; });
 
@@ -429,10 +428,15 @@ function rmMember(id) {
             .then(function (r) { return r.text(); })
             .catch(function () { return null; });
 
-        Promise.all([fetchRoster, fetchCfg, fetchArchon]).then(function (results) {
+        var fetchGuildInfo = fetch(proxyBase + '/api/guild-info')
+            .then(function (r) { return r.json(); })
+            .catch(function () { return null; });
+
+        Promise.all([fetchRoster, fetchCfgData, fetchArchon, fetchGuildInfo]).then(function (results) {
             var rosterData = results[0];
             var cfgData = results[1];
             var archonText = results[2];
+            var guildInfo = results[3];
 
             if (Array.isArray(rosterData) && rosterData.length) {
                 roster = rosterData;
@@ -455,7 +459,7 @@ function rmMember(id) {
                 localStorage.setItem('ga_cfg', JSON.stringify(cur2));
             }
 
-            updateHeader();
+            updateHeader(guildInfo);
 
             var found = findChar(roster);
             if (found) renderChar(found);
