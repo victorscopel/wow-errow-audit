@@ -384,19 +384,22 @@ function rmMember(id) {
     var rdot = document.getElementById('rdot');
     if (rdot) rdot.className = 'off';
 
-    var guildName = null;
-    try { var a = JSON.parse(localStorage.getItem('ga_api') || '{}'); guildName = a.guild; } catch (e) { }
-    if (roster.length && roster[0].guild) guildName = roster[0].guild;
-    if (guildName) {
-        var ht = document.getElementById('hdr-title');
-        if (ht) ht.textContent = guildName.charAt(0).toUpperCase() + guildName.slice(1);
+    function updateHeader() {
+        var guildName = null;
+        try { var a = JSON.parse(localStorage.getItem('ga_api') || '{}'); guildName = a.guild; } catch (e) { }
+        if (roster.length && roster[0].guild) guildName = roster[0].guild;
+        if (guildName) {
+            var ht = document.getElementById('hdr-title');
+            if (ht) ht.textContent = guildName.charAt(0).toUpperCase() + guildName.slice(1);
+        }
+        if (roster.length) {
+            var hm = document.getElementById('hmeta');
+            if (hm) hm.textContent = roster.length + ' ' + T('members');
+            var rts = document.getElementById('rts');
+            if (rts) rts.textContent = relativeTime(roster[0].lastUpdated);
+        }
     }
-    if (roster.length) {
-        var hm = document.getElementById('hmeta');
-        if (hm) hm.textContent = roster.length + ' ' + T('members');
-        var rts = document.getElementById('rts');
-        if (rts) rts.textContent = relativeTime(roster[0].lastUpdated);
-    }
+    updateHeader();
 
     var params = new URLSearchParams(window.location.search);
     var name = params.get('name');
@@ -451,6 +454,8 @@ function rmMember(id) {
                 cur2.archon = archonText;
                 localStorage.setItem('ga_cfg', JSON.stringify(cur2));
             }
+
+            updateHeader();
 
             var found = findChar(roster);
             if (found) renderChar(found);
