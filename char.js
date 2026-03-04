@@ -253,7 +253,7 @@ function loadMetaBuild(c) {
                 el.innerHTML = '<div class="suggestion-card-title">⚡ ' + T('meta_build') + '</div><div class="suggestion-item" style="color:var(--text-dim)">' + T('meta_no_data') + '</div>';
                 return;
             }
-            var cardHtml = '<div class="suggestion-card-title">⚡ ' + T('meta_build') + '</div>';
+            var cardHtml = '<div style="font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px">⚡ ' + T('meta_build') + '</div>';
 
             var cfgData = {};
             try { cfgData = JSON.parse(localStorage.getItem('ga_cfg') || '{}'); } catch (e) { }
@@ -292,13 +292,18 @@ function loadMetaBuild(c) {
                 svRaw.mastery = c.stats.masteryRating || 0;
                 svRaw.versatility = c.stats.versRating || 0;
 
-                var recLabels = recPriority.map(function (o) {
-                    var label = T(o.stat);
-                    if (o.weight) label += ' (' + o.weight + ')';
-                    return label;
-                }).join(' > ');
+                var statColors = { crit: '#e05252', haste: '#f4a623', mastery: '#5ba0f0', versatility: '#8bc48b' };
+                var recBadges = recPriority.map(function (o, idx) {
+                    var col = statColors[o.stat] || '#a0a0a0';
+                    var badge = '<span style="display:inline-flex;align-items:center;gap:3px;background:' + col + '22;border:1px solid ' + col + '55;border-radius:4px;padding:2px 7px;font-size:13px;font-weight:600;color:' + col + '">' + T(o.stat);
+                    if (o.weight) badge += ' <span style="font-size:11px;opacity:0.85">(' + o.weight + ')</span>';
+                    badge += '</span>';
+                    if (idx < recPriority.length - 1) badge += '<span style="color:var(--text-dim);margin:0 3px">›</span>';
+                    return badge;
+                }).join('');
+                var recRow = '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:6px 0 8px">' + recBadges + '</div>';
                 if (archonDate) {
-                    recLabels += ' <span style="font-size:0.7rem;color:var(--text-dim)">(' + relativeTime(archonDate) + ')</span>';
+                    recRow += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Archon.gg · ' + relativeTime(archonDate) + '</div>';
                 }
                 var issues = [];
                 for (var si = 0; si < recPriority.length; si++) {
@@ -309,19 +314,20 @@ function loadMetaBuild(c) {
 
                     if (sTarget && sPlayer !== undefined && sPlayer < sTarget) {
                         var diff = sTarget - sPlayer;
-                        var msg = T(sName) + ' ' + T('stat_below') + ' (' + sTarget + '). ' + T('you_have') + ' ' + sPlayer + ' <span style="color:var(--red);font-size:0.8em">(-' + diff + ')</span>';
+                        var col2 = statColors[sName] || '#a0a0a0';
+                        var msg = '<span style="color:' + col2 + ';font-weight:600">' + T(sName) + '</span> ' + T('stat_below') + ': <span style="font-weight:600">' + sPlayer + '</span> <span style="color:var(--red)">(-' + diff + ')</span> <span style="color:var(--text-dim);font-size:11px">(rec. ' + sTarget + ')</span>';
                         if (issues.indexOf(msg) === -1) issues.push(msg);
                     }
                 }
 
-                cardHtml += '<div style="margin-bottom:8px">';
-                cardHtml += '<div class="suggestion-item" style="font-weight:600;margin-bottom:2px">' + T('attributes') + '</div>';
-                cardHtml += '<div class="suggestion-item" style="font-size:.78rem;color:var(--text-dim)">' + T('stat_rec') + ': ' + recLabels + '</div>';
+                cardHtml += '<div style="margin-bottom:10px;font-size:14px">';
+                cardHtml += '<div style="font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-dim);margin-bottom:4px">' + T('attributes') + '</div>';
+                cardHtml += recRow;
                 if (issues.length === 0) {
-                    cardHtml += '<div class="suggestion-item" style="color:var(--green)">✓ ' + T('stat_ok') + '</div>';
+                    cardHtml += '<div style="color:var(--green);font-size:13px">✓ ' + T('stat_ok') + '</div>';
                 } else {
                     for (var si2 = 0; si2 < issues.length; si2++) {
-                        cardHtml += '<div class="suggestion-item" style="color:var(--gold)">△ ' + issues[si2] + '</div>';
+                        cardHtml += '<div style="color:var(--gold);font-size:13px;margin-top:2px">△ ' + issues[si2] + '</div>';
                     }
                 }
                 cardHtml += '</div>';
@@ -345,13 +351,13 @@ function loadMetaBuild(c) {
             }
             missing.sort(function (a, b) { return b.pct - a.pct; });
 
-            cardHtml += '<div style="margin-bottom:8px">';
-            cardHtml += '<div class="suggestion-item" style="font-weight:600;margin-bottom:2px">' + T('talents') + '</div>';
+            cardHtml += '<div style="margin-bottom:8px;font-size:14px">';
+            cardHtml += '<div style="font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-dim);margin-bottom:6px">' + T('talents') + '</div>';
             if (missing.length === 0) {
-                cardHtml += '<div class="suggestion-item" style="color:var(--green)">✓ ' + T('meta_match') + '</div>';
+                cardHtml += '<div style="color:var(--green);font-size:13px">✓ ' + T('meta_match') + '</div>';
                 el.className = 'suggestion-card suggestion-card--ok';
             } else {
-                cardHtml += '<div class="suggestion-item" style="color:var(--gold)">' + missing.length + ' ' + T('meta_diff') + '</div>';
+                cardHtml += '<div style="color:var(--gold);font-size:13px">' + missing.length + ' ' + T('meta_diff') + '</div>';
                 var calcSlug = TALENT_CALC_SLUG[c.class] || '';
                 var specSlug = (c.spec || '').toLowerCase().replace(/\s+/g, '-');
                 if (calcSlug) {

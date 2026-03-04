@@ -133,6 +133,8 @@ var I18N = {
   stat_warn: { en: 'Your top stat should be', pt_BR: 'Seu atributo principal deveria ser' },
   stat_under: { en: 'should be higher than', pt_BR: 'deveria ser maior que' },
   peso: { en: 'Weight', pt_BR: 'Peso' },
+  stat_below: { en: 'is below recommended', pt_BR: 'abaixo do recomendado' },
+  you_have: { en: 'You have', pt_BR: 'Você tem' },
 };
 
 var HERO_TREE_PT = {
