@@ -253,6 +253,34 @@ function loadMetaBuild(c) {
                 el.innerHTML = '<div class="suggestion-card-title">⚡ ' + T('meta_build') + '</div><div class="suggestion-item" style="color:var(--text-dim)">' + T('meta_no_data') + '</div>';
                 return;
             }
+            var cardHtml = '<div class="suggestion-card-title">⚡ ' + T('meta_build') + '</div>';
+
+            var recPriority = STAT_PRIORITY[specClean];
+            if (recPriority && c.stats) {
+                var statValues = [
+                    { key: 'crit', value: c.stats.crit || 0 },
+                    { key: 'haste', value: c.stats.haste || 0 },
+                    { key: 'mastery', value: c.stats.mastery || 0 },
+                    { key: 'versatility', value: c.stats.versatility || 0 },
+                ];
+                statValues.sort(function (a, b) { return b.value - a.value; });
+                var playerOrder = statValues.map(function (s) { return s.key; });
+
+                var top2match = playerOrder[0] === recPriority[0] && playerOrder[1] === recPriority[1];
+                var recLabels = recPriority.map(function (s) { return T(s); }).join(' > ');
+                var playerLabels = statValues.map(function (s) { return T(s.key) + ' ' + s.value.toFixed(1) + '%'; }).join(' > ');
+
+                cardHtml += '<div style="margin-bottom:8px">';
+                cardHtml += '<div class="suggestion-item" style="font-weight:600;margin-bottom:2px">' + T('attributes') + '</div>';
+                cardHtml += '<div class="suggestion-item" style="font-size:.78rem;color:var(--text-dim)">' + playerLabels + '</div>';
+                if (top2match) {
+                    cardHtml += '<div class="suggestion-item" style="color:var(--green)">✓ Prioridade de atributos de acordo com o recomendado</div>';
+                } else {
+                    cardHtml += '<div class="suggestion-item" style="color:var(--gold)">△ Prioridade recomendada: ' + recLabels + '</div>';
+                }
+                cardHtml += '</div>';
+            }
+
             var playerSpells = {};
             if (c.talents && !Array.isArray(c.talents)) {
                 var all = [].concat(c.talents.class || [], c.talents.spec || [], c.talents.hero || []);
@@ -270,20 +298,27 @@ function loadMetaBuild(c) {
                 }
             }
             missing.sort(function (a, b) { return b.pct - a.pct; });
-            var cardHtml = '<div class="suggestion-card-title">⚡ ' + T('meta_build') + '</div>';
+
+            cardHtml += '<div style="margin-bottom:8px">';
+            cardHtml += '<div class="suggestion-item" style="font-weight:600;margin-bottom:2px">' + T('talents') + '</div>';
             if (missing.length === 0) {
                 cardHtml += '<div class="suggestion-item" style="color:var(--green)">✓ ' + T('meta_match') + '</div>';
                 el.className = 'suggestion-card suggestion-card--ok';
             } else {
-                cardHtml += '<div class="suggestion-item" style="margin-bottom:4px">' + missing.length + ' ' + T('meta_diff') + '</div>';
-                var show = missing.slice(0, 8);
-                for (var k = 0; k < show.length; k++) {
-                    var href = 'https://' + whDomain() + '/spell=' + show[k].id;
-                    cardHtml += '<div class="suggestion-item"><span class="s-icon">△</span><a href="' + href + '" target="_blank" data-wowhead="spell=' + show[k].id + '" style="color:var(--gold)">#' + show[k].id + '</a> <span style="color:var(--text-dim)">(' + show[k].pct + '% uso)</span></div>';
+                cardHtml += '<div class="suggestion-item" style="color:var(--gold)">' + missing.length + ' ' + T('meta_diff') + '</div>';
+                var calcSlug = TALENT_CALC_SLUG[c.class] || '';
+                var specSlug = (c.spec || '').toLowerCase().replace(/\s+/g, '-');
+                if (calcSlug) {
+                    var calcUrl = 'https://' + whDomain() + '/talent-calc/' + calcSlug + '/' + specSlug;
+                    cardHtml += '<div class="suggestion-item"><a href="' + calcUrl + '" target="_blank" style="color:var(--gold);text-decoration:underline">🔗 ' + T('talents') + ' — Wowhead Calculator</a></div>';
                 }
-                if (missing.length > 8) cardHtml += '<div class="suggestion-item" style="color:var(--text-dim)">+' + (missing.length - 8) + ' more</div>';
             }
-            cardHtml += '<div style="font-size:.7rem;color:var(--text-dim);margin-top:6px">' + meta.totalLogs + ' logs · ' + relativeTime(meta.lastUpdated) + '</div>';
+            cardHtml += '</div>';
+
+            var footer = meta.totalLogs + ' logs analisados';
+            if (meta.avgDps) footer += ' · ~' + Math.round(meta.avgDps).toLocaleString() + ' DPS médio';
+            footer += ' · ' + relativeTime(meta.lastUpdated);
+            cardHtml += '<div style="font-size:.7rem;color:var(--text-dim);margin-top:6px">' + footer + '</div>';
             el.innerHTML = cardHtml;
             refreshWowheadTooltips();
         })
