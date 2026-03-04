@@ -1095,7 +1095,7 @@ a.whl {
   padding: 0 !important;
   border-radius: 6px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, .15);
+  border: 1px solid rgb(253 187 0);
   background: none !important;
   transition: border-color .15s;
 }
@@ -1105,6 +1105,8 @@ a.whl {
   height: 100% !important;
   margin: 0 !important;
   padding: 0 !important;
+  left: 0 !important;
+  top: 0 !important;
   display: block !important;
   background-size: cover !important;
   background-position: center !important;
