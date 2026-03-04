@@ -260,13 +260,17 @@ function loadMetaBuild(c) {
             var archonText = cfgData.archon || '';
             var archonDate = null;
 
+            var classSlug = (c.class || '').toLowerCase().replace(/\s+/g, '-');
+            var specSlug = (c.spec || '').toLowerCase().replace(/\s+/g, '-');
+            var archonPrefix = classSlug + '-' + specSlug + ':';
+
             var recPriority = typeof STAT_PRIORITY !== 'undefined' ? STAT_PRIORITY[specClean] : null;
             if (archonText) {
                 var lines = archonText.split('\n');
                 for (var li = 0; li < lines.length; li++) {
                     var l = lines[li].trim();
-                    if (l.startsWith(specClean + ':')) {
-                        var valStr = l.substring(specClean.length + 1).trim();
+                    if (l.startsWith(archonPrefix)) {
+                        var valStr = l.substring(archonPrefix.length).trim();
                         var parts = valStr.split('>');
                         recPriority = parts.map(function (p) {
                             var statRaw = p.split('(')[0].trim().toLowerCase();
