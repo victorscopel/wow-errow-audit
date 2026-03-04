@@ -274,6 +274,7 @@ async function fetchAPI(silent) {
                         var sht = loadout.selected_hero_talent_tree;
                         if (sht) heroTreeName = sht.hero_talent_tree?.name || sht.name || null;
                         charTalents = {
+                            exportString: loadout.talent_loadout_code || '',
                             class: mapTalentNodes(loadout.selected_class_talents),
                             spec: mapTalentNodes(loadout.selected_spec_talents),
                             hero: mapTalentNodes(loadout.selected_hero_talents),

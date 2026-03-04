@@ -367,6 +367,9 @@ function loadMetaBuild(c) {
                 var specSlug = (c.spec || '').toLowerCase().replace(/\s+/g, '-');
                 if (calcSlug) {
                     var calcUrl = 'https://' + whDomain() + '/talent-calc/' + calcSlug + '/' + specSlug;
+                    if (c.talents && c.talents.exportString) {
+                        calcUrl += '/' + c.talents.exportString;
+                    }
                     cardHtml += '<div class="suggestion-item"><a href="' + calcUrl + '" target="_blank" style="color:var(--gold);text-decoration:underline">🔗 ' + T('talents') + ' — Wowhead Calculator</a></div>';
                 }
             }
