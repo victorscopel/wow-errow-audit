@@ -135,6 +135,7 @@ var I18N = {
   peso: { en: 'Weight', pt_BR: 'Peso' },
   stat_below: { en: 'is below recommended', pt_BR: 'abaixo do recomendado' },
   you_have: { en: 'You have', pt_BR: 'Você tem' },
+  archon_source: { en: 'Recommended stats based on top heroic raid logs', pt_BR: 'Atributos recomendados com base nos melhores logs de raid heróica' },
 };
 
 var HERO_TREE_PT = {

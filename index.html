@@ -160,7 +160,12 @@
                         <label style="font-weight:600">Meta Builds (WarcraftLogs)</label>
                         <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:6px">
                             Top 100 logs heroicos para comparar talentos</div>
-                        <label style="font-size:.8rem">Raid</label>
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
+                            <label style="font-size:.8rem;margin:0">Raid</label>
+                            <button class="btn btn-secondary btn-sm" onclick="forceRefreshZones()"
+                                style="padding:2px 6px;font-size:10px" title="Verificar novas raids no WarcraftLogs">↻
+                                Consultar API</button>
+                        </div>
                         <select id="cfg-wclZone" class="form-select" style="width:100%;margin-bottom:8px">
                             <option value="">Automático (mais recente)</option>
                         </select>

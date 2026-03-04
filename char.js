@@ -50,9 +50,9 @@ function buildSidebar(c, id) {
         '</div>' +
         '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px">' + roleSel + '<span class="ilvl ' + ilvlC(c.ilvl) + '">' + (c.ilvl || '—') + '</span>' + (c.mythicRating ? '<span style="font-weight:700;color:' + ratingCol(c.mythicRating) + '">M+ ' + c.mythicRating + '</span>' : '') + '</div>' +
         '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
-        '<a href="https://raider.io/characters/us/' + (c.realm || 'azralon') + '/' + c.name.toLowerCase() + '" target="_blank" class="btn btn-secondary btn-sm">Raider.IO</a>' +
-        '<a href="https://www.warcraftlogs.com/character/us/' + (c.realm || 'azralon') + '/' + c.name.toLowerCase() + '" target="_blank" class="btn btn-secondary btn-sm">WCL</a>' +
-        '<a href="https://worldofwarcraft.blizzard.com/' + (window._lang === 'pt-BR' ? 'pt-br' : 'en-us') + '/character/us/' + (c.realm || 'azralon') + '/' + c.name.toLowerCase() + '" target="_blank" class="btn btn-secondary btn-sm">Armory</a>' +
+        '<a href="https://raider.io/characters/us/' + (c.realm || 'azralon') + '/' + c.name.toLowerCase() + '" target="_blank" class="btn btn-secondary btn-sm"><img src="https://raider.io/favicon.ico" style="width:13px;height:13px;vertical-align:middle;margin-right:3px;border-radius:2px">Raider.IO</a>' +
+        '<a href="https://www.warcraftlogs.com/character/us/' + (c.realm || 'azralon') + '/' + c.name.toLowerCase() + '" target="_blank" class="btn btn-secondary btn-sm"><img src="https://assets.rpglogs.com/img/warcraft/favicon.png" style="width:13px;height:13px;vertical-align:middle;margin-right:3px;border-radius:2px">WCL</a>' +
+        '<a href="https://worldofwarcraft.blizzard.com/' + (window._lang === 'pt-BR' ? 'pt-br' : 'en-us') + '/character/us/' + (c.realm || 'azralon') + '/' + c.name.toLowerCase() + '" target="_blank" class="btn btn-secondary btn-sm"><img src="https://bnetcmsus-a.akamaihd.net/cms/gallery/D2TTHKAPW9BH1534981363136.png" style="width:13px;height:13px;vertical-align:middle;margin-right:3px;border-radius:2px">Armory</a>' +
         '</div></div>' +
         buildStatsCard(c) +
         (c.mythicRating ? '<div class="info-card"><div class="info-card-title">Mythic+</div><div style="font-family:\'Inter\',sans-serif;font-size:1.5rem;font-weight:800;color:' + ratingCol(c.mythicRating) + '">' + c.mythicRating + '</div><div style="font-size:.85rem;color:var(--text-dim);margin-top:3px">' + ratingTier(c.mythicRating) + '</div></div>' : '') +
@@ -303,7 +303,9 @@ function loadMetaBuild(c) {
                 }).join('');
                 var recRow = '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:6px 0 8px">' + recBadges + '</div>';
                 if (archonDate) {
-                    recRow += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Archon.gg · ' + relativeTime(archonDate) + '</div>';
+                    recRow += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Archon.gg · ' + T('archon_source') + ' · ' + relativeTime(archonDate) + '</div>';
+                } else {
+                    recRow += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">' + T('archon_source') + '</div>';
                 }
                 var issues = [];
                 for (var si = 0; si < recPriority.length; si++) {
@@ -352,7 +354,10 @@ function loadMetaBuild(c) {
             missing.sort(function (a, b) { return b.pct - a.pct; });
 
             cardHtml += '<div style="margin-bottom:8px;font-size:14px">';
-            cardHtml += '<div style="font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-dim);margin-bottom:6px">' + T('talents') + '</div>';
+            cardHtml += '<div style="font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-dim);margin-bottom:4px">' + T('talents') + '</div>';
+            if (meta.encounterName) {
+                cardHtml += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:6px">WarcraftLogs Heroic · ' + meta.encounterName + ' · ' + meta.totalLogs + ' logs</div>';
+            }
             if (missing.length === 0) {
                 cardHtml += '<div style="color:var(--green);font-size:13px">✓ ' + T('meta_match') + '</div>';
                 el.className = 'suggestion-card suggestion-card--ok';
