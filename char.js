@@ -412,32 +412,54 @@ function rmMember(id) {
 
     var cfg = getAPICfg();
     if (cfg.proxy) {
-        if (typeof loadBackendCfg !== 'undefined') loadBackendCfg();
-        if (typeof loadArchonStats !== 'undefined') loadArchonStats();
+        var proxyBase = cfg.proxy.replace(/\/+$/, '');
 
-        fetch(cfg.proxy.replace(/\/+$/, '') + '/api/roster?t=' + Date.now())
+        var fetchRoster = fetch(proxyBase + '/api/roster?t=' + Date.now())
             .then(function (r) { return r.json(); })
-            .then(function (data) {
-                if (Array.isArray(data) && data.length) {
-                    roster = data;
-                    localStorage.setItem('ga_data', JSON.stringify(roster));
-                    getToken(cfg).then(function (tok) {
-                        fetchItemIcons(cfg, tok);
-                        fetchAllCharMedia(cfg, tok);
-                    }).catch(function () { });
-                }
-                var found = findChar(roster);
-                if (found) renderChar(found);
-                else { notify('Personagem não encontrado.'); setTimeout(goBack, 1500); }
-            })
-            .catch(function () {
-                var cached = findChar(roster);
-                if (cached) renderChar(cached);
-                else { notify('Erro ao buscar roster.'); setTimeout(goBack, 1500); }
-            });
+            .catch(function () { return null; });
+
+        var fetchCfg = fetch(proxyBase + '/api/cfg?t=' + Date.now())
+            .then(function (r) { return r.json(); })
+            .catch(function () { return null; });
+
+        var fetchArchon = fetch(proxyBase + '/api/archon-stats?t=' + Date.now())
+            .then(function (r) { return r.text(); })
+            .catch(function () { return null; });
+
+        Promise.all([fetchRoster, fetchCfg, fetchArchon]).then(function (results) {
+            var rosterData = results[0];
+            var cfgData = results[1];
+            var archonText = results[2];
+
+            if (Array.isArray(rosterData) && rosterData.length) {
+                roster = rosterData;
+                localStorage.setItem('ga_data', JSON.stringify(roster));
+                getToken(cfg).then(function (tok) {
+                    fetchItemIcons(cfg, tok);
+                    fetchAllCharMedia(cfg, tok);
+                }).catch(function () { });
+            }
+
+            if (cfgData && typeof cfgData === 'object') {
+                var cur = JSON.parse(localStorage.getItem('ga_cfg') || '{}');
+                var merged = Object.assign({}, cur, cfgData);
+                localStorage.setItem('ga_cfg', JSON.stringify(merged));
+            }
+
+            if (archonText && archonText.length > 10) {
+                var cur2 = JSON.parse(localStorage.getItem('ga_cfg') || '{}');
+                cur2.archon = archonText;
+                localStorage.setItem('ga_cfg', JSON.stringify(cur2));
+            }
+
+            var found = findChar(roster);
+            if (found) renderChar(found);
+            else { notify('Personagem não encontrado.'); setTimeout(goBack, 1500); }
+        });
     } else {
         var cached = findChar(roster);
         if (cached) renderChar(cached);
         else { notify('Personagem não encontrado.'); setTimeout(goBack, 1500); }
     }
 })();
+
