@@ -263,8 +263,8 @@ async function fetchAPI(silent) {
                                 };
                             }).filter(function (t) {
                                 if (!t.name || t.name === '?' || !t.spellId) return false;
-                                if (seen[t.spellId]) return false;
-                                seen[t.spellId] = true;
+                                if (seen[t.id]) return false;
+                                seen[t.id] = true;
                                 return true;
                             });
                         }
@@ -446,8 +446,8 @@ async function refreshExisting(force) {
                                 };
                             }).filter(function (t) {
                                 if (!t.name || t.name === '?' || !t.spellId) return false;
-                                if (seen[t.spellId]) return false;
-                                seen[t.spellId] = true;
+                                if (seen[t.id]) return false;
+                                seen[t.id] = true;
                                 return true;
                             });
                         }
