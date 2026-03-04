@@ -106,7 +106,7 @@ function buildTalentIcons(talents) {
     for (var i = 0; i < talents.length; i++) {
         var t = talents[i];
         var href = t.spellId ? 'https://' + whDomain() + '/spell=' + t.spellId : '#';
-        var whAttr = t.spellId ? ' data-wowhead="spell=' + t.spellId + '" data-wh-icon-size="medium" data-wh-rename-link="false"' : '';
+        var whAttr = t.spellId ? ' data-wowhead="spell=' + t.spellId + '" data-wh-icon-size="large" data-wh-rename-link="false"' : '';
         html += '<a href="' + href + '" target="_blank" class="talent-icon-link"' + whAttr + '>';
         if (t.rank > 1) html += '<span class="talent-rank-badge">' + t.rank + '</span>';
         html += '</a>';
@@ -131,16 +131,16 @@ function buildTalentsSection(c) {
     var html = '<div class="talent-section">';
     html += '<div class="info-card-title" style="margin-bottom:10px">' + T('talents') + ' (' + total + ')</div>';
     html += '<div class="talent-columns">';
-    html += '<div class="talent-col"><div class="talent-col-label">CLASS TALENTS</div>' + buildTalentIcons(classTalents) + '</div>';
+    html += '<div class="talent-col"><div class="talent-col-label">' + T('class_talents') + '</div>' + buildTalentIcons(classTalents) + '</div>';
 
-    var heroHeader = '<div class="talent-col-label">HERO TALENTS</div>';
+    var heroHeader = '<div class="talent-col-label">' + T('hero_talents') + '</div>';
     if (c.talents.heroTree) {
         heroHeader += '<div style="text-align:center; color:var(--gold); font-size:0.75rem; margin-bottom:8px; font-weight:700;">' + esc(c.talents.heroTree) + '</div>';
     }
     console.log('[GuildAudit] Hero talents count:', heroTalents.length, 'Tree:', c.talents.heroTree);
     console.log('[GuildAudit] Hero talent names:', heroTalents.map(function (t) { return t.name + ' (' + t.spellId + ')'; }));
     html += '<div class="talent-col talent-col--hero">' + heroHeader + buildTalentIcons(heroTalents) + '</div>';
-    html += '<div class="talent-col"><div class="talent-col-label">SPEC TALENTS</div>' + buildTalentIcons(specTalents) + '</div>';
+    html += '<div class="talent-col"><div class="talent-col-label">' + T('spec_talents') + '</div>' + buildTalentIcons(specTalents) + '</div>';
     html += '</div></div>';
     return html;
 }
@@ -259,32 +259,33 @@ function rmMember(id) {
 
     if (!name) { goBack(); return; }
 
-    var c = roster.find(function (x) {
-        return x.name.toLowerCase() === name.toLowerCase() && x.realm === realm;
-    });
+    function findChar(list) {
+        return list.find(function (x) {
+            return x.name.toLowerCase() === name.toLowerCase() && x.realm === realm;
+        });
+    }
 
-    if (c) {
-        renderChar(c);
+    var cfg = getAPICfg();
+    if (cfg.proxy) {
+        fetch(cfg.proxy.replace(/\/+$/, '') + '/api/roster?t=' + Date.now())
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (Array.isArray(data) && data.length) {
+                    roster = data;
+                    localStorage.setItem('ga_data', JSON.stringify(roster));
+                }
+                var found = findChar(roster);
+                if (found) renderChar(found);
+                else { notify('Personagem não encontrado.'); setTimeout(goBack, 1500); }
+            })
+            .catch(function () {
+                var cached = findChar(roster);
+                if (cached) renderChar(cached);
+                else { notify('Erro ao buscar roster.'); setTimeout(goBack, 1500); }
+            });
     } else {
-        var cfg = getAPICfg();
-        if (cfg.proxy) {
-            fetch(cfg.proxy.replace(/\/+$/, '') + '/api/roster?t=' + Date.now())
-                .then(function (r) { return r.json(); })
-                .then(function (data) {
-                    if (Array.isArray(data) && data.length) {
-                        roster = data;
-                        localStorage.setItem('ga_data', JSON.stringify(roster));
-                        var found = roster.find(function (x) {
-                            return x.name.toLowerCase() === name.toLowerCase() && x.realm === realm;
-                        });
-                        if (found) renderChar(found);
-                        else { notify('Personagem não encontrado.'); setTimeout(goBack, 1500); }
-                    }
-                })
-                .catch(function () { notify('Erro ao buscar roster.'); });
-        } else {
-            notify('Personagem não encontrado.');
-            setTimeout(goBack, 1500);
-        }
+        var cached = findChar(roster);
+        if (cached) renderChar(cached);
+        else { notify('Personagem não encontrado.'); setTimeout(goBack, 1500); }
     }
 })();

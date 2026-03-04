@@ -109,6 +109,9 @@ var I18N = {
   mastery: { en: 'Mastery', pt_BR: 'Maestria' },
   versatility: { en: 'Versatility', pt_BR: 'Versatilidade' },
   talents: { en: 'Talents', pt_BR: 'Talentos' },
+  class_talents: { en: 'CLASS TALENTS', pt_BR: 'TALENTOS DE CLASSE' },
+  hero_talents: { en: 'HERO TALENTS', pt_BR: 'TALENTOS HEROICOS' },
+  spec_talents: { en: 'SPEC TALENTS', pt_BR: 'TALENTOS DE SPEC' },
 };
 
 var SLOT_LABELS_EN = {

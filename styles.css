@@ -1070,9 +1070,9 @@ a.whl {
 
 .talent-grid {
   display: grid;
-  grid-template-columns: repeat(3, 36px);
+  grid-template-columns: repeat(3, 40px);
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   margin-top: 10px;
 }
 
@@ -1081,46 +1081,41 @@ a.whl {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   text-decoration: none;
 }
 
-.talent-icon-link .iconmedium {
+.talent-icon-link .iconlarge {
   display: block !important;
-  width: 34px !important;
-  height: 34px !important;
+  width: 36px !important;
+  height: 36px !important;
   margin: 0 !important;
-  border-radius: 50%;
+  border-radius: 6px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, .15);
   transition: border-color .15s;
 }
 
-.talent-icon-link .iconmedium ins {
-  width: 34px !important;
-  height: 34px !important;
+.talent-icon-link .iconlarge ins {
+  width: 36px !important;
+  height: 36px !important;
   margin: 0 !important;
   display: block !important;
 }
 
-.talent-icon-link:hover .iconmedium {
+.talent-icon-link:hover .iconlarge {
   border-color: var(--gold);
   box-shadow: 0 0 6px rgba(255, 204, 0, .3);
 }
 
 .talent-icon-link img.talent-icon-img {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   object-fit: cover;
-  border-radius: 50%;
+  border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, .15);
   transition: border-color .15s;
-}
-
-.talent-icon-link:hover img.talent-icon-img {
-  border-color: var(--gold);
-  box-shadow: 0 0 6px rgba(255, 204, 0, .3);
 }
 
 .talent-icon-link:hover img.talent-icon-img {
@@ -1132,11 +1127,11 @@ a.whl {
   position: absolute;
   bottom: -2px;
   right: -2px;
-  font-size: .55rem;
+  font-size: .65rem;
   font-weight: 700;
   color: var(--gold);
   background: rgba(0, 0, 0, .85);
-  padding: 0 3px;
+  padding: 1px 4px;
   border-radius: 3px;
   line-height: 1.3;
 }
