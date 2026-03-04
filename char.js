@@ -61,7 +61,7 @@ function buildSidebar(c, id) {
             ? '<input type="text" id="cp-note" value="' + esc(c.note || '') + '" placeholder="' + T('add_note') + '" class="form-input" style="margin-bottom:8px"><button class="btn btn-secondary" style="width:100%" onclick="saveNote(\'' + id + '\')">' + T('save') + '</button>'
             : '<div style="font-size:.9rem;color:var(--text);white-space:pre-wrap">' + (c.note ? esc(c.note) : '<span style="color:var(--text-dim)">' + T('no_data') + '</span>') + '</div>') +
         '</div>' +
-        (c.issues?.length ? '<div class="info-card"><div class="info-card-title">' + T('problems') + ' (' + c.issues.length + ')</div>' + c.issues.map(function (i) { return '<div class="issue-row"><span style="color:var(--red)">⚠</span><span style="font-size:.9rem">' + esc(translateIssue(i)) + '</span></div>'; }).join('') + '</div>' : '<div class="info-card" style="border-color:rgba(76,175,112,.3)"><div style="color:var(--green);font-size:.9rem">' + T('no_problems') + '</div></div>') +
+        (c.issues?.length ? '<div class="info-card"><div class="info-card-title">' + T('problems') + ' (' + c.issues.length + ')</div>' + c.issues.map(function (i) { return '<div class="issue-row"><span style="color:var(--red)">⚠</span><span style="font-size:.9rem">' + esc(translateIssue(i)) + '</span></div>'; }).join('') + '</div>' : '') +
         (canEdit ? '<button class="btn btn-danger" style="width:100%;margin-top:4px" onclick="rmMember(\'' + id + '\');goBack()">' + T('remove') + '</button>' : '');
 }
 
@@ -135,7 +135,11 @@ function buildTalentsSection(c) {
 
     var heroHeader = '<div class="talent-col-label">' + T('hero_talents') + '</div>';
     if (c.talents.heroTree) {
-        heroHeader += '<div style="text-align:center; color:var(--gold); font-size:0.75rem; margin-bottom:8px; font-weight:700;">' + esc(c.talents.heroTree) + '</div>';
+        var heroTreeDisplay = c.talents.heroTree;
+        if (window._lang === 'pt-BR' && typeof HERO_TREE_PT !== 'undefined' && HERO_TREE_PT[c.talents.heroTree]) {
+            heroTreeDisplay = HERO_TREE_PT[c.talents.heroTree];
+        }
+        heroHeader += '<div style="text-align:center; color:var(--gold); font-size:0.75rem; margin-bottom:8px; font-weight:700;">' + esc(heroTreeDisplay) + '</div>';
     }
     console.log('[GuildAudit] Hero talents count:', heroTalents.length, 'Tree:', c.talents.heroTree);
     console.log('[GuildAudit] Hero talent names:', heroTalents.map(function (t) { return t.name + ' (' + t.spellId + ')'; }));
