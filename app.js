@@ -152,6 +152,7 @@ function loadRaidZones() {
     var cfg = JSON.parse(ls('ga_api') || '{}');
     var proxy = cfg.proxy || '';
     if (!proxy) return;
+    if (!proxy.endsWith('/')) proxy += '/';
     fetch(proxy + 'api/wcl-zones', { credentials: 'include' })
         .then(function (r) { return r.json(); })
         .then(function (zones) {
@@ -174,6 +175,7 @@ function forceRefreshZones() {
     var cfg = JSON.parse(ls('ga_api') || '{}');
     var proxy = cfg.proxy || '';
     if (!proxy) return;
+    if (!proxy.endsWith('/')) proxy += '/';
     notify('Consultando WCL por novas raids...');
     fetch(proxy + 'api/wcl-zones', { method: 'POST', credentials: 'include' })
         .then(function (r) { return r.json(); })
@@ -200,6 +202,7 @@ function loadBackendCfg() {
     var cfg = JSON.parse(ls('ga_api') || '{}');
     var proxy = cfg.proxy || '';
     if (!proxy) return;
+    if (!proxy.endsWith('/')) proxy += '/';
     fetch(proxy + 'api/cfg', { credentials: 'include' })
         .then(function (r) { return r.json(); })
         .then(function (data) {
@@ -222,6 +225,7 @@ function forceRefreshAllMeta() {
     var cfg = JSON.parse(ls('ga_api') || '{}');
     var proxy = cfg.proxy || '';
     if (!proxy) { notify('Worker URL não configurada.'); return; }
+    if (!proxy.endsWith('/')) proxy += '/';
     var zoneEl = document.getElementById('cfg-wclZone');
     var zoneId = zoneEl ? (parseInt(zoneEl.value) || null) : null;
     var specs = [];
