@@ -205,13 +205,7 @@ function buildSuggestionsSection(c) {
     if (!c.mythicRating) {
         readyItems.push('<div class="suggestion-item"><span class="s-icon">—</span>' + T('no_mythic_score') + '</div>');
     }
-    var totalTalents = 0;
-    if (c.talents && !Array.isArray(c.talents)) {
-        totalTalents = (c.talents.class?.length || 0) + (c.talents.spec?.length || 0) + (c.talents.hero?.length || 0);
-    }
-    if (totalTalents > 0 && totalTalents < 65) {
-        readyItems.push('<div class="suggestion-item"><span class="s-icon">△</span>' + T('talents_missing') + ' (' + totalTalents + '/71)</div>');
-    }
+    // Talent missing check removed
     if (readyItems.length) {
         html += '<div class="suggestion-card suggestion-card--ready">';
         html += '<div class="suggestion-card-title">ℹ ' + T('readiness') + '</div>';
@@ -220,7 +214,7 @@ function buildSuggestionsSection(c) {
     }
 
     html += '<div id="meta-build-card" class="suggestion-card suggestion-card--meta">';
-    html += '<div class="suggestion-card-title">⚡ ' + T('meta_build') + '</div>';
+    html += '<div class="suggestion-card-title">⚡ ' + T('attributes') + '</div>';
     html += '<div class="suggestion-item" style="color:var(--text-dim)">' + T('meta_loading') + '</div>';
     html += '</div>';
 
@@ -235,157 +229,100 @@ function buildSuggestionsSection(c) {
     return html;
 }
 
-function loadMetaBuild(c) {
-    var cfg = getAPICfg();
-    if (!cfg.proxy || !c.class || !c.spec) {
-        var el = document.getElementById('meta-build-card');
-        if (el) el.innerHTML = '<div class="suggestion-card-title">⚡ ' + T('meta_build') + '</div><div class="suggestion-item" style="color:var(--text-dim)">' + T('meta_no_data') + '</div>';
+function loadStatSuggestions(c) {
+    var el = document.getElementById('meta-build-card');
+    if (!el || !c.class || !c.spec) return;
+
+    var specClean = (c.spec || '').replace(/\s+/g, '');
+    var cfgData = {};
+    try { cfgData = JSON.parse(localStorage.getItem('ga_cfg') || '{}'); } catch (e) { }
+    var archonText = cfgData.archon || '';
+
+    if (!archonText) {
+        el.innerHTML = '<div class="suggestion-card-title">⚡ ' + T('attributes') + '</div><div class="suggestion-item" style="color:var(--text-dim)">' + T('meta_no_data') + '</div>';
         return;
     }
-    var specClean = (c.spec || '').replace(/\s+/g, '');
-    var classClean = (c.class || '').replace(/\s+/g, '');
-    fetch(cfg.proxy.replace(/\/+$/, '') + '/api/meta-builds?class=' + encodeURIComponent(classClean) + '&spec=' + encodeURIComponent(specClean) + '&t=' + Date.now())
-        .then(function (r) { return r.json(); })
-        .then(function (meta) {
-            var el = document.getElementById('meta-build-card');
-            if (!el) return;
-            if (!meta || !meta.talentHeatmap || meta.data === null) {
-                el.innerHTML = '<div class="suggestion-card-title">⚡ ' + T('meta_build') + '</div><div class="suggestion-item" style="color:var(--text-dim)">' + T('meta_no_data') + '</div>';
-                return;
+
+    var cardHtml = '<div style="font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px">⚡ ' + T('attributes') + '</div>';
+    var archonDate = null;
+    var classSlug = (c.class || '').toLowerCase().replace(/\s+/g, '-');
+    var specSlug = (c.spec || '').toLowerCase().replace(/\s+/g, '-');
+    var archonPrefix = classSlug + '-' + specSlug + ':';
+    var recPriority = null;
+
+    var lines = archonText.split('\n');
+    for (var li = 0; li < lines.length; li++) {
+        var l = lines[li].trim();
+        if (l.startsWith(archonPrefix)) {
+            var valStr = l.substring(archonPrefix.length).trim();
+            var parts = valStr.split('>');
+            recPriority = parts.map(function (p) {
+                var statRaw = p.split('(')[0].trim().toLowerCase();
+                var matchW = p.match(/\((\d+)\)/);
+                var weightRaw = matchW ? parseInt(matchW[1], 10) : null;
+                if (statRaw === 'vers') statRaw = 'versatility';
+                return { stat: statRaw, weight: weightRaw };
+            }).filter(function (x) { return !!x.stat; });
+        } else if (l.startsWith('last_updated:')) {
+            archonDate = l.substring('last_updated:'.length).trim();
+        }
+    }
+
+    if (recPriority && c.stats) {
+        var svRaw = {
+            crit: c.stats.critRating || 0,
+            haste: c.stats.hasteRating || 0,
+            mastery: c.stats.masteryRating || 0,
+            versatility: c.stats.versRating || 0
+        };
+
+        var statColors = { crit: '#e05252', haste: '#f4a623', mastery: '#5ba0f0', versatility: '#8bc48b' };
+        var recBadges = recPriority.map(function (o, idx) {
+            var col = statColors[o.stat] || '#a0a0a0';
+            var badge = '<span style="display:inline-flex;align-items:center;gap:3px;background:' + col + '22;border:1px solid ' + col + '55;border-radius:4px;padding:2px 7px;font-size:13px;font-weight:600;color:' + col + '">' + T(o.stat);
+            if (o.weight) badge += ' <span style="font-size:11px;opacity:0.85">(' + o.weight + ')</span>';
+            badge += '</span>';
+            if (idx < recPriority.length - 1) badge += '<span style="color:var(--text-dim);margin:0 3px">›</span>';
+            return badge;
+        }).join('');
+
+        var recRow = '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:6px 0 8px">' + recBadges + '</div>';
+        if (archonDate) {
+            recRow += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Archon.gg · ' + T('archon_source') + ' · ' + relativeTime(archonDate) + '</div>';
+        } else {
+            recRow += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">' + T('archon_source') + '</div>';
+        }
+
+        var issues = [];
+        for (var si = 0; si < recPriority.length; si++) {
+            var sObj = recPriority[si];
+            var sName = sObj.stat;
+            var sTarget = sObj.weight;
+            var sPlayer = svRaw[sName];
+            if (sTarget && sPlayer !== undefined && sPlayer < sTarget) {
+                var diff = sTarget - sPlayer;
+                var col2 = statColors[sName] || '#a0a0a0';
+                var msg = '<span style="color:' + col2 + ';font-weight:600">' + T(sName) + '</span> ' + T('stat_below') + ': <span style="font-weight:600">' + sPlayer + '</span> <span style="color:var(--red)">(-' + diff + ')</span> <span style="color:var(--text-dim);font-size:11px">(rec. ' + sTarget + ')</span>';
+                if (issues.indexOf(msg) === -1) issues.push(msg);
             }
-            var cardHtml = '<div style="font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px">⚡ ' + T('meta_build') + '</div>';
+        }
 
-            var cfgData = {};
-            try { cfgData = JSON.parse(localStorage.getItem('ga_cfg') || '{}'); } catch (e) { }
-            var archonText = cfgData.archon || '';
-            var archonDate = null;
-
-            var classSlug = (c.class || '').toLowerCase().replace(/\s+/g, '-');
-            var specSlug = (c.spec || '').toLowerCase().replace(/\s+/g, '-');
-            var archonPrefix = classSlug + '-' + specSlug + ':';
-
-            var recPriority = typeof STAT_PRIORITY !== 'undefined' ? STAT_PRIORITY[specClean] : null;
-            if (archonText) {
-                var lines = archonText.split('\n');
-                for (var li = 0; li < lines.length; li++) {
-                    var l = lines[li].trim();
-                    if (l.startsWith(archonPrefix)) {
-                        var valStr = l.substring(archonPrefix.length).trim();
-                        var parts = valStr.split('>');
-                        recPriority = parts.map(function (p) {
-                            var statRaw = p.split('(')[0].trim().toLowerCase();
-                            var matchW = p.match(/\((\d+)\)/);
-                            var weightRaw = matchW ? parseInt(matchW[1], 10) : null;
-                            if (statRaw === 'vers') statRaw = 'versatility';
-                            return { stat: statRaw, weight: weightRaw };
-                        }).filter(function (x) { return !!x.stat; });
-                    } else if (l.startsWith('last_updated:')) {
-                        archonDate = l.substring('last_updated:'.length).trim();
-                    }
-                }
+        cardHtml += '<div style="margin-bottom:10px;font-size:14px">';
+        cardHtml += '<div style="font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-dim);margin-bottom:4px">' + T('attributes') + '</div>';
+        cardHtml += recRow;
+        if (issues.length === 0) {
+            cardHtml += '<div style="color:var(--green);font-size:13px">✓ ' + T('stat_ok') + '</div>';
+        } else {
+            for (var si2 = 0; si2 < issues.length; si2++) {
+                cardHtml += '<div style="color:var(--gold);font-size:13px;margin-top:2px">△ ' + issues[si2] + '</div>';
             }
-
-            if (recPriority && c.stats) {
-                var svRaw = {};
-                svRaw.crit = c.stats.critRating || 0;
-                svRaw.haste = c.stats.hasteRating || 0;
-                svRaw.mastery = c.stats.masteryRating || 0;
-                svRaw.versatility = c.stats.versRating || 0;
-
-                var statColors = { crit: '#e05252', haste: '#f4a623', mastery: '#5ba0f0', versatility: '#8bc48b' };
-                var recBadges = recPriority.map(function (o, idx) {
-                    var col = statColors[o.stat] || '#a0a0a0';
-                    var badge = '<span style="display:inline-flex;align-items:center;gap:3px;background:' + col + '22;border:1px solid ' + col + '55;border-radius:4px;padding:2px 7px;font-size:13px;font-weight:600;color:' + col + '">' + T(o.stat);
-                    if (o.weight) badge += ' <span style="font-size:11px;opacity:0.85">(' + o.weight + ')</span>';
-                    badge += '</span>';
-                    if (idx < recPriority.length - 1) badge += '<span style="color:var(--text-dim);margin:0 3px">›</span>';
-                    return badge;
-                }).join('');
-                var recRow = '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:6px 0 8px">' + recBadges + '</div>';
-                if (archonDate) {
-                    recRow += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Archon.gg · ' + T('archon_source') + ' · ' + relativeTime(archonDate) + '</div>';
-                } else {
-                    recRow += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">' + T('archon_source') + '</div>';
-                }
-                var issues = [];
-                for (var si = 0; si < recPriority.length; si++) {
-                    var sObj = recPriority[si];
-                    var sName = sObj.stat;
-                    var sTarget = sObj.weight;
-                    var sPlayer = svRaw[sName];
-
-                    if (sTarget && sPlayer !== undefined && sPlayer < sTarget) {
-                        var diff = sTarget - sPlayer;
-                        var col2 = statColors[sName] || '#a0a0a0';
-                        var msg = '<span style="color:' + col2 + ';font-weight:600">' + T(sName) + '</span> ' + T('stat_below') + ': <span style="font-weight:600">' + sPlayer + '</span> <span style="color:var(--red)">(-' + diff + ')</span> <span style="color:var(--text-dim);font-size:11px">(rec. ' + sTarget + ')</span>';
-                        if (issues.indexOf(msg) === -1) issues.push(msg);
-                    }
-                }
-
-                cardHtml += '<div style="margin-bottom:10px;font-size:14px">';
-                cardHtml += '<div style="font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-dim);margin-bottom:4px">' + T('attributes') + '</div>';
-                cardHtml += recRow;
-                if (issues.length === 0) {
-                    cardHtml += '<div style="color:var(--green);font-size:13px">✓ ' + T('stat_ok') + '</div>';
-                } else {
-                    for (var si2 = 0; si2 < issues.length; si2++) {
-                        cardHtml += '<div style="color:var(--gold);font-size:13px;margin-top:2px">△ ' + issues[si2] + '</div>';
-                    }
-                }
-                cardHtml += '</div>';
-            }
-
-            var playerSpells = {};
-            if (c.talents && !Array.isArray(c.talents)) {
-                var all = [].concat(c.talents.class || [], c.talents.spec || [], c.talents.hero || []);
-                for (var i = 0; i < all.length; i++) {
-                    if (all[i].id) playerSpells[all[i].id] = true;
-                }
-            }
-            var metaKeys = Object.keys(meta.talentHeatmap);
-            var missing = [];
-            for (var j = 0; j < metaKeys.length; j++) {
-                var sid = metaKeys[j];
-                var pct = meta.talentHeatmap[sid];
-                if (pct >= 70 && !playerSpells[sid]) {
-                    missing.push({ id: sid, pct: pct });
-                }
-            }
-            missing.sort(function (a, b) { return b.pct - a.pct; });
-
-            cardHtml += '<div style="margin-bottom:8px;font-size:14px">';
-            cardHtml += '<div style="font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-dim);margin-bottom:4px">' + T('talents') + '</div>';
-            if (meta.encounterName) {
-                cardHtml += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:6px">WarcraftLogs Heroic · ' + meta.encounterName + ' · ' + meta.totalLogs + ' logs</div>';
-            }
-            if (missing.length === 0) {
-                cardHtml += '<div style="color:var(--green);font-size:13px">✓ ' + T('meta_match') + '</div>';
-                el.className = 'suggestion-card suggestion-card--ok';
-            } else {
-                cardHtml += '<div style="color:var(--gold);font-size:13px">' + missing.length + ' ' + T('meta_diff') + '</div>';
-                var calcSlug = TALENT_CALC_SLUG[c.class] || '';
-                var specSlug = (c.spec || '').toLowerCase().replace(/\s+/g, '-');
-                if (calcSlug) {
-                    var calcUrl = 'https://' + whDomain() + '/talent-calc/' + calcSlug + '/' + specSlug;
-                    if (c.talents && c.talents.exportString) {
-                        calcUrl += '/' + c.talents.exportString;
-                    }
-                    cardHtml += '<div class="suggestion-item"><a href="' + calcUrl + '" target="_blank" style="color:var(--gold);text-decoration:underline">🔗 ' + T('talents') + ' — Wowhead Calculator</a></div>';
-                }
-            }
-            cardHtml += '</div>';
-
-            var footer = (meta.raidName || '') + ' · ' + meta.totalLogs + ' logs';
-            if (meta.avgDps) footer += ' · ~' + Math.round(meta.avgDps).toLocaleString() + ' DPS';
-            footer += ' · ' + relativeTime(meta.lastUpdated);
-            cardHtml += '<div style="font-size:.7rem;color:var(--text-dim);margin-top:6px">' + footer + '</div>';
-            el.innerHTML = cardHtml;
-            refreshWowheadTooltips();
-        })
-        .catch(function () {
-            var el = document.getElementById('meta-build-card');
-            if (el) el.innerHTML = '<div class="suggestion-card-title">⚡ ' + T('meta_build') + '</div><div class="suggestion-item" style="color:var(--text-dim)">' + T('meta_no_data') + '</div>';
-        });
+        }
+        cardHtml += '</div>';
+        el.innerHTML = cardHtml;
+        el.className = 'suggestion-card suggestion-card--ok';
+    } else {
+        el.innerHTML = '<div class="suggestion-card-title">⚡ ' + T('attributes') + '</div><div class="suggestion-item" style="color:var(--text-dim)">' + T('meta_no_data') + '</div>';
+    }
 }
 
 function renderChar(c) {
@@ -399,7 +336,7 @@ function renderChar(c) {
         var mainHtml = gearResult.html + buildTalentsSection(c) + buildSuggestionsSection(c);
         document.getElementById('cp-main').innerHTML = mainHtml;
         refreshWowheadTooltips();
-        loadMetaBuild(c);
+        loadStatSuggestions(c);
     });
 }
 
@@ -475,6 +412,9 @@ function rmMember(id) {
 
     var cfg = getAPICfg();
     if (cfg.proxy) {
+        if (typeof loadBackendCfg !== 'undefined') loadBackendCfg();
+        if (typeof loadArchonStats !== 'undefined') loadArchonStats();
+
         fetch(cfg.proxy.replace(/\/+$/, '') + '/api/roster?t=' + Date.now())
             .then(function (r) { return r.json(); })
             .then(function (data) {

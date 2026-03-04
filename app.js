@@ -93,7 +93,7 @@ function init() {
     if (hasAPICfg()) {
         if (typeof loadBackendRoster !== 'undefined') loadBackendRoster();
         if (typeof loadBackendCfg !== 'undefined') loadBackendCfg();
-        if (typeof loadRaidZones !== 'undefined') loadRaidZones();
+        if (typeof loadArchonStats !== 'undefined') loadArchonStats();
     }
 
     if (CFG.ar && hasAPICfg() && roster.length && hasPerm('officer')) {
@@ -116,7 +116,12 @@ function saveCfg() {
     if (archonEl) CFG.archon = archonEl.value.trim();
     var nc = JSON.stringify(CFG);
     lss('ga_cfg', nc);
-    if (oc !== nc && typeof startSyncCfg !== 'undefined') startSyncCfg();
+    if (oc !== nc && typeof startSyncCfg !== 'undefined') {
+        startSyncCfg();
+        if (JSON.parse(oc).archon !== CFG.archon) {
+            startSyncArchonStats(CFG.archon);
+        }
+    }
     setupAR();
 }
 

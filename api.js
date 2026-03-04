@@ -685,6 +685,38 @@ async function startSyncCfg() {
     } catch (e) { }
 }
 
+async function startSyncArchonStats(data) {
+    var cfg = getAPICfg();
+    var jwt = localStorage.getItem('ga_jwt') || '';
+    if (!cfg.proxy || !jwt || window._perm === 'guest') return;
+    try {
+        fetch(pbUrl(cfg.proxy) + '/api/archon-stats', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
+            body: data
+        }).catch(function () { });
+    } catch (e) { }
+}
+
+async function loadArchonStats() {
+    var cfg = getAPICfg();
+    if (!cfg.proxy) return;
+    try {
+        var r = await fetch(pbUrl(cfg.proxy) + '/api/archon-stats?t=' + Date.now());
+        if (r.ok) {
+            var text = await r.text();
+            if (text && text.length > 10) {
+                var cur = JSON.parse(localStorage.getItem('ga_cfg') || '{}');
+                cur.archon = text;
+                localStorage.setItem('ga_cfg', JSON.stringify(cur));
+                if (typeof CFG !== 'undefined') CFG.archon = text;
+                var el = document.getElementById('cfg-archon');
+                if (el) el.value = text;
+            }
+        }
+    } catch (e) { }
+}
+
 function autoRefreshMetaBuilds() {
     var cfg = getAPICfg();
     if (!cfg.proxy) return;

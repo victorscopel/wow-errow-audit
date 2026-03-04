@@ -123,19 +123,10 @@ var I18N = {
   no_mythic_score: { en: 'No Mythic+ score', pt_BR: 'Sem pontuação de Mítica+' },
   talents_missing: { en: 'Unspent talent points', pt_BR: 'Pontos de talento não gastos' },
   vault_incomplete: { en: 'Great Vault incomplete', pt_BR: 'Grande Cofre incompleto' },
-  meta_match: { en: 'Your build is up to date!', pt_BR: 'Sua build está em dia!' },
-  meta_diff: { en: 'talents differ from top 100 heroic logs', pt_BR: 'talentos diferem dos top 100 logs heroicos' },
-  meta_loading: { en: 'Loading meta data...', pt_BR: 'Carregando dados do meta...' },
-  meta_no_data: { en: 'No meta data available. Import from WarcraftLogs first.', pt_BR: 'Sem dados do meta. Importe do WarcraftLogs primeiro.' },
-  all_good: { en: 'All good!', pt_BR: 'Tudo certo!' },
-  stat_rec: { en: 'Recommended', pt_BR: 'Recomendado' },
-  stat_ok: { en: 'Stat priority matches recommendation', pt_BR: 'Prioridade de atributos de acordo com o recomendado' },
-  stat_warn: { en: 'Your top stat should be', pt_BR: 'Seu atributo principal deveria ser' },
-  stat_under: { en: 'should be higher than', pt_BR: 'deveria ser maior que' },
-  peso: { en: 'Weight', pt_BR: 'Peso' },
+  archon_source: { en: 'Recommended stats based on Archon.gg / top Heroic logs', pt_BR: 'Atributos recomendados baseados no Archon.gg / top logs Heroico' },
+  archon_date: { en: 'Last Updated', pt_BR: 'Atualizado em' },
+  stat_ok: { en: 'Stat priority matches recommendation', pt_BR: 'Atributos de acordo com o recomendado' },
   stat_below: { en: 'is below recommended', pt_BR: 'abaixo do recomendado' },
-  you_have: { en: 'You have', pt_BR: 'Você tem' },
-  archon_source: { en: 'Recommended stats based on top heroic raid logs', pt_BR: 'Atributos recomendados com base nos melhores logs de raid heróica' },
 };
 
 var HERO_TREE_PT = {
