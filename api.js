@@ -464,6 +464,7 @@ async function refreshExisting(force) {
                         var shtR = ldR.selected_hero_talent_tree;
                         if (shtR) heroTreeNameR = shtR.hero_talent_tree?.name || shtR.name || null;
                         c.talents = {
+                            exportString: ldR.talent_loadout_code || '',
                             class: mapNodesR(ldR.selected_class_talents),
                             spec: mapNodesR(ldR.selected_spec_talents),
                             hero: mapNodesR(ldR.selected_hero_talents),
@@ -586,6 +587,7 @@ async function trackChar() {
                     }).filter(function (t) { return t.name && t.name !== '?'; });
                 }
                 charTalents = {
+                    exportString: ld.talent_loadout_code || '',
                     class: mapNodesT(ld.selected_class_talents),
                     spec: mapNodesT(ld.selected_spec_talents),
                 };
