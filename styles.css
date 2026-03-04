@@ -1106,8 +1106,12 @@ a.whl {
   margin: 0 !important;
   padding: 0 !important;
   display: block !important;
-  background-size: 125% !important;
+  background-size: cover !important;
   background-position: center !important;
+}
+
+.talent-icon-link .iconlarge del {
+  display: none !important;
 }
 
 .talent-icon-link:hover .iconlarge {
