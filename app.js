@@ -153,111 +153,29 @@ function forceRefresh() {
     refreshExisting(true);
 }
 
-function loadRaidZones() {
-    var cfg = JSON.parse(ls('ga_api') || '{}');
-    var proxy = cfg.proxy || '';
-    if (!proxy) return;
-    if (!proxy.endsWith('/')) proxy += '/';
-    fetch(proxy + 'api/wcl-zones', { credentials: 'include' })
-        .then(function (r) { return r.json(); })
-        .then(function (zones) {
-            if (!Array.isArray(zones) || !zones.length) return;
-            var sel = document.getElementById('cfg-wclZone');
-            if (!sel) return;
-            sel.innerHTML = '<option value="">Automático (mais recente)</option>';
-            zones.forEach(function (z) {
-                var opt = document.createElement('option');
-                opt.value = z.id;
-                opt.textContent = z.name + ' (' + z.bosses + ' bosses)';
-                sel.appendChild(opt);
-            });
-        })
-        .catch(function () { });
-}
-
-function forceRefreshZones() {
-    if (!hasPerm('officer')) { notify('Sem permissão.'); return; }
-    var cfg = JSON.parse(ls('ga_api') || '{}');
-    var proxy = cfg.proxy || '';
-    if (!proxy) return;
-    if (!proxy.endsWith('/')) proxy += '/';
-    notify('Consultando WCL por novas raids...');
-    fetch(proxy + 'api/wcl-zones', { method: 'POST', credentials: 'include' })
-        .then(function (r) { return r.json(); })
-        .then(function (zones) {
-            if (!Array.isArray(zones) || !zones.length) { notify('Erro ao consultar raids.'); return; }
-            var sel = document.getElementById('cfg-wclZone');
-            if (!sel) return;
-            var cur = sel.value;
-            sel.innerHTML = '<option value="">Automático (mais recente)</option>';
-            zones.forEach(function (z) {
-                var opt = document.createElement('option');
-                opt.value = z.id;
-                opt.textContent = z.name + ' (' + z.bosses + ' bosses)';
-                sel.appendChild(opt);
-            });
-            sel.value = cur;
-            notify('Raids atualizadas! (' + zones.length + ' zonas)');
-        })
-        .catch(function () { notify('Erro na conexão com worker.'); });
-}
-
-
-function loadBackendCfg() {
-    var cfg = JSON.parse(ls('ga_api') || '{}');
-    var proxy = cfg.proxy || '';
-    if (!proxy) return;
-    if (!proxy.endsWith('/')) proxy += '/';
-    fetch(proxy + 'api/cfg', { credentials: 'include' })
-        .then(function (r) { return r.json(); })
-        .then(function (data) {
-            if (data && data.archon) {
-                var cur = JSON.parse(ls('ga_cfg') || '{}');
-                if (!cur.archon || cur.archon.length < data.archon.length) {
-                    cur.archon = data.archon;
-                    lss('ga_cfg', JSON.stringify(cur));
-                    CFG.archon = data.archon;
-                    var el = document.getElementById('cfg-archon');
-                    if (el) el.value = data.archon;
-                }
+// WCL Raid zones and Meta refresh functions removed
+var cfg = JSON.parse(ls('ga_api') || '{}');
+var proxy = cfg.proxy || '';
+if (!proxy) return;
+if (!proxy.endsWith('/')) proxy += '/';
+fetch(proxy + 'api/cfg', { credentials: 'include' })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+        if (data && data.archon) {
+            var cur = JSON.parse(ls('ga_cfg') || '{}');
+            if (!cur.archon || cur.archon.length < data.archon.length) {
+                cur.archon = data.archon;
+                lss('ga_cfg', JSON.stringify(cur));
+                CFG.archon = data.archon;
+                var el = document.getElementById('cfg-archon');
+                if (el) el.value = data.archon;
             }
-        })
-        .catch(function () { });
+        }
+    })
+    .catch(function () { });
 }
 
-function forceRefreshAllMeta() {
-    if (!hasPerm('officer')) { notify('Sem permissão.'); return; }
-    var cfg = JSON.parse(ls('ga_api') || '{}');
-    var proxy = cfg.proxy || '';
-    if (!proxy) { notify('Worker URL não configurada.'); return; }
-    if (!proxy.endsWith('/')) proxy += '/';
-    var zoneEl = document.getElementById('cfg-wclZone');
-    var zoneId = zoneEl ? (parseInt(zoneEl.value) || null) : null;
-    var specs = [];
-    roster.forEach(function (c) {
-        if (c.class && c.spec) {
-            var key = c.class + '|' + c.spec;
-            if (specs.indexOf(key) === -1) specs.push(key);
-        }
-    });
-    if (!specs.length) { notify('Sem specs no roster.'); return; }
-    notify('Atualizando meta para ' + specs.length + ' specs...');
-    var done = 0;
-    specs.forEach(function (key) {
-        var parts = key.split('|');
-        var body = { class: parts[0], spec: parts[1] };
-        if (zoneId) body.zoneId = zoneId;
-        fetch(proxy + 'api/meta-builds', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify(body),
-        }).then(function () {
-            done++;
-            if (done === specs.length) notify('Meta builds atualizados! (' + done + ' specs)');
-        }).catch(function () { done++; });
-    });
-}
+// forceRefreshAllMeta removed
 
 // ── Navigation ────────────────────────────────────────────
 function showPage(id, btn) {
