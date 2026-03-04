@@ -68,8 +68,14 @@ function buildSidebar(c, id) {
 function buildStatsCard(c) {
     if (!c.stats) return '';
     var s = c.stats;
-    var primary = s.intellect || s.strength || s.agility || 0;
-    var primaryKey = s.intellect ? 'intellect' : (s.strength ? 'strength' : 'agility');
+    var primaries = [
+        { key: 'intellect', value: s.intellect || 0 },
+        { key: 'strength', value: s.strength || 0 },
+        { key: 'agility', value: s.agility || 0 },
+    ];
+    primaries.sort(function (a, b) { return b.value - a.value; });
+    var primary = primaries[0].value;
+    var primaryKey = primaries[0].key;
     var ratingKeys = { crit: 'critRating', haste: 'hasteRating', mastery: 'masteryRating', versatility: 'versRating' };
     var secondaries = [
         { key: 'crit', value: s.crit, color: '#e74c3c' },
@@ -185,6 +191,133 @@ function buildGearGrid(c) {
     return { html: html, imgUrls: imgUrls };
 }
 
+function buildSuggestionsSection(c) {
+    var html = '<div class="suggestions-section">';
+    html += '<div class="info-card-title" style="margin-bottom:10px">' + T('suggestions') + '</div>';
+
+    var gearItems = [];
+    if (c.gear) {
+        var avgIlvl = c.ilvl || 0;
+        for (var i = 0; i < SLOT_ORDER.length; i++) {
+            var slot = SLOT_ORDER[i];
+            var item = c.gear[slot];
+            if (!item) continue;
+            if (ENCHANTABLE.includes(slot) && !item.enchanted) {
+                gearItems.push('<div class="suggestion-item"><span class="s-icon">✦</span>' + T('missing_enchant_on') + ' <strong>' + slotLabel(slot) + '</strong></div>');
+            }
+            if (item.hasSockets && !item.gemmed) {
+                gearItems.push('<div class="suggestion-item"><span class="s-icon">◆</span>' + T('missing_gem_on') + ' <strong>' + slotLabel(slot) + '</strong></div>');
+            }
+            if (item.ilvl && avgIlvl && item.ilvl < avgIlvl - 20) {
+                gearItems.push('<div class="suggestion-item"><span class="s-icon">▼</span>' + T('low_ilvl_slot') + ' <strong>' + slotLabel(slot) + '</strong> (' + item.ilvl + ' vs ' + avgIlvl + ' avg)</div>');
+            }
+        }
+    }
+    if (gearItems.length) {
+        html += '<div class="suggestion-card suggestion-card--gear">';
+        html += '<div class="suggestion-card-title">⚠ ' + T('gear_check') + '</div>';
+        html += gearItems.join('');
+        html += '</div>';
+    }
+
+    var readyItems = [];
+    var cfgData = null;
+    try { cfgData = JSON.parse(localStorage.getItem('ga_cfg') || '{}'); } catch (e) { }
+    var ilvlMin = cfgData?.ilvlMin || 0;
+    if (ilvlMin && c.ilvl && c.ilvl < ilvlMin) {
+        readyItems.push('<div class="suggestion-item"><span class="s-icon">▼</span>' + T('ilvl_below_min') + ' (' + c.ilvl + ' / ' + ilvlMin + ')</div>');
+    }
+    if (!c.mythicRating) {
+        readyItems.push('<div class="suggestion-item"><span class="s-icon">—</span>' + T('no_mythic_score') + '</div>');
+    }
+    var totalTalents = 0;
+    if (c.talents && !Array.isArray(c.talents)) {
+        totalTalents = (c.talents.class?.length || 0) + (c.talents.spec?.length || 0) + (c.talents.hero?.length || 0);
+    }
+    if (totalTalents > 0 && totalTalents < 65) {
+        readyItems.push('<div class="suggestion-item"><span class="s-icon">△</span>' + T('talents_missing') + ' (' + totalTalents + '/71)</div>');
+    }
+    if (readyItems.length) {
+        html += '<div class="suggestion-card suggestion-card--ready">';
+        html += '<div class="suggestion-card-title">ℹ ' + T('readiness') + '</div>';
+        html += readyItems.join('');
+        html += '</div>';
+    }
+
+    html += '<div id="meta-build-card" class="suggestion-card suggestion-card--meta">';
+    html += '<div class="suggestion-card-title">⚡ ' + T('meta_build') + '</div>';
+    html += '<div class="suggestion-item" style="color:var(--text-dim)">' + T('meta_loading') + '</div>';
+    html += '</div>';
+
+    if (!gearItems.length && !readyItems.length) {
+        html += '<div class="suggestion-card suggestion-card--ok">';
+        html += '<div class="suggestion-card-title">✓ ' + T('gear_check') + ' & ' + T('readiness') + '</div>';
+        html += '<div class="suggestion-item" style="color:var(--green)">' + T('all_good') + '</div>';
+        html += '</div>';
+    }
+
+    html += '</div>';
+    return html;
+}
+
+function loadMetaBuild(c) {
+    var cfg = getAPICfg();
+    if (!cfg.proxy || !c.class || !c.spec) {
+        var el = document.getElementById('meta-build-card');
+        if (el) el.innerHTML = '<div class="suggestion-card-title">⚡ ' + T('meta_build') + '</div><div class="suggestion-item" style="color:var(--text-dim)">' + T('meta_no_data') + '</div>';
+        return;
+    }
+    var specClean = (c.spec || '').replace(/\s+/g, '');
+    var classClean = (c.class || '').replace(/\s+/g, '');
+    fetch(cfg.proxy.replace(/\/+$/, '') + '/api/meta-builds?class=' + encodeURIComponent(classClean) + '&spec=' + encodeURIComponent(specClean) + '&t=' + Date.now())
+        .then(function (r) { return r.json(); })
+        .then(function (meta) {
+            var el = document.getElementById('meta-build-card');
+            if (!el) return;
+            if (!meta || !meta.talentHeatmap || meta.data === null) {
+                el.innerHTML = '<div class="suggestion-card-title">⚡ ' + T('meta_build') + '</div><div class="suggestion-item" style="color:var(--text-dim)">' + T('meta_no_data') + '</div>';
+                return;
+            }
+            var playerSpells = {};
+            if (c.talents && !Array.isArray(c.talents)) {
+                var all = [].concat(c.talents.class || [], c.talents.spec || [], c.talents.hero || []);
+                for (var i = 0; i < all.length; i++) {
+                    if (all[i].spellId) playerSpells[all[i].spellId] = true;
+                }
+            }
+            var metaKeys = Object.keys(meta.talentHeatmap);
+            var missing = [];
+            for (var j = 0; j < metaKeys.length; j++) {
+                var sid = metaKeys[j];
+                var pct = meta.talentHeatmap[sid];
+                if (pct >= 70 && !playerSpells[sid]) {
+                    missing.push({ id: sid, pct: pct });
+                }
+            }
+            missing.sort(function (a, b) { return b.pct - a.pct; });
+            var cardHtml = '<div class="suggestion-card-title">⚡ ' + T('meta_build') + '</div>';
+            if (missing.length === 0) {
+                cardHtml += '<div class="suggestion-item" style="color:var(--green)">✓ ' + T('meta_match') + '</div>';
+                el.className = 'suggestion-card suggestion-card--ok';
+            } else {
+                cardHtml += '<div class="suggestion-item" style="margin-bottom:4px">' + missing.length + ' ' + T('meta_diff') + '</div>';
+                var show = missing.slice(0, 8);
+                for (var k = 0; k < show.length; k++) {
+                    var href = 'https://' + whDomain() + '/spell=' + show[k].id;
+                    cardHtml += '<div class="suggestion-item"><span class="s-icon">△</span><a href="' + href + '" target="_blank" data-wowhead="spell=' + show[k].id + '" style="color:var(--gold)">#' + show[k].id + '</a> <span style="color:var(--text-dim)">(' + show[k].pct + '% uso)</span></div>';
+                }
+                if (missing.length > 8) cardHtml += '<div class="suggestion-item" style="color:var(--text-dim)">+' + (missing.length - 8) + ' more</div>';
+            }
+            cardHtml += '<div style="font-size:.7rem;color:var(--text-dim);margin-top:6px">' + meta.totalLogs + ' logs · ' + relativeTime(meta.lastUpdated) + '</div>';
+            el.innerHTML = cardHtml;
+            refreshWowheadTooltips();
+        })
+        .catch(function () {
+            var el = document.getElementById('meta-build-card');
+            if (el) el.innerHTML = '<div class="suggestion-card-title">⚡ ' + T('meta_build') + '</div><div class="suggestion-item" style="color:var(--text-dim)">' + T('meta_no_data') + '</div>';
+        });
+}
+
 function renderChar(c) {
     var id = cid(c);
     document.getElementById('cp-bc').textContent = c.name + ' · ' + (c.realm || '');
@@ -193,9 +326,10 @@ function renderChar(c) {
     var gearResult = buildGearGrid(c);
     preloadImages(gearResult.imgUrls).then(function () {
         document.getElementById('cp-sidebar').innerHTML = sidebar;
-        var mainHtml = gearResult.html + buildTalentsSection(c);
+        var mainHtml = gearResult.html + buildTalentsSection(c) + buildSuggestionsSection(c);
         document.getElementById('cp-main').innerHTML = mainHtml;
         refreshWowheadTooltips();
+        loadMetaBuild(c);
     });
 }
 

@@ -112,6 +112,22 @@ var I18N = {
   class_talents: { en: 'CLASS TALENTS', pt_BR: 'TALENTOS DE CLASSE' },
   hero_talents: { en: 'HERO TALENTS', pt_BR: 'TALENTOS HEROICOS' },
   spec_talents: { en: 'SPEC TALENTS', pt_BR: 'TALENTOS DE SPEC' },
+  suggestions: { en: 'Suggestions', pt_BR: 'Sugestões' },
+  gear_check: { en: 'Gear Check', pt_BR: 'Verificação de Gear' },
+  readiness: { en: 'Raid Readiness', pt_BR: 'Prontidão para Raid' },
+  meta_build: { en: 'Meta Build', pt_BR: 'Build Meta' },
+  missing_enchant_on: { en: 'Missing enchant on', pt_BR: 'Falta encantamento em' },
+  missing_gem_on: { en: 'Missing gem on', pt_BR: 'Falta gema em' },
+  ilvl_below_min: { en: 'Item level below minimum', pt_BR: 'Nível de item abaixo do mínimo' },
+  low_ilvl_slot: { en: 'Low ilvl on', pt_BR: 'ilvl baixo em' },
+  no_mythic_score: { en: 'No Mythic+ score', pt_BR: 'Sem pontuação de Mítica+' },
+  talents_missing: { en: 'Unspent talent points', pt_BR: 'Pontos de talento não gastos' },
+  vault_incomplete: { en: 'Great Vault incomplete', pt_BR: 'Grande Cofre incompleto' },
+  meta_match: { en: 'Your build matches the meta', pt_BR: 'Sua build está de acordo com o meta' },
+  meta_diff: { en: 'talents differ from top 100 heroic logs', pt_BR: 'talentos diferem dos top 100 logs heroicos' },
+  meta_loading: { en: 'Loading meta data...', pt_BR: 'Carregando dados do meta...' },
+  meta_no_data: { en: 'No meta data available. Import from WarcraftLogs first.', pt_BR: 'Sem dados do meta. Importe do WarcraftLogs primeiro.' },
+  all_good: { en: 'All good!', pt_BR: 'Tudo certo!' },
 };
 
 var HERO_TREE_PT = {

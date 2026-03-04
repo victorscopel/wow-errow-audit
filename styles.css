@@ -1148,6 +1148,77 @@ a.whl {
   line-height: 1.3;
 }
 
+/* ── Suggestion cards ──────────────────────────────────── */
+.suggestions-section {
+  margin-top: 24px;
+}
+
+.suggestion-card {
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+
+.suggestion-card-title {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: .85rem;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.suggestion-card--gear {
+  background: rgba(248, 81, 73, .06);
+  border: 1px solid rgba(248, 81, 73, .25);
+}
+
+.suggestion-card--gear .suggestion-card-title {
+  color: var(--red);
+}
+
+.suggestion-card--ready {
+  background: rgba(56, 152, 219, .06);
+  border: 1px solid rgba(56, 152, 219, .25);
+}
+
+.suggestion-card--ready .suggestion-card-title {
+  color: var(--blue);
+}
+
+.suggestion-card--meta {
+  background: rgba(255, 204, 0, .05);
+  border: 1px solid rgba(255, 204, 0, .2);
+}
+
+.suggestion-card--meta .suggestion-card-title {
+  color: var(--gold);
+}
+
+.suggestion-card--ok {
+  background: rgba(76, 175, 112, .06);
+  border: 1px solid rgba(76, 175, 112, .25);
+}
+
+.suggestion-card--ok .suggestion-card-title {
+  color: var(--green);
+}
+
+.suggestion-item {
+  font-size: .82rem;
+  color: var(--text);
+  padding: 3px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.suggestion-item span.s-icon {
+  font-size: .75rem;
+  flex-shrink: 0;
+}
+
 /* ── Warning box ────────────────────────────────────────── */
 .warn-box {
   background: rgba(248, 81, 73, .08);
