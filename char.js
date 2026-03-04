@@ -270,9 +270,11 @@ function loadMetaBuild(c) {
                         var parts = valStr.split('>');
                         recPriority = parts.map(function (p) {
                             var statRaw = p.split('(')[0].trim().toLowerCase();
-                            if (statRaw === 'vers') return 'versatility';
-                            return statRaw;
-                        }).filter(Boolean);
+                            var matchW = p.match(/\((\d+)\)/);
+                            var weightRaw = matchW ? parseInt(matchW[1], 10) : null;
+                            if (statRaw === 'vers') statRaw = 'versatility';
+                            return { stat: statRaw, weight: weightRaw };
+                        }).filter(function (x) { return !!x.stat; });
                     } else if (l.startsWith('last_updated:')) {
                         archonDate = l.substring('last_updated:'.length).trim();
                     }
@@ -280,24 +282,30 @@ function loadMetaBuild(c) {
             }
 
             if (recPriority && c.stats) {
-                var sv = {};
-                sv.crit = c.stats.crit || 0;
-                sv.haste = c.stats.haste || 0;
-                sv.mastery = c.stats.mastery || 0;
-                sv.versatility = c.stats.versatility || 0;
+                var svRaw = {};
+                svRaw.crit = c.stats.critRating || 0;
+                svRaw.haste = c.stats.hasteRating || 0;
+                svRaw.mastery = c.stats.masteryRating || 0;
+                svRaw.versatility = c.stats.versRating || 0;
 
-                var recLabels = recPriority.map(function (s) { return T(s); }).join(' > ');
+                var recLabels = recPriority.map(function (o) {
+                    var label = T(o.stat);
+                    if (o.weight) label += ' (' + o.weight + ')';
+                    return label;
+                }).join(' > ');
                 if (archonDate) {
                     recLabels += ' <span style="font-size:0.7rem;color:var(--text-dim)">(' + relativeTime(archonDate) + ')</span>';
                 }
                 var issues = [];
-                for (var si = 0; si < recPriority.length - 1; si++) {
-                    var higher = recPriority[si];
-                    var lower = recPriority[si + 1];
-                    if (sv[lower] > sv[higher]) {
-                        var vH = sv[higher].toFixed(1) + '%';
-                        var vL = sv[lower].toFixed(1) + '%';
-                        var msg = T(higher) + ' (' + vH + ') ' + T('stat_under') + ' ' + T(lower) + ' (' + vL + ')';
+                for (var si = 0; si < recPriority.length; si++) {
+                    var sObj = recPriority[si];
+                    var sName = sObj.stat;
+                    var sTarget = sObj.weight;
+                    var sPlayer = svRaw[sName];
+
+                    if (sTarget && sPlayer !== undefined && sPlayer < sTarget) {
+                        var diff = sTarget - sPlayer;
+                        var msg = T(sName) + ' ' + T('stat_below') + ' (' + sTarget + '). ' + T('you_have') + ' ' + sPlayer + ' <span style="color:var(--red);font-size:0.8em">(-' + diff + ')</span>';
                         if (issues.indexOf(msg) === -1) issues.push(msg);
                     }
                 }
