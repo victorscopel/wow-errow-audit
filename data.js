@@ -131,7 +131,7 @@ var I18N = {
   stat_rec: { en: 'Recommended', pt_BR: 'Recomendado' },
   stat_ok: { en: 'Stat priority matches recommendation', pt_BR: 'Prioridade de atributos de acordo com o recomendado' },
   stat_warn: { en: 'Your top stat should be', pt_BR: 'Seu atributo principal deveria ser' },
-  stat_under: { en: 'is lower than', pt_BR: 'está menor que' },
+  stat_under: { en: 'should be higher than', pt_BR: 'deveria ser maior que' },
 };
 
 var HERO_TREE_PT = {
