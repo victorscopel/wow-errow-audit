@@ -43,7 +43,17 @@
             <a class="nav-tab" href="index.html#vault"><span class="t-vault">Great Vault</span></a>
             <a class="nav-tab perm-officer" href="index.html#settings"><span class="t-settings">Configurações</span></a>
 
-            <div style="margin-left:auto; display:flex; align-items:center; padding-right:12px;">
+            <div style="margin-left:auto; display:flex; align-items:center; gap:8px; padding-right:12px;">
+                <div class="theme-dot"        data-t="light"   title="Light"         onclick="setTheme('light')"></div>
+                    <div class="theme-dot"        data-t="wow-blue"  title="WoW Blue"    onclick="setTheme('wow-blue')"></div>
+                    <div class="theme-dot"        data-t="forest"  title="Forest"        onclick="setTheme('forest')"></div>
+                </div>
+                <select id="cfg-theme" class="lang-select" onchange="setTheme(this.value)" title="Tema">
+                    <option value="dark">🌑 Dark</option>
+                    <option value="light">☀️ Light</option>
+                    <option value="wow-blue">🌊 WoW Blue</option>
+                    <option value="forest">🌿 Forest</option>
+                </select>
                 <select id="cfg-dispLang" class="lang-select" onchange="saveLang();applyI18n();rerenderChar()">
                     <option value="pt-BR">PT-BR</option>
                     <option value="en">EN</option>

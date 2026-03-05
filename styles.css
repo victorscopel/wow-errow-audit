@@ -1410,3 +1410,157 @@ tr.row-under-min td {
     font-size: 0.85rem;
   }
 }
+/* ══════════════════════════════════════════════════════════
+   THEMES
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Light ─────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg:         #f0f2f5;
+  --bg2:        #ffffff;
+  --bg3:        #e4e7ec;
+  --border:     #d0d5dd;
+  --text:       #101828;
+  --text-dim:   #667085;
+  --gold:       #b45309;
+  --gold-light: #d97706;
+  --red:        #d92d20;
+  --green:      #039855;
+  --blue:       #1d4ed8;
+  --purple:     #7c3aed;
+}
+
+[data-theme="light"] .hdr-title {
+  background: linear-gradient(135deg, #b45309, #d97706);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-theme="light"] input,
+[data-theme="light"] select,
+[data-theme="light"] textarea {
+  background: #fff;
+  color: #101828;
+  border-color: #d0d5dd;
+}
+
+[data-theme="light"] .lang-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23667085' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
+[data-theme="light"] .btn-secondary {
+  background: #fff;
+  color: #344054;
+  border-color: #d0d5dd;
+}
+
+[data-theme="light"] .nav-tab {
+  color: #667085;
+}
+[data-theme="light"] .nav-tab.active,
+[data-theme="light"] .nav-tab:hover {
+  color: #b45309;
+  border-bottom-color: #b45309;
+}
+
+[data-theme="light"] .stat-card,
+[data-theme="light"] .comp-card,
+[data-theme="light"] .settings-card,
+[data-theme="light"] .info-card,
+[data-theme="light"] .char-header-card {
+  background: #fff;
+  border-color: #e4e7ec;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+
+[data-theme="light"] table thead tr {
+  background: #f9fafb;
+}
+
+[data-theme="light"] tr:nth-child(even) {
+  background: #f9fafb;
+}
+
+/* ── WoW Blue (deep navy) ───────────────────────────────── */
+[data-theme="wow-blue"] {
+  --bg:         #060d1a;
+  --bg2:        #0c1829;
+  --bg3:        #112038;
+  --border:     #1e3a5f;
+  --text:       #cce0ff;
+  --text-dim:   #5b8ab8;
+  --gold:       #ffd700;
+  --gold-light: #ffe566;
+  --red:        #e8453c;
+  --green:      #44c767;
+  --blue:       #4da6ff;
+  --purple:     #b87cff;
+}
+
+[data-theme="wow-blue"] .hdr-title {
+  background: linear-gradient(135deg, #ffd700, #4da6ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-theme="wow-blue"] .nav-tab.active,
+[data-theme="wow-blue"] .nav-tab:hover {
+  color: #ffd700;
+  border-bottom-color: #ffd700;
+}
+
+[data-theme="wow-blue"] .stat-card,
+[data-theme="wow-blue"] .comp-card {
+  background: linear-gradient(160deg, #0d1f38 0%, #0c1829 100%);
+  border-color: #1e3a5f;
+}
+
+[data-theme="wow-blue"] .btn-gold {
+  background: linear-gradient(to bottom, #ffd700, #b8960c);
+  border-color: #c9a80e;
+}
+
+/* ── Forest Green ───────────────────────────────────────── */
+[data-theme="forest"] {
+  --bg:         #080f0a;
+  --bg2:        #0e1a10;
+  --bg3:        #162318;
+  --border:     #1e4023;
+  --text:       #d4edd8;
+  --text-dim:   #5a8c62;
+  --gold:       #a8e063;
+  --gold-light: #c5f07a;
+  --red:        #f85149;
+  --green:      #56e87a;
+  --blue:       #63c5e0;
+  --purple:     #b87cff;
+}
+
+[data-theme="forest"] .hdr-title {
+  background: linear-gradient(135deg, #a8e063, #2e7d32);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-theme="forest"] .nav-tab.active,
+[data-theme="forest"] .nav-tab:hover {
+  color: #a8e063;
+  border-bottom-color: #a8e063;
+}
+
+[data-theme="forest"] .stat-card,
+[data-theme="forest"] .comp-card {
+  background: linear-gradient(160deg, #0e1f10 0%, #0e1a10 100%);
+  border-color: #1e4023;
+}
+
+[data-theme="forest"] .btn-gold {
+  background: linear-gradient(to bottom, #4caf50, #1b5e20);
+  border-color: #2e7d32;
+  color: #d4edd8;
+}
+
+[data-theme="forest"] #rdot {
+  background: #56e87a;
+}
+
