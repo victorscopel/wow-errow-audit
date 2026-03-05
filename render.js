@@ -66,11 +66,12 @@ function locSpec(s) { return window._lang === 'pt-BR' ? (PT_SPEC[s] || s) : s; }
 function locArmor(a) { return window._lang === 'pt-BR' ? (PT_ARMOR[a] || a) : a; }
 
 function translateIssue(raw) {
-  if (raw.indexOf(':') !== -1) {
+  if (typeof raw === 'string' && raw.includes(':')) {
     var parts = raw.split(':');
     var slot = parts[0];
     var key = parts[1];
-    return slotLabel(slot) + ': ' + T(key);
+    var countInfo = parts[2] ? ' (' + parts[2].replace('_', '/') + ')' : '';
+    return slotLabel(slot) + ': ' + T(key) + countInfo;
   }
   return raw;
 }

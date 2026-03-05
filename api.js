@@ -62,7 +62,9 @@ function parseEquipment(equippedItems) {
         if (!slot) continue;
         var enchanted = (item.enchantments?.length || 0) > 0;
         var hasSockets = (item.sockets?.length || 0) > 0;
-        var gemmed = hasSockets && (item.sockets || []).every(function (s) { return s.item; });
+        var socketsTotal = hasSockets ? item.sockets.length : 0;
+        var socketsFilled = hasSockets ? item.sockets.filter(function (s) { return s.item; }).length : 0;
+        var gemmed = hasSockets && (socketsFilled === socketsTotal);
         var mediaHref = item.media?.key?.href || null;
         gear[slot] = {
             name: item.name,
@@ -71,6 +73,8 @@ function parseEquipment(equippedItems) {
             enchanted: enchanted,
             gemmed: gemmed,
             hasSockets: hasSockets,
+            socketsTotal: socketsTotal,
+            socketsFilled: socketsFilled,
             itemId: item.item?.id || null,
             iconSlug: null,
             mediaUrl: mediaHref,
@@ -81,7 +85,7 @@ function parseEquipment(equippedItems) {
         if (ENCHANTABLE.includes(slot) && !enchanted)
             issues.push(slot + ':missing_enchant');
         if (hasSockets && !gemmed)
-            issues.push(slot + ':missing_gem');
+            issues.push(slot + ':missing_gem:' + socketsFilled + '_' + socketsTotal);
     }
     return { gear: gear, issues: issues };
 }
