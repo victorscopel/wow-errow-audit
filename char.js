@@ -366,9 +366,6 @@ function rmMember(id) {
 }
 
 (function initChar() {
-    var savedTheme = localStorage.getItem('ga_theme') || 'dark';
-    if (savedTheme !== 'dark') document.documentElement.setAttribute('data-theme', savedTheme);
-    document.querySelectorAll('.theme-dot').forEach(function(d) { d.classList.toggle('active', d.dataset.t === savedTheme); });
     initAuth();
     applyI18n();
     var langSel = document.getElementById('cfg-dispLang');
@@ -470,16 +467,3 @@ function rmMember(id) {
     }
 })();
 
-
-// ── Theme (shared with app.js) ────────────────────────────
-function setTheme(t) {
-    t = t || 'dark';
-    if (t === 'dark') {
-        document.documentElement.removeAttribute('data-theme');
-    } else {
-        document.documentElement.setAttribute('data-theme', t);
-    }
-    localStorage.setItem('ga_theme', t);
-    var sel = document.getElementById('cfg-theme');
-    if (sel) sel.value = t;
-}

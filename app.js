@@ -54,7 +54,6 @@ function T(k) {
 
 // ── Init ──────────────────────────────────────────────────
 function init() {
-    initTheme();
     initAuth();
 
     var sd = ls('ga_data');
@@ -299,21 +298,3 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     init();
 });
-
-// ── Theme ─────────────────────────────────────────────────
-function setTheme(t) {
-    t = t || 'dark';
-    if (t === 'dark') {
-        document.documentElement.removeAttribute('data-theme');
-    } else {
-        document.documentElement.setAttribute('data-theme', t);
-    }
-    localStorage.setItem('ga_theme', t);
-    var sel = document.getElementById('cfg-theme');
-    if (sel) sel.value = t;
-}
-
-function initTheme() {
-    var saved = localStorage.getItem('ga_theme') || 'dark';
-    setTheme(saved);
-}
