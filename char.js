@@ -35,10 +35,11 @@ function buildSidebar(c, id) {
         ? '<select class="rs" style="font-size:.85rem;padding:5px 10px" onchange="changeRole(\'' + id + '\',this.value);rerenderChar(\'' + id + '\')"><option ' + (c.role === ROLE_TANK ? 'selected' : '') + '>Tank</option><option ' + (c.role === ROLE_HEALER ? 'selected' : '') + '>Healer</option><option ' + (c.role === ROLE_DPS_MELEE ? 'selected' : '') + '>DPS Melee</option><option ' + (c.role === ROLE_DPS_RANGE ? 'selected' : '') + '>DPS Ranged</option></select>'
         : roleBadge(c.role);
 
-    var renderImg = '';
+    var renderImg = '<div class="char-render-wrap" id="model-3d" style="width:100%; min-height:400px; position:relative; border-radius:12px; overflow:hidden;">';
     if (c.renderUrl) {
-        renderImg = '<div class="char-render-wrap"><img class="char-render-img" src="' + c.renderUrl + '" onerror="this.parentNode.style.display=\'none\'" alt=""></div>';
+        renderImg += '<img id="model-3d-fallback" class="char-render-img" src="' + c.renderUrl + '" onerror="this.style.display=\'none\'" alt="">';
     }
+    renderImg += '</div>';
 
     return '<div class="char-header-card">' +
         renderImg +

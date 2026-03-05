@@ -208,6 +208,11 @@ async function fetchAPI(silent) {
                 var specName = sum.active_spec?.name || '?';
                 var role = inferRoleFromSpecId(specId) || inferRoleFromSpecName(specName);
 
+                var raceId = sum.race?.id || 1;
+                var genderType = typeof sum.gender === 'string' ? sum.gender : (sum.gender?.type || 'MALE');
+                var genderId = (genderType === 'FEMALE' || genderType === 'FÊMEA') ? 0 : 1;
+
+
                 var vault = null;
                 if (mpR.ok && mpR.json) {
                     vault = {
@@ -292,6 +297,8 @@ async function fetchAPI(silent) {
                     role: existing?.role || role,
                     note: existing?.note || '',
                     ilvl: sum.equipped_item_level || sum.average_item_level,
+                    raceId: raceId,
+                    genderId: genderId,
                     mythicRating: mpR.ok ? (mpR.json?.current_mythic_rating?.rating | 0) || null : null,
                     vault: vault,
                     gear: parsed.gear,
