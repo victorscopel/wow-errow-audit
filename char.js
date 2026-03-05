@@ -331,6 +331,23 @@ function renderChar(c) {
         document.getElementById('cp-main').innerHTML = mainHtml;
         refreshWowheadTooltips();
         loadStatSuggestions(c);
+
+        try {
+            import('./model3D.js').then(function (m3d) {
+                m3d.initModelViewer(c, '#model-3d').then(function (viewer) {
+                    if (viewer) {
+                        var fb = document.getElementById('model-3d-fallback');
+                        if (fb) fb.style.display = 'none'; // hide 2D fallback
+                    }
+                }).catch(function (err) {
+                    console.error('[Model3D] Init failed:', err);
+                });
+            }).catch(function (err) {
+                console.error('[Model3D] Import failed:', err);
+            });
+        } catch (e) {
+            console.error('[Model3D] Render sync error:', e);
+        }
     });
 }
 
