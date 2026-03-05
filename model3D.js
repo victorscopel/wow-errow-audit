@@ -20,7 +20,7 @@ export async function initModelViewer(c, containerSelector) {
     };
 
     try {
-        const viewer = await generateModels(1.1, containerSelector, character);
+        const viewer = await generateModels(1.5, containerSelector, character);
         return viewer;
     } catch (e) {
         console.error('[Model3D] Falha ao iniciar visualizador:', e);
