@@ -216,12 +216,7 @@ function buildSuggestionsSection(c) {
     html += '<div class="suggestion-item" style="color:var(--text-dim)">' + T('meta_loading') + '</div>';
     html += '</div>';
 
-    if (!readyItems.length) {
-        html += '<div class="suggestion-card suggestion-card--ok">';
-        html += '<div class="suggestion-card-title">✓ ' + T('readiness') + '</div>';
-        html += '<div class="suggestion-item" style="color:var(--green)">' + T('all_good') + '</div>';
-        html += '</div>';
-    }
+
 
     html += '</div>';
     return html;
