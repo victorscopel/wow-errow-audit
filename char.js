@@ -320,7 +320,12 @@ function loadStatSuggestions(c) {
 }
 
 function renderChar(c) {
+    if (!c) return;
     var id = cid(c);
+    var dataStr = JSON.stringify(c);
+    if (window._ga_last_render === dataStr) return; // Already rendered this exact data
+    window._ga_last_render = dataStr;
+
     document.getElementById('cp-bc').textContent = c.name + ' · ' + (c.realm || '');
     document.title = c.name + ' — Audit';
     var sidebar = buildSidebar(c, id);

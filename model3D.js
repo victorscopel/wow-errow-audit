@@ -18,7 +18,7 @@ export async function initModelViewer(c, containerSelector) {
         }
         if (cust.option.name === 'Sex' && cust.choice.name) {
             var rawSex = cust.choice.name.toUpperCase();
-            c.genderId = (rawSex === 'FEMALE' || rawSex === 'FÊMEA') ? 0 : 1;
+            c.genderId = (rawSex === 'FEMALE' || rawSex === 'FÊMEA') ? 1 : 0;
         }
     });
 

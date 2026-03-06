@@ -68,8 +68,9 @@ function parseEquipment(equippedItems) {
         var mediaHref = item.media?.key?.href || null;
 
         var visualItemId = item.item?.id || null;
-        if (item.transmog && item.transmog.item && item.transmog.item.id) {
-            visualItemId = item.transmog.item.id;
+        var modifiedAppearanceId = item.modified_appearance_id || null;
+        if (item.transmog && item.transmog.id) {
+            modifiedAppearanceId = item.transmog.id;
         }
 
         gear[slot] = {
@@ -82,7 +83,7 @@ function parseEquipment(equippedItems) {
             socketsTotal: socketsTotal,
             socketsFilled: socketsFilled,
             itemId: item.item?.id || null,
-            visualItemId: visualItemId,
+            visualItemId: modifiedAppearanceId || visualItemId,
             displayId: null,
             iconSlug: null,
             mediaUrl: mediaHref,
@@ -149,16 +150,22 @@ async function fetchDisplayIds(cfg, token) {
     var ids = Object.keys(allVisualIds);
     if (!ids.length) return;
 
-    var displayMap = {};
     for (var i = 0; i < ids.length; i++) {
         var vId = ids[i];
         try {
-            var itemRes = await apiFetch(cfg, staticUrl(cfg, '/data/wow/item/' + vId), token);
-            var aId = itemRes.json?.appearances?.[0]?.id;
-            if (aId) {
-                var res = await apiFetch(cfg, staticUrl(cfg, '/data/wow/item-appearance/' + aId), token);
-                if (res.ok && res.json?.item_display_info_id) {
-                    displayMap[vId] = res.json.item_display_info_id;
+            // First try to fetch as item-appearance directly (vId might be modified_appearance_id)
+            var res = await apiFetch(cfg, staticUrl(cfg, '/data/wow/item-appearance/' + vId), token);
+            if (res.ok && res.json?.item_display_info_id) {
+                displayMap[vId] = res.json.item_display_info_id;
+            } else {
+                // Fallback: fetch item data to find the first appearance
+                var itemRes = await apiFetch(cfg, staticUrl(cfg, '/data/wow/item/' + vId), token);
+                var aId = itemRes.json?.appearances?.[0]?.id;
+                if (aId) {
+                    var res2 = await apiFetch(cfg, staticUrl(cfg, '/data/wow/item-appearance/' + aId), token);
+                    if (res2.ok && res2.json?.item_display_info_id) {
+                        displayMap[vId] = res2.json.item_display_info_id;
+                    }
                 }
             }
         } catch (e) { }
