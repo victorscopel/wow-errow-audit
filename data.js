@@ -13,6 +13,19 @@ function esc(str) {
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
+// ── Storage helpers ───────────────────────────────────────
+function ls(k) { return localStorage.getItem(k); }
+function lss(k, v) { localStorage.setItem(k, v); }
+function saveRoster() {
+  if (typeof roster === 'undefined') return;
+  var o = ls('ga_data') || '[]';
+  var n = JSON.stringify(roster);
+  if (o !== n) {
+    lss('ga_data', n);
+    if (typeof startSyncRoster !== 'undefined') startSyncRoster();
+  }
+}
+
 // ── i18n ──────────────────────────────────────────────────
 var I18N = {
   members: { en: 'Members', pt_BR: 'Membros' },

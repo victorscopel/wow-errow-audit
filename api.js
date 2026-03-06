@@ -104,33 +104,41 @@ async function fetchItemIcons(cfg, token) {
 
     if (!window.iconMap) window.iconMap = {};
     var iconMap = window.iconMap;
-    for (var i = 0; i < ids.length; i++) {
-        var id = ids[i];
-        if (iconMap[id]) continue;
-        try {
-            var res = await apiFetch(cfg, staticUrl(cfg, '/data/wow/media/item/' + id), token);
-            if (res.ok && res.json?.assets) {
-                var asset = res.json.assets.find(function (a) { return a.key === 'icon'; });
-                if (asset) iconMap[id] = asset.value;
-            }
-        } catch (e) { }
-        if (i % 3 === 2) await new Promise(function (r) { setTimeout(r, 200); });
+
+    // Batch processing to speed up downloads
+    var batchSize = 8;
+    for (var i = 0; i < ids.length; i += batchSize) {
+        var batch = ids.slice(i, i + batchSize);
+        await Promise.all(batch.map(async function (id) {
+            if (iconMap[id]) return;
+            try {
+                var res = await apiFetch(cfg, staticUrl(cfg, '/data/wow/media/item/' + id), token);
+                if (res.ok && res.json?.assets) {
+                    var asset = res.json.assets.find(function (a) { return a.key === 'icon'; });
+                    if (asset) iconMap[id] = asset.value;
+                }
+            } catch (e) { }
+        }));
+        if (i + batchSize < ids.length) await new Promise(function (r) { setTimeout(r, 100); });
     }
 
     var changed = false;
     roster.forEach(function (c) {
         Object.values(c.gear || {}).forEach(function (item) {
             if (item?.itemId && iconMap[item.itemId]) {
-                item.iconSlug = iconMap[item.itemId];
-                changed = true;
+                if (item.iconSlug !== iconMap[item.itemId]) {
+                    item.iconSlug = iconMap[item.itemId];
+                    changed = true;
+                }
             }
         });
     });
     if (changed) {
-        saveRoster();
+        if (typeof saveRoster === 'function') saveRoster();
         var cpId = document.getElementById('charPage')?.dataset?.charId;
-        if (cpId) renderCharPage(cpId);
+        if (cpId && typeof renderCharPage === 'function') renderCharPage(cpId);
         if (typeof rerenderChar === 'function') rerenderChar();
+        if (typeof renderAll === 'function') renderAll();
     }
 }
 
@@ -510,7 +518,7 @@ async function fetchAllCharMedia(cfg, token) {
         if (i % 3 === 2) await new Promise(function (r) { setTimeout(r, 150); });
     }
     if (changed) {
-        saveRoster();
+        if (typeof saveRoster === 'function') saveRoster();
         var cpId = document.getElementById('charPage')?.dataset?.charId;
         if (cpId) renderCharPage(cpId);
     }
@@ -606,7 +614,7 @@ async function trackChar() {
             roster.push(entry);
             notify(entry.name + ' adicionado!');
         }
-        saveRoster(); renderAll();
+        if (typeof saveRoster === 'function') saveRoster(); renderAll();
         document.getElementById('add-n').value = '';
     } catch (e) { notify('Erro: ' + e.message); }
 }

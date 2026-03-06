@@ -12,17 +12,7 @@ var ovSortC = 'ilvl', ovSortD = -1;
 var arTimer = null;
 var prevPage = 'overview';
 
-// ── Storage helpers ───────────────────────────────────────
-function ls(k) { return localStorage.getItem(k); }
-function lss(k, v) { localStorage.setItem(k, v); }
-function saveRoster() {
-    var o = ls('ga_data') || '[]';
-    var n = JSON.stringify(roster);
-    if (o !== n) {
-        lss('ga_data', n);
-        if (typeof startSyncRoster !== 'undefined') startSyncRoster();
-    }
-}
+// Storage helpers moved to data.js
 
 // ── API logger ────────────────────────────────────────────
 var alog = [];
