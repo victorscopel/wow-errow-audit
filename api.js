@@ -463,8 +463,9 @@ async function refreshExisting(force) {
                     apiFetch(cfg, charUrl(cfg, charRealm, cn, '/mythic-keystone-profile'), token),
                     apiFetch(cfg, charUrl(cfg, charRealm, cn, '/statistics'), token),
                     apiFetch(cfg, charUrl(cfg, charRealm, cn, '/specializations'), token),
+                    apiFetch(cfg, charUrl(cfg, charRealm, cn, '/appearance'), token),
                 ]);
-                var eqR = fetches[0], sumR = fetches[1], mpR = fetches[2], statsR = fetches[3], specR = fetches[4];
+                var eqR = fetches[0], sumR = fetches[1], mpR = fetches[2], statsR = fetches[3], specR = fetches[4], appR = fetches[5];
                 if (!sumR.ok) continue;
                 var sum = sumR.json;
                 var parsed = parseEquipment(eqR.json?.equipped_items);
@@ -482,6 +483,7 @@ async function refreshExisting(force) {
                 c.ilvl = sum.equipped_item_level || sum.average_item_level || c.ilvl;
                 c.gear = parsed.gear;
                 c.issues = parsed.issues;
+                c.customizations = appR.ok && appR.json?.customizations ? appR.json.customizations : (c.customizations || []);
                 c.lastUpdated = new Date().toISOString();
                 if (mpR.ok && mpR.json) {
                     c.mythicRating = (mpR.json.current_mythic_rating?.rating | 0) || c.mythicRating;
@@ -597,8 +599,9 @@ async function trackChar() {
             apiFetch(cfg, charUrl(cfg, realm, name, '/mythic-keystone-profile'), token),
             apiFetch(cfg, charUrl(cfg, realm, name, '/statistics'), token),
             apiFetch(cfg, charUrl(cfg, realm, name, '/specializations'), token),
+            apiFetch(cfg, charUrl(cfg, realm, name, '/appearance'), token),
         ]);
-        var eqR = fetches[0], sumR = fetches[1], mpR = fetches[2], statsR = fetches[3], specR = fetches[4];
+        var eqR = fetches[0], sumR = fetches[1], mpR = fetches[2], statsR = fetches[3], specR = fetches[4], appR = fetches[5];
         if (!sumR.ok) { notify('"' + name + '" não encontrado em ' + realm + '.'); return; }
 
         var sum = sumR.json;
@@ -672,6 +675,7 @@ async function trackChar() {
             vault: vault, gear: parsed.gear, issues: parsed.issues,
             stats: charStats, talents: charTalents,
             renderUrl: renderUrl,
+            customizations: appR.ok && appR.json?.customizations ? appR.json.customizations : [],
             lastUpdated: new Date().toISOString()
         };
         if (existingIdx >= 0) {
