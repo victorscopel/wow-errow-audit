@@ -36,8 +36,9 @@ function buildSidebar(c, id) {
         : roleBadge(c.role);
 
     var clsSlug = (c.class || '').toLowerCase().replace(/ /g, '-');
+    var renderStyle = c.renderUrl ? ' style="background-image: url(\'' + c.renderUrl + '\')"' : '';
     var renderHtml = '<div class="char-header-wrapper">' +
-        '<div class="char-render-wrap" style="background-image: url(\'' + (c.renderUrl || '') + '\')"></div>' +
+        '<div class="char-render-wrap"' + renderStyle + '></div>' +
         '</div>';
 
     return '<div class="char-header-card cls-bg-' + clsSlug + '">' +
@@ -339,12 +340,18 @@ function renderChar(c) {
     // Backgrounds already handled by buildSidebar mapping
     var sidebar = buildSidebar(c, id);
     var gearResult = buildGearGrid(c);
+
+    // Render immediately, don't wait for preload to show the structure
+    document.getElementById('cp-sidebar').innerHTML = sidebar;
+    var mainHtml = gearResult.html + buildTalentsSection(c) + buildSuggestionsSection(c);
+    document.getElementById('cp-main').innerHTML = mainHtml;
+
+    refreshWowheadTooltips();
+    loadStatSuggestions(c);
+
+    // Still preload in background for better UX
     preloadImages(gearResult.imgUrls).then(function () {
-        document.getElementById('cp-sidebar').innerHTML = sidebar;
-        var mainHtml = gearResult.html + buildTalentsSection(c) + buildSuggestionsSection(c);
-        document.getElementById('cp-main').innerHTML = mainHtml;
-        refreshWowheadTooltips();
-        loadStatSuggestions(c);
+        // Icons are now in cache, browser will swap them if they weren't already there
     });
 }
 

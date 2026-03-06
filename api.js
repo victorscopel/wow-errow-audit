@@ -143,15 +143,18 @@ async function fetchItemIcons(cfg, token) {
 }
 
 async function fetchCharMedia(cfg, token, realm, name) {
-    try {
-        var res = await apiFetch(cfg, charUrl(cfg, realm, name, '/character-media'), token);
-        if (res.ok && res.json?.assets) {
-            var main = res.json.assets.find(function (a) { return a.key === 'main-raw'; });
-            if (!main) main = res.json.assets.find(function (a) { return a.key === 'main'; });
-            if (!main) main = res.json.assets.find(function (a) { return a.key === 'inset'; });
-            if (main) return main.value;
-        }
-    } catch (e) { }
+    var endpoints = ['/character-media', '/media'];
+    for (var i = 0; i < endpoints.length; i++) {
+        try {
+            var res = await apiFetch(cfg, charUrl(cfg, realm, name, endpoints[i]), token);
+            if (res.ok && res.json?.assets) {
+                var main = res.json.assets.find(function (a) { return a.key === 'main-raw'; });
+                if (!main) main = res.json.assets.find(function (a) { return a.key === 'main'; });
+                if (!main) main = res.json.assets.find(function (a) { return a.key === 'inset'; });
+                if (main) return main.value;
+            }
+        } catch (e) { }
+    }
     return null;
 }
 
@@ -520,7 +523,9 @@ async function fetchAllCharMedia(cfg, token) {
     if (changed) {
         if (typeof saveRoster === 'function') saveRoster();
         var cpId = document.getElementById('charPage')?.dataset?.charId;
-        if (cpId) renderCharPage(cpId);
+        if (cpId && typeof renderCharPage === 'function') renderCharPage(cpId);
+        if (typeof rerenderChar === 'function') rerenderChar();
+        if (typeof renderAll === 'function') renderAll();
     }
 }
 
