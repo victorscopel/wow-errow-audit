@@ -265,7 +265,7 @@ function renderRoster() {
   var rows = filtered.map(function (c) {
     var id = cid(c);
     var isUnder = minIlvl > 0 && (c.ilvl || 0) < minIlvl;
-    var isTd = CFG.si ? '<td><div style="display:flex;flex-wrap:wrap;gap:3px">' + (c.issues?.length ? c.issues.slice(0, 2).map(function (i) { return '<span class="it it-e">' + translateIssue(i).replace(/.*: /, '') + '</span>'; }).join('') + (c.issues.length > 2 ? '<span class="it" style="color:var(--text-dim);border:1px solid var(--border)">+' + (c.issues.length - 2) + '</span>' : '') : '<span class="it it-ok">✓</span>') + '</div></td>' : '';
+    var isTd = CFG.si ? '<td><div style="display:flex;flex-wrap:wrap;gap:3px">' + (c.issues?.length ? c.issues.slice(0, 2).map(function (i) { var t = translateIssue(i); var short = (i.includes(':') && !i.startsWith('embellishment:') && !i.startsWith('tierset:')) ? t.replace(/.*: /, '') : t; return '<span class="it it-e">' + short + '</span>'; }).join('') + (c.issues.length > 2 ? '<span class="it" style="color:var(--text-dim);border:1px solid var(--border)">+' + (c.issues.length - 2) + '</span>' : '') : '<span class="it it-ok">✓</span>') + '</div></td>' : '';
     var rTd = CFG.sr ? '<td><span style="font-weight:700;color:' + ratingCol(c.mythicRating) + '">' + (c.mythicRating || '—') + '</span></td>' : '';
     var nTd = CFG.sn ? '<td><span class="note-c" onclick="editNote(\'' + id + '\')">' + (c.note ? esc(c.note) : '<span style="opacity:.3">+</span>') + '</span></td>' : '';
     var tTd = CFG.st ? '<td>' + tierPiecesCell(c) + '</td>' : '';
