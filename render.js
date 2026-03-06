@@ -71,9 +71,9 @@ function translateIssue(raw) {
     if (raw === 'embellishment:only_one') return T('emb_one');
     if (raw.startsWith('tierset:')) {
       var tp = raw.split(':');
-      var required = tp[1];
-      var have = tp[2] || '0';
-      return T('tierset_missing').replace('{n}', required).replace('{have}', have);
+      var have = tp[1] || '0';
+      var missing = tp[2] || '0';
+      return T('tierset_missing').replace('{have}', have).replace('{n}', missing);
     }
     if (raw.includes(':')) {
       var parts = raw.split(':');

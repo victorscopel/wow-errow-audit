@@ -75,19 +75,14 @@ function parseEquipment(equippedItems) {
         // works automatically every season/expansion.
         var isTierSet = !!(item.set && item.set.item_set && item.set.item_set.id);
 
-        // Collect tier set metadata from the first item that has it
-        // item.set.display_string looks like "Equipped: 3/5" or "Equipados: 3/5"
+        // Collect tier set metadata — store effects per set ID, count pieces after the loop
         if (isTierSet && item.set) {
             var setId = item.set.item_set.id;
             if (!tierSets[setId]) {
-                // Parse equipped count from display_string (e.g. "3/5" or "Equipados: 3/5")
-                var dsMatch = (item.set.display_string || '').match(/(\d+)\s*\/\s*(\d+)/);
                 tierSets[setId] = {
                     name: item.set.item_set.name || '',
-                    equipped: dsMatch ? parseInt(dsMatch[1], 10) : 0,
-                    total: dsMatch ? parseInt(dsMatch[2], 10) : 0,
                     effects: (item.set.effects || []).map(function (e) {
-                        return { required: e.required_count || 0, text: e.display_string || '' };
+                        return { required: e.required_count || 0 };
                     }),
                 };
             }
@@ -125,23 +120,14 @@ function parseEquipment(equippedItems) {
         issues.push('embellishment:only_one');
     }
 
-    // Tier set bonus check — derived entirely from API data, no hardcoded IDs
-    Object.values(tierSets).forEach(function (ts) {
-        var equipped = ts.equipped;
-        // Find which bonus thresholds exist (e.g. 2, 4) and which ones aren't reached yet
-        ts.effects.forEach(function (eff) {
-            if (eff.required > 0 && equipped < eff.required) {
-                // e.g. "tierset:2:3" means "need 2pc, have 3 equipped" — wait, equipped < required here
-                // format: tierset:<required>:<equipped>
-                issues.push('tierset:' + eff.required + ':' + equipped);
-            }
-        });
-        // Edge case: no effects info from API — fall back to common 2/4 thresholds
-        if (ts.effects.length === 0 && ts.total > 0) {
-            if (equipped < 2) issues.push('tierset:2:' + equipped);
-            if (equipped < 4) issues.push('tierset:4:' + equipped);
+    // Tier set bonus check — single message with count
+    if (Object.keys(tierSets).length > 0) {
+        var equipped = Object.values(gear).filter(function (g) { return g && g.isTierSet; }).length;
+        var missing = Math.max(0, 4 - equipped);
+        if (missing > 0) {
+            issues.push('tierset:' + equipped + ':' + missing);
         }
-    });
+    }
 
     return { gear: gear, issues: issues };
 }

@@ -144,7 +144,7 @@ var I18N = {
   tier_set: { en: 'Tier Set', pt_BR: 'Set Tier' },
   emb_none: { en: 'No embellished items (ideal: 2)', pt_BR: 'Nenhum item embelezado (ideal: 2)' },
   emb_one: { en: 'Only 1 embellished item (ideal: 2)', pt_BR: 'Apenas 1 item embelezado (ideal: 2)' },
-  tierset_missing: { en: 'Missing {n}pc bonus (have {have})', pt_BR: 'Falta bônus de {n} peças (tem {have})' },
+  tierset_missing: { en: 'You have {have} tier piece(s), missing {n} more.', pt_BR: 'Você tem {have} peça(s) de tier, faltam {n} peças.' },
   show_tier: { en: 'Show Tier Pieces', pt_BR: 'Exibir Peças de Tier' },
   tier_pieces: { en: 'Tier', pt_BR: 'Tier' },
 };
