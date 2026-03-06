@@ -116,9 +116,11 @@ async function fetchItemIcons(cfg, token) {
     var ids = Object.keys(allItems);
     if (!ids.length) return;
 
-    var iconMap = {};
+    if (!window.iconMap) window.iconMap = {};
+    var iconMap = window.iconMap;
     for (var i = 0; i < ids.length; i++) {
         var id = ids[i];
+        if (iconMap[id]) continue;
         try {
             var res = await apiFetch(cfg, staticUrl(cfg, '/data/wow/media/item/' + id), token);
             if (res.ok && res.json?.assets) {
@@ -126,7 +128,7 @@ async function fetchItemIcons(cfg, token) {
                 if (asset) iconMap[id] = asset.value;
             }
         } catch (e) { }
-        if (i % 5 === 4) await new Promise(function (r) { setTimeout(r, 100); });
+        if (i % 3 === 2) await new Promise(function (r) { setTimeout(r, 200); });
     }
 
     var changed = false;
@@ -145,11 +147,14 @@ async function fetchItemIcons(cfg, token) {
     }
 }
 
+var displayMap = {};
+var _failedIds = {};
+
 async function fetchDisplayIds(cfg, token) {
     var allVisualIds = {};
     roster.forEach(function (c) {
         Object.values(c.gear || {}).forEach(function (item) {
-            if (item?.visualItemId && !item.displayId) {
+            if (item?.visualItemId && !item.displayId && !_failedIds[item.visualItemId]) {
                 allVisualIds[item.visualItemId] = { id: item.visualItemId, isAppearance: !!item.isAppearance };
             }
         });
@@ -160,26 +165,46 @@ async function fetchDisplayIds(cfg, token) {
     for (var i = 0; i < items.length; i++) {
         var entry = items[i];
         var vId = entry.id;
+        if (displayMap[vId] || _failedIds[vId]) continue;
+
         try {
-            if (entry.isAppearance) {
-                // Known appearance ID (transmog or specific recolor)
-                var res = await apiFetch(cfg, staticUrl(cfg, '/data/wow/item-appearance/' + vId), token);
-                if (res.ok && res.json?.item_display_info_id) {
-                    displayMap[vId] = res.json.item_display_info_id;
-                }
-            } else {
-                // Known base Item ID - fetch item data to find the first/default appearance
-                var itemRes = await apiFetch(cfg, staticUrl(cfg, '/data/wow/item/' + vId), token);
-                var aId = itemRes.json?.appearances?.[0]?.id;
-                if (aId) {
-                    var res2 = await apiFetch(cfg, staticUrl(cfg, '/data/wow/item-appearance/' + aId), token);
-                    if (res2.ok && res2.json?.item_display_info_id) {
-                        displayMap[vId] = res2.json.item_display_info_id;
+            var found = false;
+            // Strategy: Try appearance first if it looks like one, else try item. 
+            // If the first choice fails, try the other one SILENTLY.
+
+            var attempt1 = entry.isAppearance ? 'appearance' : 'item';
+
+            async function tryId(type, id) {
+                var url = type === 'appearance'
+                    ? staticUrl(cfg, '/data/wow/item-appearance/' + id)
+                    : staticUrl(cfg, '/data/wow/item/' + id);
+                var r = await apiFetch(cfg, url, token);
+                if (r.ok && r.json) {
+                    if (type === 'appearance' && r.json.item_display_info_id) return r.json.item_display_info_id;
+                    if (type === 'item' && r.json.appearances?.[0]?.id) {
+                        var aid = r.json.appearances[0].id;
+                        var r2 = await apiFetch(cfg, staticUrl(cfg, '/data/wow/item-appearance/' + aid), token);
+                        if (r2.ok && r2.json?.item_display_info_id) return r2.json.item_display_info_id;
                     }
                 }
+                return null;
+            }
+
+            var dId = await tryId(attempt1, vId);
+            if (!dId) {
+                // Swap and try the other endpoint
+                dId = await tryId(attempt1 === 'appearance' ? 'item' : 'appearance', vId);
+            }
+
+            if (dId) {
+                displayMap[vId] = dId;
+            } else {
+                _failedIds[vId] = true;
             }
         } catch (e) { }
-        if (i % 3 === 2) await new Promise(function (r) { setTimeout(r, 200); });
+
+        // Slower cadence for large batches to avoid browser "ERR_ABORTED"
+        if (i % 2 === 1) await new Promise(function (r) { setTimeout(r, 250); });
     }
 
     var changed = false;
