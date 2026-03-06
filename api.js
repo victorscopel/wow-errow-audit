@@ -69,8 +69,13 @@ function parseEquipment(equippedItems) {
 
         var visualItemId = item.item?.id || null;
         var modifiedAppearanceId = item.modified_appearance_id || null;
+        var isAppearance = false;
         if (item.transmog && item.transmog.id) {
             modifiedAppearanceId = item.transmog.id;
+        }
+        if (modifiedAppearanceId) {
+            visualItemId = modifiedAppearanceId;
+            isAppearance = true;
         }
 
         gear[slot] = {
@@ -83,7 +88,8 @@ function parseEquipment(equippedItems) {
             socketsTotal: socketsTotal,
             socketsFilled: socketsFilled,
             itemId: item.item?.id || null,
-            visualItemId: modifiedAppearanceId || visualItemId,
+            visualItemId: visualItemId,
+            isAppearance: isAppearance,
             displayId: null,
             iconSlug: null,
             mediaUrl: mediaHref,
@@ -143,22 +149,26 @@ async function fetchDisplayIds(cfg, token) {
     var allVisualIds = {};
     roster.forEach(function (c) {
         Object.values(c.gear || {}).forEach(function (item) {
-            if (item?.visualItemId && !item.displayId) allVisualIds[item.visualItemId] = true;
+            if (item?.visualItemId && !item.displayId) {
+                allVisualIds[item.visualItemId] = { id: item.visualItemId, isAppearance: !!item.isAppearance };
+            }
         });
     });
+    var items = Object.values(allVisualIds);
+    if (!items.length) return;
 
-    var ids = Object.keys(allVisualIds);
-    if (!ids.length) return;
-
-    for (var i = 0; i < ids.length; i++) {
-        var vId = ids[i];
+    for (var i = 0; i < items.length; i++) {
+        var entry = items[i];
+        var vId = entry.id;
         try {
-            // First try to fetch as item-appearance directly (vId might be modified_appearance_id)
-            var res = await apiFetch(cfg, staticUrl(cfg, '/data/wow/item-appearance/' + vId), token);
-            if (res.ok && res.json?.item_display_info_id) {
-                displayMap[vId] = res.json.item_display_info_id;
+            if (entry.isAppearance) {
+                // Known appearance ID (transmog or specific recolor)
+                var res = await apiFetch(cfg, staticUrl(cfg, '/data/wow/item-appearance/' + vId), token);
+                if (res.ok && res.json?.item_display_info_id) {
+                    displayMap[vId] = res.json.item_display_info_id;
+                }
             } else {
-                // Fallback: fetch item data to find the first appearance
+                // Known base Item ID - fetch item data to find the first/default appearance
                 var itemRes = await apiFetch(cfg, staticUrl(cfg, '/data/wow/item/' + vId), token);
                 var aId = itemRes.json?.appearances?.[0]?.id;
                 if (aId) {
@@ -169,7 +179,7 @@ async function fetchDisplayIds(cfg, token) {
                 }
             }
         } catch (e) { }
-        if (i % 5 === 4) await new Promise(function (r) { setTimeout(r, 100); });
+        if (i % 3 === 2) await new Promise(function (r) { setTimeout(r, 200); });
     }
 
     var changed = false;
