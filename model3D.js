@@ -11,26 +11,17 @@ var BLIZZARD_TO_ZAMIMG_RACE = {
 };
 
 // ── Blizzard slot key → wow-model-viewer inventory slot number ────────────────
-// From the Miorey/wow-model-viewer README. Note the differences from Blizzard's
-// INVTYPE values: back=15 (not 16), mainHand=16, offHand=17 (not 21/22).
+// Keys come from data.js SLOT_MAP (Blizzard INVTYPE → our slot name):
+//   MAIN_HAND → 'mainhand', OFF_HAND → 'offhand'  (all lowercase, no camelCase)
+// Slot numbers from character_modeling.js getDisplaySlot():
+//   chest=5 (lib remaps→20), mainhand=16 (lib remaps→21), offhand=18 (lib remaps→22)
+//   back=15 (confirmed from wowhead viewer output)
 var SLOT_MAP = {
     head:     1,  neck:      2,  shoulder:  3,  shirt:    4,
     chest:    5,  waist:     6,  legs:      7,  feet:     8,
     wrist:    9,  hands:    10,  finger1:  11,  finger2: 12,
     trinket1: 13, trinket2: 14,  back:     15,  tabard:  19,
-    mainHand: 16, offHand:  17,
-};
-
-// ── Dracthyr customization option names → lib property names ─────────────────
-// For Dracthyr (race=45 in Zamimg), the lib expects top-level special props
-// instead of the standard skin/face/hairStyle flat format.
-var DRACTHYR_OPTIONS_MAP = {
-    'Scale Color':           'primaryColor',
-    'Secondary Scale Color': 'secondaryColor',
-    'Scale Color Intensity': 'secondaryColorStrength',
-    'Body Size':             'bodySize',
-    'Horn Style':            'horns',
-    'Horn Color':            'hornColor',
+    mainhand: 16, offhand:  18,
 };
 
 export async function initModelViewer(c, containerSelector) {
@@ -48,7 +39,6 @@ export async function initModelViewer(c, containerSelector) {
     // ── 1. Translate Blizzard raceId → Zamimg raceId ──────────────────────────
     var blizzRaceId = c.raceId || 1;
     var zamigRaceId = BLIZZARD_TO_ZAMIMG_RACE[blizzRaceId] || blizzRaceId;
-    var isDracthyr = (zamigRaceId === 45);
 
     // ── 2. Build character customizations (FLAT format) ───────────────────────
     //
@@ -80,10 +70,8 @@ export async function initModelViewer(c, containerSelector) {
             return;
         }
 
-        // Choose the right property map based on race
-        var prop = isDracthyr
-            ? DRACTHYR_OPTIONS_MAP[optionName]
-            : optionsMap[optionName];
+        // characterPart() covers all races incl. Dracthyr/Evoker special props
+        var prop = optionsMap[optionName];
 
         if (!prop) return;
 
