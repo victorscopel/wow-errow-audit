@@ -68,7 +68,7 @@ function parseEquipment(equippedItems) {
         var mediaHref = item.media?.key?.href || null;
 
         var visualItemId = item.item?.id || null;
-        var modifiedAppearanceId = item.modified_appearance_id || null;
+        var modifiedAppearanceId = item.modified_appearance_id || item.transmogrification?.display_item?.id || null;
         var isAppearance = false;
         if (item.transmog && item.transmog.id) {
             modifiedAppearanceId = item.transmog.id;
@@ -140,9 +140,12 @@ async function fetchItemIcons(cfg, token) {
             }
         });
     });
-    if (cpId) renderCharPage(cpId);
-    if (typeof rerenderChar === 'function') rerenderChar();
-}
+    if (changed) {
+        saveRoster();
+        var cpId = document.getElementById('charPage')?.dataset?.charId;
+        if (cpId) renderCharPage(cpId);
+        if (typeof rerenderChar === 'function') rerenderChar();
+    }
 }
 
 var displayMap = {};
