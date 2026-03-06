@@ -809,11 +809,12 @@ a.whl {
   object-fit: cover;
 }
 
-#model-3d > div {
+#model-3d>div {
   width: 100%;
   height: 100%;
 }
-  padding: 20px;
+
+padding: 20px;
 }
 
 .info-card {
@@ -847,11 +848,11 @@ a.whl {
 }
 
 .char-render-img {
-  height: 280px;
+  height: 370px;
   width: auto;
   border-radius: 10px;
   transform: scale(1.6);
-  transform-origin: 69% 60%;
+  transform-origin: 87% 60%;
 }
 
 /* ── Skeleton ───────────────────────────────────────────── */
