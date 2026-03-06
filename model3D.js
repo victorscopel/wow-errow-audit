@@ -17,11 +17,17 @@ export async function initModelViewer(c, containerSelector) {
     (c.customizations || []).forEach(function (cust) {
         var wowheadProp = optionsMap[cust.option.name];
         if (wowheadProp) {
-            mappedCustomizations[wowheadProp] = cust.choice.id;
+            mappedCustomizations[wowheadProp] = { id: cust.choice.id, name: cust.choice.name };
         }
-        if (cust.option.name === 'Sex' && cust.choice.name) {
-            var rawSex = cust.choice.name.toUpperCase();
-            c.genderId = (rawSex === 'FEMALE' || rawSex === 'FÊMEA') ? 1 : 0;
+        // Gender detection (Blizzard uses "Body Type" or "Sex")
+        var optName = (cust.option.name || '').toLowerCase();
+        if (optName === 'sex' || optName === 'body type' || optName === 'sexo') {
+            var choiceName = (cust.choice.name || '').toUpperCase();
+            if (choiceName === 'FEMALE' || choiceName === 'FÊMEA' || choiceName === 'BODY TYPE 2' || cust.choice.id === 1) {
+                c.genderId = 1;
+            } else {
+                c.genderId = 0;
+            }
         }
     });
 
