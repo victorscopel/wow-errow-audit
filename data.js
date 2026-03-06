@@ -140,7 +140,19 @@ var I18N = {
   archon_date: { en: 'Last Updated', pt_BR: 'Atualizado em' },
   stat_ok: { en: 'Stat priority matches recommendation', pt_BR: 'Atributos de acordo com o recomendado' },
   stat_below: { en: 'is below recommended', pt_BR: 'abaixo do recomendado' },
+  embellished: { en: 'Embellished', pt_BR: 'Embelezado' },
+  tier_set: { en: 'Tier Set', pt_BR: 'Set Tier' },
+  emb_none: { en: 'No embellished items (ideal: 2)', pt_BR: 'Nenhum item embelezado (ideal: 2)' },
+  emb_one: { en: 'Only 1 embellished item (ideal: 2)', pt_BR: 'Apenas 1 item embelezado (ideal: 2)' },
+  tierset_missing: { en: 'Missing {n}pc bonus (have {have})', pt_BR: 'Falta bônus de {n} peças (tem {have})' },
+  show_tier: { en: 'Show Tier Pieces', pt_BR: 'Exibir Peças de Tier' },
+  tier_pieces: { en: 'Tier', pt_BR: 'Tier' },
 };
+
+// Slots that can be tier set pieces (consistent across all WoW expansions)
+var TIER_SLOTS = ['head', 'shoulder', 'chest', 'hands', 'legs'];
+// Short labels for the tier piece column (order matches TIER_SLOTS)
+var TIER_SLOT_INITIALS = { head: 'H', shoulder: 'S', chest: 'C', hands: 'G', legs: 'L' };
 
 var HERO_TREE_PT = {
   "Rider of the Apocalypse": "Cavalgante do Apocalipse",
@@ -346,3 +358,4 @@ var SLOT_MAP = {
 };
 
 var ALL_CLASSES = ['Warrior', 'Paladin', 'Hunter', 'Rogue', 'Priest', 'Death Knight', 'Shaman', 'Mage', 'Warlock', 'Monk', 'Druid', 'Demon Hunter', 'Evoker'];
+

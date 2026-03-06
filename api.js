@@ -56,6 +56,7 @@ function profileUrl(cfg, path) {
 function parseEquipment(equippedItems) {
     var gear = {};
     var issues = [];
+    var tierSets = {}; // keyed by item_set.id, collects tier set info
     for (var i = 0; i < (equippedItems || []).length; i++) {
         var item = equippedItems[i];
         var slot = SLOT_MAP[item.slot?.type];
@@ -66,6 +67,31 @@ function parseEquipment(equippedItems) {
         var socketsFilled = hasSockets ? item.sockets.filter(function (s) { return s.item; }).length : 0;
         var gemmed = hasSockets && (socketsFilled === socketsTotal);
         var mediaHref = item.media?.key?.href || null;
+
+        var limitCat = item.limit_category || null;
+        var isEmbellished = !!(limitCat && limitCat.toLowerCase().includes('embellish'));
+        var bonusIds = item.bonus_list || [];
+        // Tier set: detected via item.set field returned by the API — no hardcoded IDs needed,
+        // works automatically every season/expansion.
+        var isTierSet = !!(item.set && item.set.item_set && item.set.item_set.id);
+
+        // Collect tier set metadata from the first item that has it
+        // item.set.display_string looks like "Equipped: 3/5" or "Equipados: 3/5"
+        if (isTierSet && item.set) {
+            var setId = item.set.item_set.id;
+            if (!tierSets[setId]) {
+                // Parse equipped count from display_string (e.g. "3/5" or "Equipados: 3/5")
+                var dsMatch = (item.set.display_string || '').match(/(\d+)\s*\/\s*(\d+)/);
+                tierSets[setId] = {
+                    name: item.set.item_set.name || '',
+                    equipped: dsMatch ? parseInt(dsMatch[1], 10) : 0,
+                    total: dsMatch ? parseInt(dsMatch[2], 10) : 0,
+                    effects: (item.set.effects || []).map(function (e) {
+                        return { required: e.required_count || 0, text: e.display_string || '' };
+                    }),
+                };
+            }
+        }
 
         gear[slot] = {
             name: item.name,
@@ -81,13 +107,42 @@ function parseEquipment(equippedItems) {
             mediaUrl: mediaHref,
             enchantIds: (item.enchantments || []).map(function (e) { return e.enchantment_id; }).filter(Boolean),
             gemIds: (item.sockets || []).filter(function (s) { return s.item; }).map(function (s) { return s.item.id; }),
-            bonusIds: item.bonus_list || [],
+            bonusIds: bonusIds,
+            limitCategory: limitCat,
+            isEmbellished: isEmbellished,
+            isTierSet: isTierSet,
         };
         if (ENCHANTABLE.includes(slot) && !enchanted)
             issues.push(slot + ':missing_enchant');
         if (hasSockets && !gemmed)
             issues.push(slot + ':missing_gem:' + socketsFilled + '_' + socketsTotal);
     }
+    // Embellishment check: ideal is exactly 2 embellished items
+    var embCount = Object.values(gear).filter(function (g) { return g && g.isEmbellished; }).length;
+    if (embCount === 0) {
+        issues.push('embellishment:none');
+    } else if (embCount === 1) {
+        issues.push('embellishment:only_one');
+    }
+
+    // Tier set bonus check — derived entirely from API data, no hardcoded IDs
+    Object.values(tierSets).forEach(function (ts) {
+        var equipped = ts.equipped;
+        // Find which bonus thresholds exist (e.g. 2, 4) and which ones aren't reached yet
+        ts.effects.forEach(function (eff) {
+            if (eff.required > 0 && equipped < eff.required) {
+                // e.g. "tierset:2:3" means "need 2pc, have 3 equipped" — wait, equipped < required here
+                // format: tierset:<required>:<equipped>
+                issues.push('tierset:' + eff.required + ':' + equipped);
+            }
+        });
+        // Edge case: no effects info from API — fall back to common 2/4 thresholds
+        if (ts.effects.length === 0 && ts.total > 0) {
+            if (equipped < 2) issues.push('tierset:2:' + equipped);
+            if (equipped < 4) issues.push('tierset:4:' + equipped);
+        }
+    });
+
     return { gear: gear, issues: issues };
 }
 

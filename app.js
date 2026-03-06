@@ -5,7 +5,7 @@
 
 // ── State ─────────────────────────────────────────────────
 var roster = [];
-var CFG = { si: true, sv: true, sr: true, sn: true, ar: true, ilvlMin: 0, archon: "" };
+var CFG = { si: true, sv: true, sr: true, sn: true, st: true, ar: true, ilvlMin: 0, archon: "" };
 window._lang = localStorage.getItem('ga_lang') || 'pt-BR';
 var sortC = 'ilvl', sortD = -1;
 var ovSortC = 'ilvl', ovSortD = -1;
@@ -51,7 +51,7 @@ function init() {
 
     var sc = ls('ga_cfg');
     if (sc) try { CFG = Object.assign({}, CFG, JSON.parse(sc)); } catch (e) { }
-    ['si', 'sv', 'sr', 'sn', 'ar'].forEach(function (k) {
+    ['si', 'sv', 'sr', 'sn', 'st', 'ar'].forEach(function (k) {
         var el = document.getElementById('cfg-' + k);
         if (el) el.checked = CFG[k];
     });
@@ -100,7 +100,7 @@ function init() {
 
 function saveCfg() {
     var oc = JSON.stringify(CFG);
-    ['si', 'sv', 'sr', 'sn', 'ar'].forEach(function (k) { CFG[k] = document.getElementById('cfg-' + k)?.checked || false; });
+    ['si', 'sv', 'sr', 'sn', 'st', 'ar'].forEach(function (k) { CFG[k] = document.getElementById('cfg-' + k)?.checked || false; });
     CFG.ilvlMin = parseInt(document.getElementById('cfg-ilvlMin')?.value) || 0;
     var archonEl = document.getElementById('cfg-archon');
     if (archonEl) CFG.archon = archonEl.value.trim();

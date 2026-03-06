@@ -509,6 +509,30 @@ tr:hover {
   border: 1px solid rgba(88, 166, 255, .3);
 }
 
+/* Tier Set badge */
+.badge-tier {
+  font-size: .7rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  color: #c69b3a;
+  background: rgba(198, 155, 58, .15);
+  border: 1px solid rgba(198, 155, 58, .4);
+}
+
+/* Embellished badge */
+.badge-emb {
+  font-size: .7rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  color: #a78bfa;
+  background: rgba(167, 139, 250, .12);
+  border: 1px solid rgba(167, 139, 250, .35);
+}
+
 .note-c {
   font-size: 0.85rem;
   color: var(--text-dim);
