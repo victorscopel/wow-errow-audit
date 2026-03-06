@@ -802,7 +802,7 @@ a.whl {
   position: relative;
   height: 580px;
   background-position: center;
-  background-size: auto 120%;
+  background-size: auto 110%;
 }
 
 .char-header-wrapper {
@@ -819,8 +819,8 @@ a.whl {
   text-align: center;
   overflow: hidden;
   background-repeat: no-repeat;
-  background-position: center 25%;
-  background-size: auto 135%;
+  background-position: center -50%;
+  background-size: auto 110%;
   position: absolute;
   inset: 0;
   z-index: 2;
@@ -831,8 +831,6 @@ a.whl {
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 24px;
-  background: linear-gradient(to top, rgba(13, 17, 23, 0.95) 0%, rgba(13, 17, 23, 0.7) 40%, transparent 100%);
   z-index: 10;
   border-bottom-left-radius: 12px;
   border-bottom-right-radius: 12px;
