@@ -53,7 +53,7 @@ export async function initModelViewer(c, containerSelector) {
         const viewer = await generateModels(1.5, containerSelector, character);
         return viewer;
     } catch (e) {
-        console.error('[Model3D] Falha ao iniciar visualizador:', e);
+        console.warn('[Model3D] Falha ao iniciar visualizador. O modelo não será renderizado.', e.message);
         return null;
     }
 }

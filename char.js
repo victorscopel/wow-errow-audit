@@ -333,20 +333,20 @@ function renderChar(c) {
         loadStatSuggestions(c);
 
         try {
-            import('./model3D.js').then(function (m3d) {
-                m3d.initModelViewer(c, '#model-3d').then(function (viewer) {
+            import('./model3D.js').then(function (m) {
+                m.initModelViewer(c, '#model-3d').then(function (viewer) {
                     if (viewer) {
                         var fb = document.getElementById('model-3d-fallback');
                         if (fb) fb.style.display = 'none'; // hide 2D fallback
                     }
-                }).catch(function (err) {
-                    console.error('[Model3D] Init failed:', err);
+                }).catch(function (e) {
+                    console.warn('Erro ao inicializar visualizador 3D:', e.message);
                 });
-            }).catch(function (err) {
-                console.error('[Model3D] Import failed:', err);
+            }).catch(function (e) {
+                console.warn('[Model3D] Import failed:', e.message);
             });
         } catch (e) {
-            console.error('[Model3D] Render sync error:', e);
+            console.error('[Model3D] Sync erro:', e);
         }
     });
 }

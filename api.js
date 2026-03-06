@@ -67,11 +67,9 @@ function parseEquipment(equippedItems) {
         var gemmed = hasSockets && (socketsFilled === socketsTotal);
         var mediaHref = item.media?.key?.href || null;
 
-        var displayId = null;
-        if (item.transmog) {
-            displayId = item.transmog.item_modified_appearance_id;
-        } else if (item.modified_appearance_id) {
-            displayId = item.modified_appearance_id;
+        var visualItemId = item.item?.id || null;
+        if (item.transmog && item.transmog.item && item.transmog.item.id) {
+            visualItemId = item.transmog.item.id;
         }
 
         gear[slot] = {
@@ -84,7 +82,8 @@ function parseEquipment(equippedItems) {
             socketsTotal: socketsTotal,
             socketsFilled: socketsFilled,
             itemId: item.item?.id || null,
-            displayId: displayId,
+            visualItemId: visualItemId,
+            displayId: null,
             iconSlug: null,
             mediaUrl: mediaHref,
             enchantIds: (item.enchantments || []).map(function (e) { return e.enchantment_id; }).filter(Boolean),
@@ -128,6 +127,49 @@ async function fetchItemIcons(cfg, token) {
         Object.values(c.gear || {}).forEach(function (item) {
             if (item?.itemId && iconMap[item.itemId]) {
                 item.iconSlug = iconMap[item.itemId];
+                changed = true;
+            }
+        });
+    });
+    if (changed) {
+        saveRoster();
+        var cpId = document.getElementById('charPage')?.dataset?.charId;
+        if (cpId) renderCharPage(cpId);
+    }
+}
+
+async function fetchDisplayIds(cfg, token) {
+    var allVisualIds = {};
+    roster.forEach(function (c) {
+        Object.values(c.gear || {}).forEach(function (item) {
+            if (item?.visualItemId && !item.displayId) allVisualIds[item.visualItemId] = true;
+        });
+    });
+
+    var ids = Object.keys(allVisualIds);
+    if (!ids.length) return;
+
+    var displayMap = {};
+    for (var i = 0; i < ids.length; i++) {
+        var vId = ids[i];
+        try {
+            var itemRes = await apiFetch(cfg, staticUrl(cfg, '/data/wow/item/' + vId), token);
+            var aId = itemRes.json?.appearances?.[0]?.id;
+            if (aId) {
+                var res = await apiFetch(cfg, staticUrl(cfg, '/data/wow/item-appearance/' + aId), token);
+                if (res.ok && res.json?.item_display_info_id) {
+                    displayMap[vId] = res.json.item_display_info_id;
+                }
+            }
+        } catch (e) { }
+        if (i % 5 === 4) await new Promise(function (r) { setTimeout(r, 100); });
+    }
+
+    var changed = false;
+    roster.forEach(function (c) {
+        Object.values(c.gear || {}).forEach(function (item) {
+            if (item?.visualItemId && displayMap[item.visualItemId]) {
+                item.displayId = displayMap[item.visualItemId];
                 changed = true;
             }
         });
@@ -339,21 +381,22 @@ async function fetchAPI(silent) {
         roster.forEach(function (c) {
             Object.entries(c.gear || {}).forEach(function (entry) {
                 var item = entry[1];
-                if (!item || item.iconSlug) return;
+                if (!item) return;
                 for (var oi = 0; oi < (oldRoster || []).length; oi++) {
                     var oldItem = (oldRoster[oi].gear || {})[entry[0]];
-                    if (oldItem && oldItem.itemId === item.itemId && oldItem.iconSlug) {
-                        item.iconSlug = oldItem.iconSlug;
-                        break;
+                    if (oldItem && oldItem.itemId === item.itemId) {
+                        if (oldItem.iconSlug && !item.iconSlug) item.iconSlug = oldItem.iconSlug;
+                        if (oldItem.displayId && oldItem.visualItemId === item.visualItemId && !item.displayId) item.displayId = oldItem.displayId;
                     }
                 }
             });
         });
 
-        if (!silent) lg('Baixando ícones dos itens...', 'info');
+        if (!silent) lg('Baixando dados avançados de itens...', 'info');
         try {
             var itoken = await getToken(cfg);
             await fetchItemIcons(cfg, itoken);
+            await fetchDisplayIds(cfg, itoken);
         } catch (e) { }
         sprog(100);
         saveRoster();
