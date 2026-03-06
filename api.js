@@ -66,6 +66,14 @@ function parseEquipment(equippedItems) {
         var socketsFilled = hasSockets ? item.sockets.filter(function (s) { return s.item; }).length : 0;
         var gemmed = hasSockets && (socketsFilled === socketsTotal);
         var mediaHref = item.media?.key?.href || null;
+
+        var displayId = null;
+        if (item.transmog) {
+            displayId = item.transmog.item_modified_appearance_id;
+        } else if (item.modified_appearance_id) {
+            displayId = item.modified_appearance_id;
+        }
+
         gear[slot] = {
             name: item.name,
             ilvl: item.level?.value,
@@ -76,6 +84,7 @@ function parseEquipment(equippedItems) {
             socketsTotal: socketsTotal,
             socketsFilled: socketsFilled,
             itemId: item.item?.id || null,
+            displayId: displayId,
             iconSlug: null,
             mediaUrl: mediaHref,
             enchantIds: (item.enchantments || []).map(function (e) { return e.enchantment_id; }).filter(Boolean),
@@ -195,8 +204,9 @@ async function fetchAPI(silent) {
                     apiFetch(cfg, charUrl(cfg, charRealm, cn, '/mythic-keystone-profile'), token),
                     apiFetch(cfg, charUrl(cfg, charRealm, cn, '/statistics'), token),
                     apiFetch(cfg, charUrl(cfg, charRealm, cn, '/specializations'), token),
+                    apiFetch(cfg, charUrl(cfg, charRealm, cn, '/appearance'), token),
                 ]);
-                var eqR = fetches[0], sumR = fetches[1], mpR = fetches[2], statsR = fetches[3], specR = fetches[4];
+                var eqR = fetches[0], sumR = fetches[1], mpR = fetches[2], statsR = fetches[3], specR = fetches[4], appR = fetches[5];
 
                 if (!sumR.ok) {
                     if (!silent) lg('⚠ ' + m.character.name + ' (' + charRealm + '): perfil não encontrado', 'warn');
@@ -205,6 +215,7 @@ async function fetchAPI(silent) {
 
                 var sum = sumR.json;
                 var parsed = parseEquipment(eqR.json?.equipped_items);
+                var customizations = appR.ok && appR.json?.customizations ? appR.json.customizations : [];
 
                 var charClassEN = normalizeClass(sum.character_class?.name) ||
                     normalizeClass(m.character.playable_class?.name) || '?';
@@ -311,6 +322,7 @@ async function fetchAPI(silent) {
                     talents: charTalents,
                     renderUrl: existing?.renderUrl || null,
                     lastUpdated: new Date().toISOString(),
+                    customizations: customizations,
                 });
 
                 if (!silent) lg('✓ ' + (sum.name || m.character.name) + ' (' + charRealm + ') — iLvl ' + (sum.equipped_item_level || '?') + ' [' + specName + '→' + role + '] — ' + parsed.issues.length + ' issues', 'ok');
