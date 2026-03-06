@@ -267,7 +267,7 @@ async function fetchAPI(silent) {
 
                 var raceId = sum.race?.id || 1;
                 var genderType = typeof sum.gender === 'string' ? sum.gender : (sum.gender?.type || 'MALE');
-                var genderId = (genderType === 'FEMALE' || genderType === 'FÊMEA') ? 0 : 1;
+                var genderId = (genderType === 'FEMALE' || genderType === 'FÊMEA') ? 1 : 0;
 
 
                 var vault = null;
