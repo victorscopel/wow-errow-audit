@@ -509,6 +509,57 @@ tr:hover {
   border: 1px solid rgba(88, 166, 255, .3);
 }
 
+/* ── Tier pieces column ─────────────────────────────────── */
+.tier-cell {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  font-size: .8rem;
+  letter-spacing: 1px;
+}
+
+.tier-pip {
+  position: relative;
+  font-weight: 800;
+  color: var(--pip-col, var(--gold));
+  cursor: default;
+  /* Custom tooltip trigger */
+}
+
+.tier-pip--empty {
+  color: var(--border);
+  font-weight: 400;
+}
+
+/* Custom tooltip */
+.tier-pip[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background: var(--bg2, #1a1a2e);
+  color: var(--text, #e0e0e0);
+  border: 1px solid var(--border, #333);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .15s ease;
+  z-index: 999;
+  box-shadow: 0 4px 12px rgba(0,0,0,.5);
+  /* colored top accent matching the pip */
+  border-top: 2px solid var(--pip-col, var(--gold));
+}
+
+.tier-pip[data-tip]:hover::after {
+  opacity: 1;
+}
+
 /* Tier Set badge */
 .badge-tier {
   font-size: .7rem;

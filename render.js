@@ -91,6 +91,8 @@ function translateIssue(raw) {
 // Color reflects item quality: mythic=gold, epic=purple, rare=blue, none=dim dash
 function tierPiecesCell(c) {
   var gear = c.gear || {};
+  var isPT = (window._lang === 'pt-BR');
+
   var QUALITY_COLOR = {
     mythic:    'var(--gold)',
     legendary: '#ff8000',
@@ -99,17 +101,32 @@ function tierPiecesCell(c) {
     uncommon:  '#1eff00',
     common:    'var(--text-dim)',
   };
-  var slots = typeof TIER_SLOTS !== 'undefined' ? TIER_SLOTS : ['head','shoulder','chest','hands','legs'];
-  var initials = typeof TIER_SLOT_INITIALS !== 'undefined' ? TIER_SLOT_INITIALS : {head:'H',shoulder:'S',chest:'C',hands:'G',legs:'L'};
+
+  // Translated quality labels
+  var QUALITY_LABEL = isPT
+    ? { mythic: 'Mítico', legendary: 'Lendário', epic: 'Heroico', rare: 'Normal', uncommon: 'Comum', common: 'Pobre' }
+    : { mythic: 'Mythic', legendary: 'Legendary', epic: 'Heroic', rare: 'Normal', uncommon: 'Uncommon', common: 'Common' };
+
+  // Translated slot initials
+  var INITIALS_PT = { head: 'C', shoulder: 'O', chest: 'Pe', hands: 'L', legs: 'Pa' };
+  var INITIALS_EN = { head: 'H', shoulder: 'S', chest: 'C', hands: 'G', legs: 'L' };
+  var initials = isPT ? INITIALS_PT : INITIALS_EN;
+
+  var slots = ['head', 'shoulder', 'chest', 'hands', 'legs'];
+
   var bits = slots.map(function(slot) {
     var item = gear[slot];
     if (item && item.isTierSet) {
       var col = QUALITY_COLOR[item.quality] || QUALITY_COLOR.epic;
-      return '<span title="' + (item.name || slot) + ' (' + (item.ilvl || '?') + ')" style="font-weight:800;color:' + col + ';cursor:default">' + initials[slot] + '</span>';
+      var qualLabel = QUALITY_LABEL[item.quality] || item.quality || '?';
+      var slotLabel2 = slotLabel(slot);
+      var tipText = slotLabel2 + ' — Tier ' + qualLabel;
+      return '<span class="tier-pip" style="--pip-col:' + col + '" data-tip="' + tipText + '">' + initials[slot] + '</span>';
     }
-    return '<span style="color:var(--border);font-weight:400">·</span>';
+    return '<span class="tier-pip tier-pip--empty">·</span>';
   });
-  return '<div style="display:flex;gap:4px;align-items:center;font-size:.8rem;letter-spacing:1px">' + bits.join('') + '</div>';
+
+  return '<div class="tier-cell">' + bits.join('') + '</div>';
 }
 
 function applyI18n() {
