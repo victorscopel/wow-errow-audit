@@ -2,6 +2,9 @@ import { generateModels } from './lib/model-viewer/index.js';
 import { characterPart, findItemsInEquipments } from './lib/model-viewer/character_modeling.js';
 
 export async function initModelViewer(c, containerSelector) {
+    var loadingId = Date.now() + '-' + Math.random();
+    window._ga_model_loading = loadingId;
+
     var rawcfg = JSON.parse(localStorage.getItem('ga_api') || '{}');
     var proxy = rawcfg.proxy || 'https://midnight.victorscopel.workers.dev';
 
@@ -50,10 +53,24 @@ export async function initModelViewer(c, containerSelector) {
 
     try {
         character.items = await findItemsInEquipments(rawEquipments);
+
+        // Prevent race condition: if another init started while we were fetching items, abort
+        if (window._ga_model_loading !== loadingId) return null;
+
         const viewer = await generateModels(1.5, containerSelector, character);
+        window._ga_viewer_instance = viewer;
         return viewer;
     } catch (e) {
-        console.warn('[Model3D] Falha ao iniciar visualizador. O modelo não será renderizado.', e.message);
+        if (window._ga_model_loading === loadingId) {
+            console.warn('[Model3D] Falha ao iniciar visualizador.', e.message);
+        }
         return null;
+    } finally {
+        if (window._ga_model_loading === loadingId) {
+            window._ga_model_loading = null;
+        }
     }
 }
+
+// Global lock to prevent double-init
+window._ga_model_loading = null;

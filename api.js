@@ -587,7 +587,11 @@ async function refreshExisting(force) {
                 updated++;
             } catch (e) { }
         }
-        try { var itoken = await getToken(cfg); await fetchItemIcons(cfg, itoken); } catch (e) { }
+        try {
+            var itoken = await getToken(cfg);
+            await fetchItemIcons(cfg, itoken);
+            await fetchDisplayIds(cfg, itoken);
+        } catch (e) { }
         saveRoster();
         renderAll();
         notify('↻ ' + updated + ' ' + T('updated'));
@@ -724,7 +728,10 @@ async function trackChar() {
         }
         saveRoster(); renderAll();
         document.getElementById('add-n').value = '';
-        getToken(cfg).then(function (tok) { fetchItemIcons(cfg, tok); }).catch(function () { });
+        getToken(cfg).then(function (tok) {
+            fetchItemIcons(cfg, tok);
+            fetchDisplayIds(cfg, tok).then(renderAll);
+        }).catch(function () { });
     } catch (e) { notify('Erro: ' + e.message); }
 }
 
