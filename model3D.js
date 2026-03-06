@@ -1,21 +1,17 @@
 import { generateModels } from './lib/model-viewer/index.js';
-import { characterPart, findItemsInEquipments } from './lib/model-viewer/character_modeling.js';
+import { findItemsInEquipments, findRaceGenderOptions } from './lib/model-viewer/character_modeling.js';
 
 // ── Race ID translation: Blizzard API → wow-model-viewer (Zamimg) ─────────────
-// The Blizzard profile API returns race.id from ChrRaces.db2.
-// The wow-model-viewer lib uses Zamimg's internal race IDs.
-// Most match, but Dracthyr diverges:
-//   Dracthyr: Blizzard=52 (wowhead.com/race=52/dracthyr), Zamimg=45
+// Most Blizzard ChrRaces.db2 IDs match Zamimg's internal IDs, but Dracthyr diverges.
 var BLIZZARD_TO_ZAMIMG_RACE = {
-    52: 45, // Dracthyr
+    52: 45, // Dracthyr: Blizzard=52, Zamimg=45
 };
 
 // ── Blizzard slot key → wow-model-viewer inventory slot number ────────────────
-// Keys come from data.js SLOT_MAP (Blizzard INVTYPE → our slot name):
-//   MAIN_HAND → 'mainhand', OFF_HAND → 'offhand'  (all lowercase, no camelCase)
-// Slot numbers from character_modeling.js getDisplaySlot():
-//   chest=5 (lib remaps→20), mainhand=16 (lib remaps→21), offhand=18 (lib remaps→22)
-//   back=15 (confirmed from wowhead viewer output)
+// Keys come from data.js SLOT_MAP (Blizzard INVTYPE → our slot name, all lowercase):
+//   MAIN_HAND → 'mainhand', OFF_HAND → 'offhand'
+// Slot numbers from character_modeling.js getDisplaySlot() internal remap table:
+//   chest=5 (→20), mainhand=16 (→21), offhand=18 (→22)
 var SLOT_MAP = {
     head:     1,  neck:      2,  shoulder:  3,  shirt:    4,
     chest:    5,  waist:     6,  legs:      7,  feet:     8,
@@ -29,65 +25,82 @@ export async function initModelViewer(c, containerSelector) {
     var proxy = rawcfg.proxy || 'https://midnight.victorscopel.workers.dev';
     var proxyBase = proxy.replace(/\/+$/, '');
 
-    // The viewer fetches all assets relative to CONTENT_PATH.
-    // CONTENT_PATH is prepended to every relative asset path:
-    //   "?url=https%3A%2F%2Fwow.zamimg.com%2Fmodelviewer%2Flive%2F" + "character/foo.m2"
-    // The Worker proxy decodes ?url= and streams the response as ArrayBuffer.
     window.CONTENT_PATH = proxyBase + '?url=' + encodeURIComponent('https://wow.zamimg.com/modelviewer/live/');
     window.WOTLK_TO_RETAIL_DISPLAY_ID_API = undefined;
 
     // ── 1. Translate Blizzard raceId → Zamimg raceId ──────────────────────────
     var blizzRaceId = c.raceId || 1;
     var zamigRaceId = BLIZZARD_TO_ZAMIMG_RACE[blizzRaceId] || blizzRaceId;
-
-    // ── 2. Build character customizations (FLAT format) ───────────────────────
-    //
-    // WHY FLAT FORMAT:
-    //   The lib's getCharacterOptions() downloads a "customization v2" JSON from
-    //   Zamimg and tries: Choices.find(ch => ch.id === choiceID)
-    //   Zamimg's internal Choice IDs differ from Blizzard's choice.id values,
-    //   so the match fails → "choice: undefined" → model renders black.
-    //
-    // THE FIX:
-    //   Use the flat format { skin: N, face: N, hairStyle: N, ... } where
-    //   N = choice.displayOrder from Blizzard's /appearance endpoint.
-    //   displayOrder is the 0-based positional index of the chosen option —
-    //   exactly the sequential index Zamimg uses natively.
-    //
-    var optionsMap = characterPart(); // { "Skin Color": "skin", "Face": "face", ... }
     var genderId = c.genderId != null ? c.genderId : 0;
-    var flatCustom = {};
 
+    // Detect gender override from the Sex customization option
     (c.customizations || []).forEach(function (cust) {
-        var optionName = cust.option && cust.option.name;
-        var choice = cust.choice;
-        if (!optionName || !choice) return;
-
-        // Detect gender override from the Sex option
-        if (optionName === 'Sex') {
-            var rawSex = (choice.name || '').toUpperCase();
-            genderId = (rawSex === 'FEMALE' || rawSex === 'FÊMEA') ? 0 : 1;
-            return;
-        }
-
-        // characterPart() covers all races incl. Dracthyr/Evoker special props
-        var prop = optionsMap[optionName];
-
-        if (!prop) return;
-
-        // choice.displayOrder = 0-based index in the option's choices list (from Blizzard).
-        // This matches Zamimg's sequential choice numbering. Fallback to choice.id.
-        var val = (choice.displayOrder != null) ? choice.displayOrder : choice.id;
-        if (val != null) {
-            flatCustom[prop] = val;
+        if (cust.option && cust.option.name === 'Sex') {
+            var rawSex = (cust.choice && cust.choice.name || '').toUpperCase();
+            genderId = (rawSex === 'FEMALE' || rawSex === 'FEMEA' || rawSex === 'FÊMEA') ? 0 : 1;
         }
     });
 
+    // ── 2. Build charCustomization.options using the Zamimg v2 JSON ───────────
+    //
+    // WHY THIS APPROACH:
+    //   Blizzard /appearance returns choice.id (ChrCustomizationChoice.db2 record IDs).
+    //   Blizzard does NOT return displayOrder.
+    //   The lib's flat format uses character[prop] as a positional INDEX into Choices[]:
+    //   passing choice.id (e.g. 58355) as an index → Choices[58355] = undefined → black.
+    //
+    // THE FIX:
+    //   Fetch Zamimg's customization v2 JSON via findRaceGenderOptions().
+    //   Format: { Options: [{Id, Name, Choices: [{Id, ...}]}] }
+    //   For each Blizzard customization, find the Option by name, then find
+    //   the matching Choice by Id. Pass {optionId, choiceId} with real Zamimg IDs.
+    //   Zamimg and Blizzard share the same ChrCustomizationChoice.db2 IDs,
+    //   so ch.Id === blizzard choice.id is a direct match.
+    //
+    var charCustomization = { race: zamigRaceId, gender: genderId, options: [] };
+
+    try {
+        var fullOptions = await findRaceGenderOptions(zamigRaceId, genderId);
+        var zamigOptions = fullOptions.Options || fullOptions;
+
+        // Build a lookup: option name → Zamimg Option object
+        var optionByName = {};
+        zamigOptions.forEach(function (opt) {
+            optionByName[opt.Name] = opt;
+        });
+
+        (c.customizations || []).forEach(function (cust) {
+            var optionName = cust.option && cust.option.name;
+            var blizzChoiceId = cust.choice && cust.choice.id;
+            if (!optionName || blizzChoiceId == null) return;
+            if (optionName === 'Sex') return;
+
+            var zamigOpt = optionByName[optionName];
+            if (!zamigOpt) return;
+
+            // Zamimg and Blizzard both source IDs from ChrCustomizationChoice.db2
+            var zamigChoice = zamigOpt.Choices.find(function (ch) {
+                return ch.Id === blizzChoiceId;
+            });
+            if (!zamigChoice) return;
+
+            charCustomization.options.push({
+                optionId: zamigOpt.Id,
+                choiceId: zamigChoice.Id,
+            });
+        });
+
+    } catch (e) {
+        console.warn('[Model3D] Could not fetch Zamimg customization data:', e.message);
+        // Fallback: model renders with default appearance
+    }
+
     // ── 3. Build character descriptor ─────────────────────────────────────────
     var character = {
-        race:   zamigRaceId,
-        gender: genderId,
-        ...flatCustom,
+        race:               zamigRaceId,
+        gender:             genderId,
+        charCustomization:  charCustomization,
+        noCharCustomization: false,
     };
 
     // ── 4. Map gear slots → rawEquipments ─────────────────────────────────────
@@ -96,8 +109,8 @@ export async function initModelViewer(c, containerSelector) {
         var numSlot = SLOT_MAP[slotName];
         if (numSlot && itemData && itemData.displayId) {
             rawEquipments.push({
-                slot:    numSlot,
-                item:    { entry: itemData.itemId || 0, displayid: itemData.displayId },
+                slot:     numSlot,
+                item:     { entry: itemData.itemId || 0, displayid: itemData.displayId },
                 transmog: itemData.transmogDisplayId
                     ? { entry: 0, displayid: itemData.transmogDisplayId }
                     : {},
