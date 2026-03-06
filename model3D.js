@@ -57,6 +57,11 @@ export async function initModelViewer(c, containerSelector) {
         // Prevent race condition: if another init started while we were fetching items, abort
         if (window._ga_model_loading !== loadingId) return null;
 
+        // Final fail-safe: clear container before creating NEW viewer
+        if (typeof jQuery !== 'undefined') {
+            jQuery(containerSelector).empty();
+        }
+
         const viewer = await generateModels(1.5, containerSelector, character);
         window._ga_viewer_instance = viewer;
         return viewer;

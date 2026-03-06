@@ -140,11 +140,9 @@ async function fetchItemIcons(cfg, token) {
             }
         });
     });
-    if (changed) {
-        saveRoster();
-        var cpId = document.getElementById('charPage')?.dataset?.charId;
-        if (cpId) renderCharPage(cpId);
-    }
+    if (cpId) renderCharPage(cpId);
+    if (typeof rerenderChar === 'function') rerenderChar();
+}
 }
 
 var displayMap = {};
@@ -220,6 +218,7 @@ async function fetchDisplayIds(cfg, token) {
         saveRoster();
         var cpId = document.getElementById('charPage')?.dataset?.charId;
         if (cpId) renderCharPage(cpId);
+        if (typeof rerenderChar === 'function') rerenderChar();
     }
 }
 

@@ -343,7 +343,8 @@ function renderChar(c) {
         loadStatSuggestions(c);
 
         try {
-            import('./model3D.js').then(function (m) {
+            // Versioning import to bypass browser cache
+            import('./model3D.js?v=7').then(function (m) {
                 m.initModelViewer(c, '#model-3d').then(function (viewer) {
                     if (viewer) {
                         var fb = document.getElementById('model-3d-fallback');
