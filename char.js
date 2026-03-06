@@ -35,14 +35,14 @@ function buildSidebar(c, id) {
         ? '<select class="rs" style="font-size:.85rem;padding:5px 10px" onchange="changeRole(\'' + id + '\',this.value);rerenderChar(\'' + id + '\')"><option ' + (c.role === ROLE_TANK ? 'selected' : '') + '>Tank</option><option ' + (c.role === ROLE_HEALER ? 'selected' : '') + '>Healer</option><option ' + (c.role === ROLE_DPS_MELEE ? 'selected' : '') + '>DPS Melee</option><option ' + (c.role === ROLE_DPS_RANGE ? 'selected' : '') + '>DPS Ranged</option></select>'
         : roleBadge(c.role);
 
-    var renderImg = '<div class="char-render-wrap" id="model-3d" style="width:100%; min-height:400px; position:relative; border-radius:12px; overflow:hidden;">';
-    if (c.renderUrl) {
-        renderImg += '<img id="model-3d-fallback" class="char-render-img" src="' + c.renderUrl + '" onerror="this.style.display=\'none\'" alt="">';
-    }
-    renderImg += '</div>';
+    var clsSlug = (c.class || '').toLowerCase().replace(/ /g, '-');
+    var renderHtml = '<div class="char-header-wrapper">' +
+        '<div class="char-render-wrap" style="background-image: url(\'' + (c.renderUrl || '') + '\')"></div>' +
+        '</div>';
 
-    return '<div class="char-header-card">' +
-        renderImg +
+    return '<div class="char-header-card cls-bg-' + clsSlug + '">' +
+        renderHtml +
+        '<div class="char-info-overlay">' +
         '<div style="display:flex;gap:12px;align-items:center;margin-bottom:14px">' +
         '<img src="' + icon + '" style="width:56px;height:56px;border-radius:8px;border:2px solid ' + color + '44" onerror="this.style.display=\'none\'" alt="">' +
         '<div><div style="font-family:\'Inter\',sans-serif;font-size:1.4rem;font-weight:800;color:' + color + '">' + esc(c.name) + '</div>' +
@@ -54,7 +54,9 @@ function buildSidebar(c, id) {
         '<a href="https://raider.io/characters/us/' + (c.realm || 'azralon') + '/' + c.name.toLowerCase() + '" target="_blank" class="btn btn-secondary btn-sm"><img src="https://raider.io/favicon.ico" style="width:13px;height:13px;vertical-align:middle;margin-right:3px;border-radius:2px">Raider.IO</a>' +
         '<a href="https://www.warcraftlogs.com/character/us/' + (c.realm || 'azralon') + '/' + c.name.toLowerCase() + '" target="_blank" class="btn btn-secondary btn-sm"><img src="https://assets.rpglogs.com/img/warcraft/favicon.png" style="width:13px;height:13px;vertical-align:middle;margin-right:3px;border-radius:2px">WCL</a>' +
         '<a href="https://worldofwarcraft.blizzard.com/' + (window._lang === 'pt-BR' ? 'pt-br' : 'en-us') + '/character/us/' + (c.realm || 'azralon') + '/' + c.name.toLowerCase() + '" target="_blank" class="btn btn-secondary btn-sm"><img src="https://bnetcmsus-a.akamaihd.net/cms/gallery/D2TTHKAPW9BH1534981363136.png" style="width:13px;height:13px;vertical-align:middle;margin-right:3px;border-radius:2px">Armory</a>' +
-        '</div></div>' +
+        '</div>' +
+        '</div>' + // Close char-info-overlay
+        '</div>' + // Close char-header-card
         buildStatsCard(c) +
         (c.mythicRating ? '<div class="info-card"><div class="info-card-title">Mythic+</div><div style="font-family:\'Inter\',sans-serif;font-size:1.5rem;font-weight:800;color:' + ratingCol(c.mythicRating) + '">' + c.mythicRating + '</div><div style="font-size:.85rem;color:var(--text-dim);margin-top:3px">' + ratingTier(c.mythicRating) + '</div></div>' : '') +
         '<div class="info-card"><div class="info-card-title">' + T('note') + '</div>' +
@@ -333,6 +335,8 @@ function renderChar(c) {
 
     document.getElementById('cp-bc').textContent = c.name + ' · ' + (c.realm || '');
     document.title = c.name + ' — Audit';
+
+    // Backgrounds already handled by buildSidebar mapping
     var sidebar = buildSidebar(c, id);
     var gearResult = buildGearGrid(c);
     preloadImages(gearResult.imgUrls).then(function () {
@@ -341,24 +345,7 @@ function renderChar(c) {
         document.getElementById('cp-main').innerHTML = mainHtml;
         refreshWowheadTooltips();
         loadStatSuggestions(c);
-
-        try {
-            // Versioning import to bypass browser cache
-            import('./model3D.js?v=7').then(function (m) {
-                m.initModelViewer(c, '#model-3d').then(function (viewer) {
-                    if (viewer) {
-                        var fb = document.getElementById('model-3d-fallback');
-                        if (fb) fb.style.display = 'none'; // hide 2D fallback
-                    }
-                }).catch(function (e) {
-                    console.warn('Erro ao inicializar visualizador 3D:', e.message);
-                });
-            }).catch(function (e) {
-                console.warn('[Model3D] Import failed:', e.message);
-            });
-        } catch (e) {
-            console.error('[Model3D] Sync erro:', e);
-        }
+        // 3D model viewer disabled
     });
 }
 

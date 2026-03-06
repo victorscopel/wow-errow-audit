@@ -800,6 +800,101 @@ a.whl {
   border-radius: 12px;
   padding: 16px;
   position: relative;
+  height: 580px;
+  background-position: center;
+  background-size: auto 120%;
+}
+
+.char-header-wrapper {
+  width: 100%;
+  height: 580px;
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.char-render-wrap {
+  text-align: center;
+  overflow: hidden;
+  background-repeat: no-repeat;
+  background-position: center 25%;
+  background-size: auto 135%;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+.char-info-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 24px;
+  background: linear-gradient(to top, rgba(13, 17, 23, 0.95) 0%, rgba(13, 17, 23, 0.7) 40%, transparent 100%);
+  z-index: 10;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+/* Class Backgrounds */
+.cls-bg-death-knight {
+  background-image: url(https://render.worldofwarcraft.com/us/profile-backgrounds/v2/armory_bg_class_death_knight.jpg);
+}
+
+.cls-bg-demon-hunter {
+  background-image: url(https://render.worldofwarcraft.com/us/profile-backgrounds/v2/armory_bg_class_demon_hunter.jpg);
+}
+
+.cls-bg-druid {
+  background-image: url(https://render.worldofwarcraft.com/us/profile-backgrounds/v2/armory_bg_class_druid.jpg);
+}
+
+.cls-bg-evoker {
+  background-image: url(https://render.worldofwarcraft.com/us/profile-backgrounds/v2/armory_bg_class_evoker.jpg);
+}
+
+.cls-bg-hunter {
+  background-image: url(https://render.worldofwarcraft.com/us/profile-backgrounds/v2/armory_bg_class_hunter.jpg);
+}
+
+.cls-bg-mage {
+  background-image: url(https://render.worldofwarcraft.com/us/profile-backgrounds/v2/armory_bg_class_mage.jpg);
+}
+
+.cls-bg-monk {
+  background-image: url(https://render.worldofwarcraft.com/us/profile-backgrounds/v2/armory_bg_class_monk.jpg);
+}
+
+.cls-bg-paladin {
+  background-image: url(https://render.worldofwarcraft.com/us/profile-backgrounds/v2/armory_bg_class_paladin.jpg);
+}
+
+.cls-bg-priest {
+  background-image: url(https://render.worldofwarcraft.com/us/profile-backgrounds/v2/armory_bg_class_priest.jpg);
+}
+
+.cls-bg-rogue {
+  background-image: url(https://render.worldofwarcraft.com/us/profile-backgrounds/v2/armory_bg_class_rogue.jpg);
+}
+
+.cls-bg-shaman {
+  background-image: url(https://render.worldofwarcraft.com/us/profile-backgrounds/v2/armory_bg_class_shaman.jpg);
+}
+
+.cls-bg-warlock {
+  background-image: url(https://render.worldofwarcraft.com/us/profile-backgrounds/v2/armory_bg_class_warlock.jpg);
+}
+
+.cls-bg-warrior {
+  background-image: url(https://render.worldofwarcraft.com/us/profile-backgrounds/v2/armory_bg_class_warrior.jpg);
+}
+
+/* Ensure content on top */
+.char-header-card>*:not(.char-header-wrapper):not(.char-render-wrap) {
+  position: relative;
+  z-index: 10;
 }
 
 #model-3d canvas {
@@ -839,19 +934,11 @@ a.whl {
   padding: 4px 0;
 }
 
-.char-render-wrap {
-  text-align: center;
-  margin-bottom: 14px;
-  overflow: hidden;
-  border-radius: 10px;
-}
+/* char-render-wrap already handled above */
 
+/* char-render-img disabled */
 .char-render-img {
-  height: 370px;
-  width: auto;
-  border-radius: 10px;
-  transform: scale(1.6);
-  transform-origin: 87% 60%;
+  display: none;
 }
 
 /* ── Skeleton ───────────────────────────────────────────── */
