@@ -122,7 +122,8 @@ function parseEquipment(equippedItems) {
 
     // Tier set bonus check — single message with count
     if (Object.keys(tierSets).length > 0) {
-        var equipped = Object.values(gear).filter(function (g) { return g && g.isTierSet; }).length;
+        var ARMOR_TIER_SLOTS = ['head', 'shoulder', 'chest', 'hands', 'legs'];
+        var equipped = ARMOR_TIER_SLOTS.filter(function (s) { return gear[s] && gear[s].isTierSet; }).length;
         var missing = Math.max(0, 4 - equipped);
         if (missing > 0) {
             issues.push('tierset:' + equipped + ':' + missing);
