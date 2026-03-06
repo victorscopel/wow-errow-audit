@@ -252,13 +252,13 @@ var TALENT_CALC_SLUG = {
 
 var SLOT_LABELS_EN = {
   head: 'Head', neck: 'Neck', shoulder: 'Shoulders', back: 'Back', chest: 'Chest',
-  wrist: 'Wrists', hands: 'Gloves', waist: 'Belt', legs: 'Legs', feet: 'Boots',
+  wrist: 'Wrists', hands: 'Hands', waist: 'Waist', legs: 'Legs', feet: 'Feet',
   finger1: 'Ring 1', finger2: 'Ring 2', trinket1: 'Trinket 1', trinket2: 'Trinket 2',
   mainhand: 'Main Hand', offhand: 'Off Hand'
 };
 var SLOT_LABELS_PT = {
-  head: 'Cabeça', neck: 'Colar', shoulder: 'Ombros', back: 'Capa', chest: 'Peitoral',
-  wrist: 'Pulso', hands: 'Luvas', waist: 'Cinto', legs: 'Pernas', feet: 'Botas',
+  head: 'Cabeça', neck: 'Pescoço', shoulder: 'Ombros', back: 'Costas', chest: 'Torso',
+  wrist: 'Pulsos', hands: 'Mãos', waist: 'Cintura', legs: 'Pernas', feet: 'Pés',
   finger1: 'Anel 1', finger2: 'Anel 2', trinket1: 'Trinket 1', trinket2: 'Trinket 2',
   mainhand: 'Mão Principal', offhand: 'Mão Secundária'
 };

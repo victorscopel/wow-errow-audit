@@ -108,7 +108,7 @@ function tierPiecesCell(c) {
     : { mythic: 'Mythic', legendary: 'Legendary', epic: 'Heroic', rare: 'Normal', uncommon: 'Uncommon', common: 'Common' };
 
   // Translated slot initials
-  var INITIALS_PT = { head: 'C', shoulder: 'O', chest: 'Pe', hands: 'L', legs: 'Pa' };
+  var INITIALS_PT = { head: 'C', shoulder: 'O', chest: 'T', hands: 'M', legs: 'P' };
   var INITIALS_EN = { head: 'H', shoulder: 'S', chest: 'C', hands: 'G', legs: 'L' };
   var initials = isPT ? INITIALS_PT : INITIALS_EN;
 
