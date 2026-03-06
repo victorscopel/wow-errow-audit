@@ -322,7 +322,12 @@ function loadStatSuggestions(c) {
 function renderChar(c) {
     if (!c) return;
     var id = cid(c);
-    var dataStr = JSON.stringify(c);
+
+    // Create a stable key for comparison (exclude volatile fields like lastUpdated)
+    var stableData = { ...c };
+    delete stableData.lastUpdated;
+    var dataStr = JSON.stringify(stableData);
+
     if (window._ga_last_render === dataStr) return; // Already rendered this exact data
     window._ga_last_render = dataStr;
 
