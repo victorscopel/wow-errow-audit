@@ -345,7 +345,6 @@ function renderChar(c) {
         document.getElementById('cp-main').innerHTML = mainHtml;
         refreshWowheadTooltips();
         loadStatSuggestions(c);
-        // 3D model viewer disabled
     });
 }
 
