@@ -532,10 +532,18 @@ async function trackChar() {
     var realm = (document.getElementById('add-r').value.trim() || '').toLowerCase().replace(/ /g, '-');
     var cfg   = getAPICfg();
     realm     = realm || cfg.realm;
-    if (!name) { notify('Digite um nome.'); return; }
+    if (!name) { notify(T('name_required')); return; }
     if (!cfg.workerBase) { notify('Worker não configurado.'); return; }
+
+    // ── Loading state on button ──────────────────────────
+    var btn = document.querySelector('.t-search-add');
+    var isPT = (window._lang === 'pt-BR');
+    if (btn) { btn.textContent = '⏳ ' + (isPT ? 'Buscando...' : 'Searching...'); btn.disabled = true; }
+
     try {
         var token   = await getToken(cfg);
+
+        if (btn) btn.textContent = '⏳ ' + (isPT ? 'Baixando dados...' : 'Fetching data...');
         var fetches = await Promise.all([
             apiFetch(cfg, charUrl(cfg, realm, name, '/equipment'), token),
             apiFetch(cfg, charUrl(cfg, realm, name), token),
@@ -544,14 +552,20 @@ async function trackChar() {
             apiFetch(cfg, charUrl(cfg, realm, name, '/specializations'), token),
         ]);
         var eqR = fetches[0], sumR = fetches[1], mpR = fetches[2], statsR = fetches[3], specR = fetches[4];
-        if (!sumR.ok) { notify('"' + name + '" não encontrado.'); return; }
+        if (!sumR.ok) {
+            notify('"' + name + '" ' + (isPT ? 'não encontrado.' : 'not found.'));
+            return;
+        }
         var sum       = sumR.json;
         var charRealm = sum.realm?.slug || realm;
         var parsed    = parseEquipment(eqR.json?.equipped_items);
         var specId    = sum.active_spec?.id;
         var specName  = sum.active_spec?.name || '?';
         var role      = inferRoleFromSpecId(specId) || inferRoleFromSpecName(specName);
+
+        if (btn) btn.textContent = '⏳ ' + (isPT ? 'Baixando imagens...' : 'Loading images...');
         var renderUrl = await fetchCharMedia(cfg, token, charRealm, name);
+
         var existingIdx = roster.findIndex(function (x) {
             return x.name.toLowerCase() === (sum.name || name).toLowerCase() && x.realm === charRealm;
         });
@@ -571,14 +585,27 @@ async function trackChar() {
             entry.role = roster[existingIdx].role;
             entry.note = roster[existingIdx].note;
             roster[existingIdx] = entry;
-            notify(entry.name + ' atualizado!');
         } else {
             roster.push(entry);
-            notify(entry.name + ' adicionado!');
         }
         saveRoster(); renderAll();
+
+        // ── Fetch item icons for the new char ──────────────
+        if (btn) btn.textContent = '⏳ ' + (isPT ? 'Baixando ícones...' : 'Loading icons...');
+        try { await fetchItemIcons(cfg, await getToken(cfg)); } catch (e) { }
+        renderAll();
+
+        var wasUpdated = existingIdx >= 0;
+        notify(entry.name + (wasUpdated
+            ? ' ' + (isPT ? 'atualizado!' : 'updated!')
+            : ' ' + (isPT ? 'adicionado!' : 'added!')));
         document.getElementById('add-n').value = '';
-    } catch (e) { notify('Erro: ' + e.message); }
+
+    } catch (e) {
+        notify('Erro: ' + e.message);
+    } finally {
+        if (btn) { btn.textContent = '🔍 ' + (isPT ? 'Buscar e Adicionar' : 'Search & Add'); btn.disabled = false; }
+    }
 }
 
 // ── Backend KV sync ───────────────────────────────────────
