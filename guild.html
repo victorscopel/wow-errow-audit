@@ -211,14 +211,19 @@
         function updateArchonStatus(text) {
             var el = document.getElementById('archon-status');
             if (!el) return;
+            var lang = localStorage.getItem('ga_lang') || 'pt-BR';
+            var lblUpdated = lang === 'pt-BR' ? 'Atualizado em' : 'Last Updated';
+            var lblLoaded  = lang === 'pt-BR' ? 'Dados carregados ✓' : 'Data loaded ✓';
+            var lblNoData  = lang === 'pt-BR' ? 'Sem dados do Archon' : 'No Archon data';
+            var locale     = lang === 'pt-BR' ? 'pt-BR' : 'en-US';
             var match = text && text.match(/last_updated:([^\s}]+)/);
             if (match) {
                 var d = new Date(match[1]);
-                el.textContent = 'Atualizado: ' + (isNaN(d) ? match[1] : d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }));
+                el.textContent = lblUpdated + ': ' + (isNaN(d) ? match[1] : d.toLocaleDateString(locale, { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }));
             } else if (text && text.length > 10) {
-                el.textContent = 'Dados carregados ✓';
+                el.textContent = lblLoaded;
             } else {
-                el.textContent = 'Sem dados do Archon';
+                el.textContent = lblNoData;
             }
         }
     </script>

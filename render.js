@@ -314,6 +314,9 @@ function buildWHData(item, charData) {
   if (item.gemIds?.length) parts.push('gems=' + item.gemIds.join(':'));
   if (item.bonusIds?.length) parts.push('bonus=' + item.bonusIds.join(':'));
 
+  // Pass spec so Wowhead resolves correct primary stat (e.g. Intellect not "Agility or Intellect")
+  if (charData && charData.specId) parts.push('ptrank=' + charData.specId);
+
   if (charData && charData.gear) {
     var pcs = [];
     for (var s in charData.gear) {

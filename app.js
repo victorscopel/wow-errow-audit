@@ -139,7 +139,7 @@ function setupAR() {
 }
 
 function forceRefresh() {
-    if (!hasPerm('officer')) { notify(T('no_perm') || 'Sem permissão.'); return; }
+    if (!hasPerm('officer')) { notify(T('no_perm')); return; }
     if (!hasAPICfg()) { openImport(); return; }
     if (!roster.length) { notify(T('no_data')); return; }
     refreshExisting(true);
@@ -185,14 +185,14 @@ function rmMember(id) {
     if (!hasPerm('officer')) { notify(T('no_perm')); return; }
     roster = roster.filter(function (x) { return cid(x) !== id; });
     saveRoster(); renderAll();
-    notify('Membro removido.');
+    notify(T('member_removed'));
 }
 
 function editNote(id) {
     if (!hasPerm('officer')) { notify(T('no_perm')); return; }
     var c = roster.find(function (x) { return cid(x) === id; });
     if (!c) return;
-    var n = prompt('Nota para ' + c.name + ':', c.note || '');
+    var n = prompt(T('note_for').replace('{name}', c.name), c.note || '');
     if (n === null) return;
     c.note = n.trim();
     saveRoster(); renderAll();
@@ -202,7 +202,7 @@ function editNote(id) {
 function addManual() {
     if (!hasPerm('officer')) { notify(T('no_perm')); return; }
     var name = document.getElementById('m-n').value.trim();
-    if (!name) { notify('Digite um nome.'); return; }
+    if (!name) { notify(T('name_required')); return; }
     roster.push({
         name: name, realm: document.getElementById('m-r').value.trim() || getAPICfg().realm,
         class: document.getElementById('m-c').value,
@@ -213,13 +213,13 @@ function addManual() {
         issues: [], gear: {}, renderUrl: null,
         lastUpdated: new Date().toISOString(),
     });
-    saveRoster(); renderAll(); notify(name + ' adicionado!');
+    saveRoster(); renderAll(); notify(T('member_added').replace('{name}', name));
     ['m-n', 'm-r', 'm-sp', 'm-il', 'm-no'].forEach(function (id) { document.getElementById(id).value = ''; });
 }
 
 // ── JSON export/import ────────────────────────────────────
 function exportJSON() {
-    if (!roster.length) { notify('Sem dados.'); return; }
+    if (!roster.length) { notify(T('no_data_short')); return; }
     var b = new Blob([JSON.stringify(roster, null, 2)], { type: 'application/json' });
     var a = document.createElement('a');
     a.href = URL.createObjectURL(b); a.download = 'guildaudit.json'; a.click();
@@ -228,15 +228,15 @@ function exportJSON() {
 function importJSON() {
     try {
         var p = JSON.parse(document.getElementById('json-in').value);
-        if (!Array.isArray(p)) { notify('Inválido.'); return; }
+        if (!Array.isArray(p)) { notify(T('invalid_data')); return; }
         roster = p; saveRoster(); renderAll();
-        notify(p.length + ' membros importados.');
-    } catch (e) { notify('JSON inválido.'); }
+        notify(T('members_imported').replace('{n}', p.length));
+    } catch (e) { notify(T('invalid_json')); }
 }
 
 function clearAll() {
     if (!confirm('Limpar todos os dados?')) return;
-    roster = []; saveRoster(); renderAll(); notify('Dados limpos.');
+    roster = []; saveRoster(); renderAll(); notify(T('data_cleared'));
 }
 
 // ── Import modal ──────────────────────────────────────────
@@ -272,7 +272,7 @@ function loadDemo() {
         { name:'Níghtwólf',  realm:'azralon',   guild:'Errow', class:'Demon Hunter', spec:'Havoc',          role:ROLE_DPS_MELEE,  specId:577, ilvl:615, mythicRating:620,  issues:[], note:'Trial',        gear:{}, vault:{mythic:0,raid:1,world:0},  renderUrl:null, lastUpdated:new Date().toISOString() },
         { name:'Archontus',  realm:'nemesis',   guild:'Errow', class:'Paladin',      spec:'Holy',           role:ROLE_HEALER,     specId:65,  ilvl:619, mythicRating:890,  issues:[], note:'Cross-realm',  gear:{}, vault:{mythic:1,raid:3,world:0},  renderUrl:null, lastUpdated:new Date().toISOString() },
     ];
-    saveRoster(); renderAll(); notify('Demo carregado!');
+    saveRoster(); renderAll(); notify(T('demo_loaded'));
 }
 
 // ── Modal click outside ───────────────────────────────────
