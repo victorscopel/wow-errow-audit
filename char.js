@@ -17,8 +17,19 @@ function saveLang() {
     if (sel) { window._lang = sel.value; localStorage.setItem('ga_lang', window._lang); }
 }
 
-function goBack() {
+function getGuildCfg() {
+    // getAPICfg reads ?guild= from URL; fallback to localStorage set by guild page
     var cfg = getAPICfg();
+    if (!cfg.guild || !cfg.realm) {
+        cfg.region = cfg.region || localStorage.getItem('ga_region') || 'us';
+        cfg.realm  = cfg.realm  || localStorage.getItem('ga_realm')  || '';
+        cfg.guild  = cfg.guild  || localStorage.getItem('ga_guild')  || '';
+    }
+    return cfg;
+}
+
+function goBack() {
+    var cfg  = getGuildCfg();
     var base = getHomeUrl().replace(/\/+$/, '');
     if (cfg.guild && cfg.realm) {
         window.location.href = base + '/guild.html?guild=' + cfg.region + '/' + cfg.realm + '/' + cfg.guild;
@@ -28,9 +39,9 @@ function goBack() {
 }
 
 function goToGuild(tab) {
-    var cfg = getAPICfg();
+    var cfg  = getGuildCfg();
     var base = getHomeUrl().replace(/\/+$/, '');
-    var url = base + '/guild.html?guild=' + cfg.region + '/' + cfg.realm + '/' + cfg.guild;
+    var url  = base + '/guild.html?guild=' + cfg.region + '/' + cfg.realm + '/' + cfg.guild;
     if (tab) url += '#' + tab;
     window.location.href = url;
 }
@@ -437,14 +448,7 @@ function rmMember(id) {
         });
     }
 
-    var cfg = getAPICfg();
-
-    // Fallback: if no guild in URL, try localStorage (set by app.js when guild page was last visited)
-    if (!cfg.guild || !cfg.realm) {
-        cfg.region = cfg.region || localStorage.getItem('ga_region') || 'us';
-        cfg.realm  = cfg.realm  || localStorage.getItem('ga_realm')  || '';
-        cfg.guild  = cfg.guild  || localStorage.getItem('ga_guild')  || '';
-    }
+    var cfg = getGuildCfg();
 
     // Show guild name in header
     var guildTitleEl = document.getElementById('guild-title');
