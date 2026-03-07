@@ -7,7 +7,7 @@
     <title>Character — Audit</title>
     <meta name="description" content="WoW Guild Audit — character details.">
     <link rel="icon" type="image/x-icon" href="https://wow.zamimg.com/images/wow/icons/medium/inv_scroll_11.jpg">
-    <link rel="stylesheet" href="styles.css?v=7">
+    <link rel="stylesheet" href="styles.css?v=8">
 </head>
 
 <body>
@@ -16,18 +16,17 @@
 
         <header class="hdr">
             <div class="hdr-left">
-                <a href="index.html" class="hdr-title" id="hdr-title"
-                    style="text-decoration:none;color:inherit">GuildAudit</a>
-                <div class="hdr-meta"><span id="rdot"></span><span id="rts">—</span></div>
+                <a href="#" class="hdr-home-link" title="Página inicial" onclick="window.location.href=getHomeUrl();return false;">⬡</a>
+                <div>
+                    <div class="hdr-title" id="guild-title">GuildAudit</div>
+                    <div class="hdr-meta">
+                        <span id="rdot"></span>
+                        <span id="rts" style="font-size:.78rem;color:var(--text-dim)">—</span>
+                    </div>
+                </div>
             </div>
             <div class="hdr-right">
                 <span id="hmeta" style="font-size:.85rem;color:var(--text-dim)"></span>
-                <a href="index.html" class="btn btn-secondary btn-sm perm-officer perm-inline" id="btnRefresh">↻ <span
-                        class="t-refresh">Atualizar</span></a>
-                <a href="index.html" class="btn btn-secondary btn-sm perm-officer perm-inline">⬇ <span
-                        class="t-export">Exportar</span></a>
-                <a href="index.html" class="btn btn-primary btn-sm perm-officer perm-inline">⬆ <span
-                        class="t-import">Importar</span></a>
                 <div id="user-info" style="display:none;align-items:center;gap:8px">
                     <span id="user-battletag" style="font-size:.85rem;color:var(--text)"></span>
                     <span id="user-perm" class="perm-badge"></span>
@@ -38,10 +37,10 @@
         </header>
 
         <div class="nav" id="navTabs">
-            <a class="nav-tab" href="index.html#overview"><span class="t-overview">Overview</span></a>
-            <a class="nav-tab perm-officer" href="index.html#roster"><span class="t-roster">Roster</span></a>
-            <a class="nav-tab" href="index.html#vault"><span class="t-vault">Great Vault</span></a>
-            <a class="nav-tab perm-officer" href="index.html#settings"><span class="t-settings">Configurações</span></a>
+            <a class="nav-tab" href="#" onclick="goToGuild('overview');return false;"><span class="t-overview">Overview</span></a>
+            <a class="nav-tab perm-officer" href="#" onclick="goToGuild('roster');return false;"><span class="t-roster">Roster</span></a>
+            <a class="nav-tab" href="#" onclick="goToGuild('vault');return false;"><span class="t-vault">Great Vault</span></a>
+            <a class="nav-tab perm-officer" href="#" onclick="goToGuild('settings');return false;"><span class="t-settings">Configurações</span></a>
 
             <div style="margin-left:auto; display:flex; align-items:center; padding-right:12px;">
                 <select id="cfg-dispLang" class="lang-select" onchange="saveLang();applyI18n();rerenderChar()">
@@ -52,7 +51,7 @@
         </div>
 
         <div class="char-page-header">
-            <a href="index.html" class="btn btn-secondary btn-sm"><span class="t-back">← Voltar</span></a>
+            <a href="#" class="btn btn-secondary btn-sm" onclick="goBack();return false;"><span class="t-back">← Voltar</span></a>
             <span id="cp-bc" style="font-size:.8rem;color:var(--text-dim)"></span>
         </div>
         <div class="char-page-body">
@@ -66,11 +65,11 @@
 
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 
-    <script src="data.js?v=7"></script>
-    <script src="api.js?v=7"></script>
-    <script src="render.js?v=7"></script>
-    <script src="auth.js?v=7"></script>
-    <script src="char.js?v=7"></script>
+    <script src="data.js?v=8"></script>
+    <script src="api.js?v=8"></script>
+    <script src="render.js?v=8"></script>
+    <script src="auth.js?v=8"></script>
+    <script src="char.js?v=8"></script>
     <script>
         window.whTooltips = { colorLinks: false, iconizeLinks: false, renameLinks: true };
     </script>

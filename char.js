@@ -17,7 +17,23 @@ function saveLang() {
     if (sel) { window._lang = sel.value; localStorage.setItem('ga_lang', window._lang); }
 }
 
-function goBack() { window.location.href = 'index.html'; }
+function goBack() {
+    var cfg = getAPICfg();
+    var base = getHomeUrl().replace(/\/+$/, '');
+    if (cfg.guild && cfg.realm) {
+        window.location.href = base + '/guild.html?guild=' + cfg.region + '/' + cfg.realm + '/' + cfg.guild;
+    } else {
+        window.location.href = base + '/';
+    }
+}
+
+function goToGuild(tab) {
+    var cfg = getAPICfg();
+    var base = getHomeUrl().replace(/\/+$/, '');
+    var url = base + '/guild.html?guild=' + cfg.region + '/' + cfg.realm + '/' + cfg.guild;
+    if (tab) url += '#' + tab;
+    window.location.href = url;
+}
 
 function notify(msg) {
     var el = document.getElementById('notif');
@@ -180,8 +196,6 @@ function buildGearGrid(c) {
         var statusBits = '';
         if (item.enchanted) statusBits += '<span style="color:var(--green);font-size:.75rem">✦ ' + T('enchant') + '</span>';
         if (item.gemmed) statusBits += '<span style="color:var(--blue);font-size:.75rem">◆ ' + T('gem') + '</span>';
-        if (item.isTierSet) statusBits += '<span class="badge-tier" title="' + T('tier_set') + '">⬡ ' + T('tier_set') + '</span>';
-        if (item.isEmbellished) statusBits += '<span class="badge-emb" title="' + T('embellished') + '">✵ ' + T('embellished') + '</span>';
         html += '<div class="gs">' +
             '<img class="gs-img" src="' + imgSrc + '" onerror="this.src=\'https://wow.zamimg.com/images/wow/icons/medium/inv_misc_questionmark.jpg\'" alt="">' +
             '<div class="gs-info">' +
@@ -372,7 +386,7 @@ function saveNote(id) {
     if (!c) return;
     c.note = document.getElementById('cp-note')?.value?.trim() || '';
     localStorage.setItem('ga_data', JSON.stringify(roster));
-    if (typeof startSyncRoster !== 'undefined') startSyncRoster();
+    if (typeof saveRosterKV === 'function') saveRosterKV();
 }
 
 function changeRole(id, newRole) {
@@ -380,13 +394,13 @@ function changeRole(id, newRole) {
     if (!c) return;
     c.role = newRole;
     localStorage.setItem('ga_data', JSON.stringify(roster));
-    if (typeof startSyncRoster !== 'undefined') startSyncRoster();
+    if (typeof saveRosterKV === 'function') saveRosterKV();
 }
 
 function rmMember(id) {
     roster = roster.filter(function (x) { return cid(x) !== id; });
     localStorage.setItem('ga_data', JSON.stringify(roster));
-    if (typeof startSyncRoster !== 'undefined') startSyncRoster();
+    if (typeof saveRosterKV === 'function') saveRosterKV();
 }
 
 (function initChar() {
@@ -401,15 +415,7 @@ function rmMember(id) {
     var rdot = document.getElementById('rdot');
     if (rdot) rdot.className = 'off';
 
-    function updateHeader(guildInfo) {
-        var guildName = null;
-        try { var a = JSON.parse(localStorage.getItem('ga_api') || '{}'); guildName = a.guild; } catch (e) { }
-        if (roster.length && roster[0].guild) guildName = roster[0].guild;
-        if (!guildName && guildInfo && guildInfo.guild) guildName = guildInfo.guild;
-        if (guildName) {
-            var ht = document.getElementById('hdr-title');
-            if (ht) ht.textContent = guildName.charAt(0).toUpperCase() + guildName.slice(1);
-        }
+    function updateHeader() {
         if (roster.length) {
             var hm = document.getElementById('hmeta');
             if (hm) hm.textContent = roster.length + ' ' + T('members');
@@ -432,42 +438,37 @@ function rmMember(id) {
     }
 
     var cfg = getAPICfg();
-    if (cfg.proxy) {
-        var proxyBase = cfg.proxy.replace(/\/+$/, '');
 
-        var fetchRoster = fetch(proxyBase + '/api/roster?t=' + Date.now())
-            .then(function (r) { return r.json(); })
-            .catch(function () { return null; });
+    // Show guild name in header
+    var guildTitleEl = document.getElementById('guild-title');
+    if (guildTitleEl && cfg.guild) {
+        guildTitleEl.textContent = cfg.guild.replace(/-/g, ' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+    }
 
-        var fetchCfgData = fetch(proxyBase + '/api/cfg?t=' + Date.now())
-            .then(function (r) { return r.json(); })
-            .catch(function () { return null; });
+    if (cfg.workerBase && cfg.realm && cfg.guild) {
+        var gBase = cfg.workerBase + '/api/' + cfg.region + '/' + cfg.realm + '/' + cfg.guild;
+        var diff  = (JSON.parse(localStorage.getItem('ga_cfg') || '{}').archonDiff) || 'heroic';
 
-        var fetchArchon = fetch(proxyBase + '/api/archon-stats?t=' + Date.now())
-            .then(function (r) { return r.text(); })
-            .catch(function () { return null; });
+        var fetchRoster   = fetch(gBase + '/roster?t=' + Date.now()).then(function(r){ return r.json(); }).catch(function(){ return null; });
+        var fetchCfgData  = fetch(gBase + '/cfg?t='    + Date.now()).then(function(r){ return r.json(); }).catch(function(){ return null; });
+        var fetchArchon   = fetch(cfg.workerBase + '/api/archon/' + diff + '?t=' + Date.now()).then(function(r){ return r.text(); }).catch(function(){ return null; });
 
-        var fetchGuildInfo = fetch(proxyBase + '/api/guild-info')
-            .then(function (r) { return r.json(); })
-            .catch(function () { return null; });
-
-        Promise.all([fetchRoster, fetchCfgData, fetchArchon, fetchGuildInfo]).then(function (results) {
+        Promise.all([fetchRoster, fetchCfgData, fetchArchon]).then(function(results) {
             var rosterData = results[0];
-            var cfgData = results[1];
+            var cfgData    = results[1];
             var archonText = results[2];
-            var guildInfo = results[3];
 
             if (Array.isArray(rosterData) && rosterData.length) {
                 roster = rosterData;
                 localStorage.setItem('ga_data', JSON.stringify(roster));
-                getToken(cfg).then(function (tok) {
+                getToken(cfg).then(function(tok) {
                     fetchItemIcons(cfg, tok);
                     fetchAllCharMedia(cfg, tok);
-                }).catch(function () { });
+                }).catch(function(){ });
             }
 
             if (cfgData && typeof cfgData === 'object') {
-                var cur = JSON.parse(localStorage.getItem('ga_cfg') || '{}');
+                var cur    = JSON.parse(localStorage.getItem('ga_cfg') || '{}');
                 var merged = Object.assign({}, cur, cfgData);
                 localStorage.setItem('ga_cfg', JSON.stringify(merged));
             }
@@ -478,7 +479,7 @@ function rmMember(id) {
                 localStorage.setItem('ga_cfg', JSON.stringify(cur2));
             }
 
-            updateHeader(guildInfo);
+            updateHeader();
 
             var found = findChar(roster);
             if (found) renderChar(found);
