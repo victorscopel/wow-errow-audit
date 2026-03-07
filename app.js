@@ -101,7 +101,7 @@ function init() {
     if (hashTab) {
         var tabBtn = document.querySelector('.nav-tab[data-page="' + hashTab + '"]');
         if (tabBtn) showPage(hashTab, tabBtn);
-        history.replaceState(null, '', location.pathname);
+        history.replaceState(null, '', location.pathname + location.search);
     }
 }
 
