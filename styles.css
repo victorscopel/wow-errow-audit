@@ -339,8 +339,20 @@ table {
   border-collapse: collapse;
 }
 
+/* Wowhead tooltip injects its own th — reset our global overrides */
+.wowhead-tooltip th, #wowhead-tooltip th,
+[id^="wowhead-tooltip"] th, [class*="nwtooltip"] th,
+td.wowhead-tooltip th {
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-weight: normal !important;
+  color: inherit !important;
+  border-bottom: none !important;
+  padding: 0 !important;
+  font-size: inherit !important;
+}
+
 th {
-  text-align: left;
   padding: 10px 12px;
   font-size: 0.75rem;
   font-weight: 700;
