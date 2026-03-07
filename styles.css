@@ -346,7 +346,13 @@ table {
   letter-spacing: 0 !important;
 }
 
+/* Roster table headers — left-aligned */
+#rosterTable th, #ovTable th {
+  text-align: left;
+}
+
 th {
+  text-align: left;
   padding: 10px 12px;
   font-size: 0.75rem;
   font-weight: 700;
