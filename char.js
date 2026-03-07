@@ -254,6 +254,7 @@ function buildSuggestionsSection(c) {
     html += '<div style="font-size:14px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px">';
     html += '⬆ ' + T('gear_upgrades');
     html += '<div id="gear-upgrade-diff-toggle" style="margin-left:auto;display:flex;gap:4px">';
+    html += '<button id="btn-diff-normal" class="btn btn-sm" onclick="setUpgradeDiff(\'normal\')" style="font-size:11px;padding:2px 8px">Normal</button>';
     html += '<button id="btn-diff-heroic" class="btn btn-sm" onclick="setUpgradeDiff(\'heroic\')" style="font-size:11px;padding:2px 8px">Heroic</button>';
     html += '<button id="btn-diff-mythic" class="btn btn-sm" onclick="setUpgradeDiff(\'mythic\')" style="font-size:11px;padding:2px 8px">Mythic</button>';
     html += '</div></div>';
@@ -393,11 +394,13 @@ function setUpgradeDiff(diff) {
 }
 
 function updateDiffButtons() {
+    var btnN = document.getElementById('btn-diff-normal');
     var btnH = document.getElementById('btn-diff-heroic');
     var btnM = document.getElementById('btn-diff-mythic');
     if (!btnH || !btnM) return;
     var gold = 'var(--gold)';
     var dim  = 'var(--border)';
+    if (btnN) { btnN.style.borderColor = _upgradeDiff === 'normal' ? gold : dim; btnN.style.color = _upgradeDiff === 'normal' ? gold : 'var(--text-dim)'; }
     btnH.style.borderColor = _upgradeDiff === 'heroic' ? gold : dim;
     btnH.style.color       = _upgradeDiff === 'heroic' ? gold : 'var(--text-dim)';
     btnM.style.borderColor = _upgradeDiff === 'mythic' ? gold : dim;
@@ -502,24 +505,39 @@ function renderGearUpgrades(c) {
         }
 
         var weights  = parseStatWeights(c);
-        var diff     = _upgradeDiff;
+        var diff     = _upgradeDiff; // 'normal'|'heroic'|'mythic' — applies to raid only
         var isPT     = (window._lang === 'pt-BR');
         var slotDisp = isPT ? SLOT_DISPLAY : SLOT_DISPLAY_EN;
 
-        // Group loot items by slot, filter to current diff only
-        var bySlot = {};
-        lootData.items.forEach(function(item) {
-            var baseIlvl = item.ilvl && item.ilvl[diff];
-            if (!baseIlvl) return; // Not available in this diff
-            var s = item.slot;
-            if (!bySlot[s]) bySlot[s] = [];
-            bySlot[s].push(item);
-        });
+        // M+ reference key — lowest "relevant" key (Hero 1/6 = +7)
+        var MP_REF_KEY = 7;
 
-        // For each equipped slot, find upgrades
-        var upgradeSlots = [];
         var GEAR_SLOTS = ['head','neck','shoulder','back','chest','wrist','hands',
                           'waist','legs','feet','finger','trinket','mainhand','offhand','twohand'];
+
+        // Build per-slot candidate list
+        // Raid: filter to selected diff | M+: always included from MP_REF_KEY
+        var bySlot = {};
+        lootData.items.forEach(function(item) {
+            var baseIlvl = null;
+            var maxIlvl  = null;
+
+            if (item.source === 'mythicplus') {
+                baseIlvl = item.ilvlByKey && item.ilvlByKey[MP_REF_KEY];
+                if (!baseIlvl) return;
+                maxIlvl = baseIlvl + (item.ilvlMaxDelta || 20);
+            } else {
+                baseIlvl = item.ilvl && item.ilvl[diff];
+                if (!baseIlvl) return;
+                maxIlvl  = item.ilvlMax ? item.ilvlMax[diff] : baseIlvl + 20;
+            }
+
+            var s = item.slot;
+            if (!bySlot[s]) bySlot[s] = [];
+            bySlot[s].push({ item: item, baseIlvl: baseIlvl, maxIlvl: maxIlvl });
+        });
+
+        var upgradeSlots = [];
 
         GEAR_SLOTS.forEach(function(slot) {
             var candidates = bySlot[slot];
@@ -527,31 +545,30 @@ function renderGearUpgrades(c) {
 
             var equippedSc = equippedScore(c, slot, weights);
 
-            // Score each candidate
-            var scored = candidates.map(function(item) {
-                var baseIlvl = item.ilvl[diff];
-                var maxIlvl  = item.ilvlMax ? item.ilvlMax[diff] : baseIlvl + (UPGRADE_MAX[diff] || 0);
-                var baseSc   = itemScore(baseIlvl, item.stats, weights);
-                var maxSc    = itemScore(maxIlvl,  item.stats, weights);
-                return { item: item, baseIlvl: baseIlvl, maxIlvl: maxIlvl, baseSc: baseSc, maxSc: maxSc };
+            var scored = candidates.map(function(u) {
+                var baseSc = itemScore(u.baseIlvl, u.item.stats, weights);
+                var maxSc  = itemScore(u.maxIlvl,  u.item.stats, weights);
+                return { item: u.item, baseIlvl: u.baseIlvl, maxIlvl: u.maxIlvl, baseSc: baseSc, maxSc: maxSc };
             });
 
-            // Sort by baseSc desc, pick top 3 that beat the equipped item
             scored.sort(function(a, b) { return b.baseSc - a.baseSc; });
             var upgrades = scored.filter(function(x) { return x.baseSc > equippedSc; }).slice(0, 3);
 
             if (!upgrades.length) return;
-
             upgradeSlots.push({ slot: slot, upgrades: upgrades, equippedSc: equippedSc });
         });
 
         if (!upgradeSlots.length) {
-            var diffLabel = diff === 'heroic' ? (isPT ? 'Heroico' : 'Heroic') : 'Mythic';
-            body.innerHTML =
-                '<div style="color:var(--green);font-size:13px">✓ ' +
-                (isPT ? 'Nenhum upgrade disponível em ' : 'No upgrades available in ') + diffLabel + '</div>';
+            var dl = diff === 'normal' ? 'Normal' : diff === 'heroic' ? (isPT ? 'Heroico' : 'Heroic') : 'Mythic';
+            body.innerHTML = '<div style="color:var(--green);font-size:13px">\u2713 ' +
+                (isPT ? 'Nenhum upgrade dispon\u00edvel em ' + dl + ' ou M+' : 'No upgrades available in ' + dl + ' or M+') + '</div>';
             return;
         }
+
+        // Raid diff badge colors (WoW convention)
+        var DIFF_COLOR = { normal: '#aaaaaa', heroic: '#1eff00', mythic: '#ff8000' };
+        var diffColor  = DIFF_COLOR[diff] || 'var(--text-dim)';
+        var diffLabel  = diff === 'normal' ? 'N' : diff === 'heroic' ? 'H' : 'M';
 
         var html = '';
         upgradeSlots.forEach(function(sg) {
@@ -562,31 +579,29 @@ function renderGearUpgrades(c) {
 
             sg.upgrades.forEach(function(u) {
                 var item     = u.item;
+                var isMplus  = item.source === 'mythicplus';
                 var deltaStr = '+' + (u.baseSc - sg.equippedSc).toFixed(1);
-                var maxStr   = u.maxIlvl !== u.baseIlvl ? ' → <span style="color:var(--gold)">' + u.maxIlvl + '</span> 6/6' : '';
+                var maxStr   = u.maxIlvl !== u.baseIlvl
+                    ? ' \u2192 <span style="color:var(--gold)">' + u.maxIlvl + '</span>'
+                    : '';
                 var wowheadUrl = 'https://www.wowhead.com/item=' + item.itemId;
 
-                html += '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;' +
-                        'border-bottom:1px solid var(--border);font-size:13px">';
+                // Source badge
+                var badge = isMplus
+                    ? '<span style="font-size:10px;background:#0d1f33;color:#4fc3f7;border:1px solid #4fc3f7;border-radius:3px;padding:1px 5px;white-space:nowrap">M+' + MP_REF_KEY + '</span>'
+                    : '<span style="font-size:10px;color:' + diffColor + ';border:1px solid ' + diffColor + ';border-radius:3px;padding:1px 5px">' + diffLabel + '</span>';
 
-                // Item name with wowhead link
+                var sourceName = isMplus ? (item.dungeonName || item.bossName) : item.bossName;
+
+                html += '<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px">';
+                html += badge;
                 html += '<a href="' + wowheadUrl + '" target="_blank" ' +
                         'style="color:var(--text);text-decoration:none;flex:1;font-weight:500" ' +
                         'onmouseover="WH.showTooltip(this,event)" ' +
                         'data-wh-icon-size="small">' + item.name + '</a>';
-
-                // ilvl badge
-                html += '<span style="font-size:12px;color:var(--text-dim)">' +
-                        u.baseIlvl + maxStr + '</span>';
-
-                // Score delta
-                html += '<span style="font-size:12px;color:var(--green);font-weight:600;min-width:40px;text-align:right">' +
-                        deltaStr + '</span>';
-
-                // Boss source
-                html += '<span style="font-size:11px;color:var(--text-dim);max-width:120px;text-align:right;line-height:1.3">' +
-                        item.bossName + '</span>';
-
+                html += '<span style="font-size:12px;color:var(--text-dim);white-space:nowrap">' + u.baseIlvl + maxStr + '</span>';
+                html += '<span style="font-size:12px;color:var(--green);font-weight:600;min-width:38px;text-align:right">' + deltaStr + '</span>';
+                html += '<span style="font-size:11px;color:var(--text-dim);max-width:110px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + sourceName + '">' + sourceName + '</span>';
                 html += '</div>';
             });
             html += '</div>';
@@ -595,11 +610,12 @@ function renderGearUpgrades(c) {
         if (weights) {
             var topStats = Object.keys(weights).sort(function(a,b){return weights[b]-weights[a];}).slice(0,2);
             html += '<div style="font-size:11px;color:var(--text-dim);margin-top:4px">' +
-                    (isPT ? 'Score = ilvl + stats ponderados pelo Archon.gg (' : 'Score = ilvl + stats weighted by Archon.gg (') +
-                    topStats.join(', ') + ')</div>';
+                (isPT ? 'Score = ilvl + stats ponderados (Archon.gg: ' : 'Score = ilvl + weighted stats (Archon.gg: ') +
+                topStats.join(', ') + '). M+ a partir de +' + MP_REF_KEY + '.</div>';
         } else {
             html += '<div style="font-size:11px;color:var(--text-dim);margin-top:4px">' +
-                    (isPT ? 'Score baseado apenas em ilvl (sem dados do Archon.gg)' : 'Score based on ilvl only (no Archon.gg data)') + '</div>';
+                (isPT ? 'Score baseado em ilvl. M+ a partir de +' + MP_REF_KEY + '.'
+                      : 'Score based on ilvl. M+ from +' + MP_REF_KEY + '.') + '</div>';
         }
 
         body.innerHTML = html;
