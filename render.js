@@ -102,7 +102,9 @@ function applyI18n() {
 }
 
 function cnCell(c) {
-  var href = 'char.html?name=' + encodeURIComponent(c.name) + '&realm=' + encodeURIComponent(c.realm || 'azralon');
+  var _cfg  = getAPICfg();
+  var _gp   = _cfg.region + '/' + _cfg.realm + '/' + _cfg.guild;
+  var href  = 'char.html?name=' + encodeURIComponent(c.name) + '&realm=' + encodeURIComponent(c.realm || 'azralon') + '&guild=' + _gp;
   return '<a class="cn" href="' + href + '"><img src="' + getClassIcon(c.class) + '" onerror="this.style.display=\'none\'" alt="">' +
     '<div><span class="cn-name" style="color:' + getClassColor(c.class) + '">' + esc(c.name) + '</span>' +
     '<span class="cn-realm">' + esc(c.realm || '') + '</span>' +
@@ -137,7 +139,7 @@ function renderComp() {
   function mkList(arr, titleKey, emoji) {
     var col1 = [], col2 = [];
     arr.forEach(function (c, i) { if (i % 2 === 0) col1.push(c); else col2.push(c); });
-    function mkCol(col) { return col.map(function (c) { var href = 'char.html?name=' + encodeURIComponent(c.name) + '&realm=' + encodeURIComponent(c.realm || 'azralon'); return '<a class="comp-name-row" href="' + href + '" title="' + (c.realm || '') + '" style="text-decoration:none"><img src="' + getClassIcon(c.class) + '" style="width:14px;height:14px;border-radius:3px;flex-shrink:0" onerror="this.style.display=\'none\'" alt=""><span style="color:' + getClassColor(c.class) + ';cursor:pointer;font-size:.85rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(c.name) + '</span></a>'; }).join(''); }
+    function mkCol(col) { return col.map(function (c) { var _cfg2 = getAPICfg(); var href = 'char.html?name=' + encodeURIComponent(c.name) + '&realm=' + encodeURIComponent(c.realm || 'azralon') + '&guild=' + _cfg2.region + '/' + _cfg2.realm + '/' + _cfg2.guild; return '<a class="comp-name-row" href="' + href + '" title="' + (c.realm || '') + '" style="text-decoration:none"><img src="' + getClassIcon(c.class) + '" style="width:14px;height:14px;border-radius:3px;flex-shrink:0" onerror="this.style.display=\'none\'" alt=""><span style="color:' + getClassColor(c.class) + ';cursor:pointer;font-size:.85rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(c.name) + '</span></a>'; }).join(''); }
     return '<div class="comp-card"><div class="comp-title">' + emoji + ' ' + T(titleKey) + ' <span style="color:var(--gold-light)">(' + arr.length + ')</span></div>' + (arr.length ? '<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 8px">' + mkCol(col1) + mkCol(col2) + '</div>' : '<div style="color:var(--text-dim);font-size:.8rem;padding:4px 0">' + T('none') + '</div>') + '</div>';
   }
   el.innerHTML = mkList(groups[ROLE_TANK], 'tanks', '🛡') + mkList(groups[ROLE_HEALER], 'healers', '💚') + mkList(groups[ROLE_DPS_RANGE], 'ranged', '🏹') + mkList(groups[ROLE_DPS_MELEE], 'melee', '⚔️');

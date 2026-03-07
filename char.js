@@ -450,10 +450,14 @@ function rmMember(id) {
 
     var cfg = getGuildCfg();
 
-    // Show guild name in header
+    // Header — guild title + realm subtitle (same as guild.html)
     var guildTitleEl = document.getElementById('guild-title');
     if (guildTitleEl && cfg.guild) {
         guildTitleEl.textContent = cfg.guild.replace(/-/g, ' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+    }
+    var realmTitleEl = document.getElementById('realm-title');
+    if (realmTitleEl && cfg.realm) {
+        realmTitleEl.textContent = cfg.realm.replace(/-/g, ' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); }) + ' — ' + cfg.region.toUpperCase();
     }
 
     if (cfg.workerBase && cfg.realm && cfg.guild) {
