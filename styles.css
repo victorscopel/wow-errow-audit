@@ -582,6 +582,18 @@ tr:hover {
   border: 1px solid rgba(198, 155, 58, .4);
 }
 
+/* PvP badge */
+.badge-pvp {
+  font-size: .7rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  color: #f87171;
+  background: rgba(248, 113, 113, .12);
+  border: 1px solid rgba(248, 113, 113, .35);
+}
+
 /* Embellished badge */
 .badge-emb {
   font-size: .7rem;

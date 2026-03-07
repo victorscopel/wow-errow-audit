@@ -124,6 +124,29 @@ function embBadge(c) {
   return '<span class="badge-emb" style="margin-left:3px;opacity:.7" title="Apenas 1 embellishment">1✦</span>';
 }
 
+// ── PvP tier badge ────────────────────────────────────────────────────
+// If player has any PvP set pieces, shows a ⚔ PvP badge with piece count.
+function pvpTierBadge(c) {
+  var gear = c.gear || {};
+  var pvpItems = Object.values(gear).filter(function(g) { return g && g.isPvP && g.pvpSetName; });
+  if (!pvpItems.length) return '';
+  // group by pvpSetName
+  var sets = {};
+  pvpItems.forEach(function(g) {
+    var k = g.pvpSetName || 'PvP';
+    sets[k] = (sets[k] || 0) + 1;
+  });
+  var isPT = (window._lang === 'pt-BR');
+  var html = '';
+  Object.keys(sets).forEach(function(name) {
+    var count = sets[name];
+    var shortName = name.replace(/armadura do |armor of the |armor of /gi, '').split(' ').slice(0,3).join(' ');
+    var tip = name + ' (' + count + '/8)';
+    html += '<span class="badge-pvp" title="' + esc(tip) + '" style="margin-left:3px">⚔ ' + count + (isPT ? ' PvP' : ' PvP') + '</span>';
+  });
+  return html;
+}
+
 function applyI18n() {
   var map = {
     't-refresh': 'refresh', 't-export': 'export_btn', 't-import': 'import_btn',
@@ -252,7 +275,7 @@ function renderOverview() {
     var vTd   = CFG.sv ? '<td style="color:var(--text-dim)">' + fmtVault(c) + '</td>' : '';
     var rTd   = CFG.sr ? '<td><span style="font-weight:700;color:' + ratingCol(c.mythicRating) + '">' + (c.mythicRating || '—') + '</span></td>' : '';
     var nTd   = CFG.sn ? '<td><span class="note-c" onclick="editNote(\'' + id + '\')">' + (c.note ? esc(c.note) : '<span style="opacity:.3">+</span>') + '</span></td>' : '';
-    var stTd  = CFG.st ? '<td>' + tierBadge(c) + '</td>' : '';
+    var stTd  = CFG.st ? '<td>' + tierBadge(c) + pvpTierBadge(c) + embBadge(c) + '</td>' : '';
     var rmTd  = hasPerm('officer') ? '<td><button class="btn btn-danger btn-sm" onclick="rmMember(\'' + id + '\')">✕</button></td>' : '';
     return '<tr' + (isUnder ? ' class="row-under-min"' : '') + '><td style="color:var(--text-dim);width:35px">' + (i + 1) + '</td><td>' + cnCell(c) + '</td><td>' + roleBadge(c.role) + '</td><td><span class="ilvl ' + ilvlC(c.ilvl) + '">' + (c.ilvl || '—') + '</span></td>' + isTd + vTd + rTd + stTd + nTd + rmTd + '</tr>';
   }).join('');
@@ -288,7 +311,7 @@ function renderRoster() {
     var isTd = CFG.si ? '<td><div style="display:flex;flex-wrap:wrap;gap:3px">' + (c.issues?.length ? c.issues.slice(0, 2).map(function (i) { var t = translateIssue(i); var short = (i.includes(':') && !i.startsWith('embellishment:') && !i.startsWith('tierset:')) ? t.replace(/.*: /, '') : t; return '<span class="it it-e">' + short + '</span>'; }).join('') + (c.issues.length > 2 ? '<span class="it" style="color:var(--text-dim);border:1px solid var(--border)">+' + (c.issues.length - 2) + '</span>' : '') : '<span class="it it-ok">✓</span>') + '</div></td>' : '';
     var rTd  = CFG.sr ? '<td><span style="font-weight:700;color:' + ratingCol(c.mythicRating) + '">' + (c.mythicRating || '—') + '</span></td>' : '';
     var nTd  = CFG.sn ? '<td><span class="note-c" onclick="editNote(\'' + id + '\')">' + (c.note ? esc(c.note) : '<span style="opacity:.3">+</span>') + '</span></td>' : '';
-    var stTd = CFG.st ? '<td>' + tierBadge(c) + embBadge(c) + '</td>' : '';
+    var stTd = CFG.st ? '<td>' + tierBadge(c) + pvpTierBadge(c) + embBadge(c) + '</td>' : '';
     var roleCell = canEditRole
       ? '<select class="rs" onchange="changeRole(\'' + id + '\',this.value)"><option ' + (c.role === ROLE_TANK ? 'selected' : '') + '>Tank</option><option ' + (c.role === ROLE_HEALER ? 'selected' : '') + '>Healer</option><option ' + (c.role === ROLE_DPS_MELEE ? 'selected' : '') + '>DPS Melee</option><option ' + (c.role === ROLE_DPS_RANGE ? 'selected' : '') + '>DPS Ranged</option></select>'
       : roleBadge(c.role);

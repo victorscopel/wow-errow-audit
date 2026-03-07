@@ -207,7 +207,8 @@ function buildGearGrid(c) {
         var statusBits = '';
         if (item.enchanted) statusBits += '<span style="color:var(--green);font-size:.75rem">✦ ' + T('enchant') + '</span>';
         if (item.gemmed)    statusBits += '<span style="color:var(--blue);font-size:.75rem">◆ ' + T('gem') + '</span>';
-        if (item.isTierSet)      statusBits += '<span class="badge-tier" style="font-size:.7rem">O Set Tier</span>';
+        if (item.isTierSet)      statusBits += '<span class="badge-tier" style="font-size:.7rem">' + T('tier_set') + '</span>';
+        if (item.isPvP)          statusBits += '<span class="badge-pvp" style="font-size:.7rem">⚔ PvP</span>';
         if (item.isEmbellished)  statusBits += '<span class="badge-emb" style="font-size:.7rem">✦ ' + T('embellished') + '</span>';
         html += '<div class="gs">' +
             '<img class="gs-img" src="' + imgSrc + '" onerror="this.src=\'https://wow.zamimg.com/images/wow/icons/medium/inv_misc_questionmark.jpg\'" alt="">' +
