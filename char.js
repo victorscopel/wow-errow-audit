@@ -250,7 +250,15 @@ function buildSuggestionsSection(c) {
     html += '<div class="suggestion-item" style="color:var(--text-dim)">' + T('meta_loading') + '</div>';
     html += '</div>';
 
-
+    html += '<div id="gear-upgrade-card" class="suggestion-card suggestion-card--meta">';
+    html += '<div style="font-size:14px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px">';
+    html += '⬆ ' + T('gear_upgrades');
+    html += '<div id="gear-upgrade-diff-toggle" style="margin-left:auto;display:flex;gap:4px">';
+    html += '<button id="btn-diff-heroic" class="btn btn-sm" onclick="setUpgradeDiff(\'heroic\')" style="font-size:11px;padding:2px 8px">Heroic</button>';
+    html += '<button id="btn-diff-mythic" class="btn btn-sm" onclick="setUpgradeDiff(\'mythic\')" style="font-size:11px;padding:2px 8px">Mythic</button>';
+    html += '</div></div>';
+    html += '<div id="gear-upgrade-body"><div style="color:var(--text-dim);font-size:13px">' + T('meta_loading') + '</div></div>';
+    html += '</div>';
 
     html += '</div>';
     return html;
@@ -351,6 +359,254 @@ function loadStatSuggestions(c) {
     }
 }
 
+// ── Gear Upgrade Suggestions ──────────────────────────────
+
+// Midnight S1 upgrade track max deltas (fixed per season)
+var UPGRADE_MAX = { heroic: 20, mythic: 17 };
+
+// Internal slot name → Blizzard API slot names mapping
+var SLOT_DISPLAY = {
+    head: 'Cabeça', neck: 'Pescoço', shoulder: 'Ombros', back: 'Costas',
+    chest: 'Torso', wrist: 'Pulsos', hands: 'Mãos', waist: 'Cintura',
+    legs: 'Pernas', feet: 'Pés', finger: 'Anel', trinket: 'Trinket',
+    mainhand: 'Mão Principal', offhand: 'Mão Auxiliar', twohand: 'Duas Mãos',
+};
+var SLOT_DISPLAY_EN = {
+    head: 'Head', neck: 'Neck', shoulder: 'Shoulder', back: 'Back',
+    chest: 'Chest', wrist: 'Wrist', hands: 'Hands', waist: 'Waist',
+    legs: 'Legs', feet: 'Feet', finger: 'Finger', trinket: 'Trinket',
+    mainhand: 'Main Hand', offhand: 'Off Hand', twohand: 'Two Hand',
+};
+
+// Cache loot data in memory (fetched once per page load)
+var _lootCache = null;
+var _lootFetching = false;
+var _lootCallbacks = [];
+var _currentChar  = null;
+var _upgradeDiff  = localStorage.getItem('ga_upgrade_diff') || 'heroic';
+
+function setUpgradeDiff(diff) {
+    _upgradeDiff = diff;
+    localStorage.setItem('ga_upgrade_diff', diff);
+    updateDiffButtons();
+    if (_currentChar) renderGearUpgrades(_currentChar);
+}
+
+function updateDiffButtons() {
+    var btnH = document.getElementById('btn-diff-heroic');
+    var btnM = document.getElementById('btn-diff-mythic');
+    if (!btnH || !btnM) return;
+    var gold = 'var(--gold)';
+    var dim  = 'var(--border)';
+    btnH.style.borderColor = _upgradeDiff === 'heroic' ? gold : dim;
+    btnH.style.color       = _upgradeDiff === 'heroic' ? gold : 'var(--text-dim)';
+    btnM.style.borderColor = _upgradeDiff === 'mythic' ? gold : dim;
+    btnM.style.color       = _upgradeDiff === 'mythic' ? gold : 'var(--text-dim)';
+}
+
+function getLootData(cb) {
+    if (_lootCache) { cb(_lootCache); return; }
+    _lootCallbacks.push(cb);
+    if (_lootFetching) return;
+    _lootFetching = true;
+    var cfg = getAPICfg();
+    fetch(cfg.workerBase + '/api/loot/midnight-s1?t=' + Date.now())
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(data) {
+            _lootCache = data;
+            _lootCallbacks.forEach(function(fn) { fn(data); });
+            _lootCallbacks = [];
+        })
+        .catch(function() {
+            _lootCallbacks.forEach(function(fn) { fn(null); });
+            _lootCallbacks = [];
+        });
+}
+
+// Parse archon stat weights for a given char into normalized weights 0..1
+function parseStatWeights(c) {
+    var cfgData = {};
+    try { cfgData = JSON.parse(localStorage.getItem('ga_cfg') || '{}'); } catch(e) {}
+    var archonText = cfgData.archon || '';
+    if (!archonText || !c.class || !c.spec) return null;
+
+    var classSlug = c.class.toLowerCase().replace(/\s+/g, '-');
+    var specSlug  = c.spec.toLowerCase().replace(/\s+/g, '-');
+    var prefix    = classSlug + '-' + specSlug + ':';
+
+    var lines = archonText.split('\n');
+    for (var i = 0; i < lines.length; i++) {
+        var l = lines[i].trim();
+        if (!l.startsWith(prefix)) continue;
+        var parts = l.substring(prefix.length).trim().split('>');
+        var raw = {};
+        parts.forEach(function(p) {
+            var stat  = p.split('(')[0].trim().toLowerCase();
+            var match = p.match(/\((\d+)\)/);
+            var val   = match ? parseInt(match[1], 10) : 0;
+            if (stat === 'vers') stat = 'versatility';
+            if (['crit','haste','mastery','versatility'].includes(stat) && val > 0)
+                raw[stat] = val;
+        });
+        // Normalize: highest stat = 1.0
+        var maxW = Math.max.apply(null, Object.values(raw));
+        if (maxW <= 0) return null;
+        var normalized = {};
+        Object.keys(raw).forEach(function(k) { normalized[k] = raw[k] / maxW; });
+        return normalized;
+    }
+    return null;
+}
+
+// Calculate a weighted score for an item given weights and ilvl
+// Formula: ilvl + sum(stat_value * weight) — ilvl dominates but stats tip the balance
+function itemScore(ilvl, stats, weights) {
+    if (!stats || !weights) return ilvl;
+    var bonus = 0;
+    // Scale factor: secondaries on gear are typically 100-500 range, ilvl is 250-290
+    // We divide stat contributions by 100 so they add ±1-5 to ilvl score
+    var scale = 100;
+    ['crit','haste','mastery','versatility'].forEach(function(s) {
+        if (stats[s] && weights[s]) bonus += (stats[s] * weights[s]) / scale;
+    });
+    return ilvl + bonus;
+}
+
+// Get the equipped item score for a given slot
+function equippedScore(c, slot, weights) {
+    var gear = c.gear || {};
+    // finger and trinket can have 1 and 2
+    var slots = slot === 'finger'  ? ['finger1','finger2'] :
+                slot === 'trinket' ? ['trinket1','trinket2'] : [slot];
+    var best = 0;
+    slots.forEach(function(s) {
+        var item = gear[s];
+        if (!item) return;
+        var sc = itemScore(item.ilvl || 0, item.stats || {}, weights);
+        if (sc > best) best = sc;
+    });
+    return best;
+}
+
+function renderGearUpgrades(c) {
+    _currentChar = c;
+    updateDiffButtons();
+    var body = document.getElementById('gear-upgrade-body');
+    if (!body) return;
+    body.innerHTML = '<div style="color:var(--text-dim);font-size:13px">' + T('meta_loading') + '</div>';
+
+    getLootData(function(lootData) {
+        if (!lootData || !lootData.items || !lootData.items.length) {
+            body.innerHTML = '<div style="color:var(--text-dim);font-size:13px">' + T('loot_no_data') + '</div>';
+            return;
+        }
+
+        var weights  = parseStatWeights(c);
+        var diff     = _upgradeDiff;
+        var isPT     = (window._lang === 'pt-BR');
+        var slotDisp = isPT ? SLOT_DISPLAY : SLOT_DISPLAY_EN;
+
+        // Group loot items by slot, filter to current diff only
+        var bySlot = {};
+        lootData.items.forEach(function(item) {
+            var baseIlvl = item.ilvl && item.ilvl[diff];
+            if (!baseIlvl) return; // Not available in this diff
+            var s = item.slot;
+            if (!bySlot[s]) bySlot[s] = [];
+            bySlot[s].push(item);
+        });
+
+        // For each equipped slot, find upgrades
+        var upgradeSlots = [];
+        var GEAR_SLOTS = ['head','neck','shoulder','back','chest','wrist','hands',
+                          'waist','legs','feet','finger','trinket','mainhand','offhand','twohand'];
+
+        GEAR_SLOTS.forEach(function(slot) {
+            var candidates = bySlot[slot];
+            if (!candidates || !candidates.length) return;
+
+            var equippedSc = equippedScore(c, slot, weights);
+
+            // Score each candidate
+            var scored = candidates.map(function(item) {
+                var baseIlvl = item.ilvl[diff];
+                var maxIlvl  = item.ilvlMax ? item.ilvlMax[diff] : baseIlvl + (UPGRADE_MAX[diff] || 0);
+                var baseSc   = itemScore(baseIlvl, item.stats, weights);
+                var maxSc    = itemScore(maxIlvl,  item.stats, weights);
+                return { item: item, baseIlvl: baseIlvl, maxIlvl: maxIlvl, baseSc: baseSc, maxSc: maxSc };
+            });
+
+            // Sort by baseSc desc, pick top 3 that beat the equipped item
+            scored.sort(function(a, b) { return b.baseSc - a.baseSc; });
+            var upgrades = scored.filter(function(x) { return x.baseSc > equippedSc; }).slice(0, 3);
+
+            if (!upgrades.length) return;
+
+            upgradeSlots.push({ slot: slot, upgrades: upgrades, equippedSc: equippedSc });
+        });
+
+        if (!upgradeSlots.length) {
+            var diffLabel = diff === 'heroic' ? (isPT ? 'Heroico' : 'Heroic') : 'Mythic';
+            body.innerHTML =
+                '<div style="color:var(--green);font-size:13px">✓ ' +
+                (isPT ? 'Nenhum upgrade disponível em ' : 'No upgrades available in ') + diffLabel + '</div>';
+            return;
+        }
+
+        var html = '';
+        upgradeSlots.forEach(function(sg) {
+            var slotLabel = slotDisp[sg.slot] || sg.slot;
+            html += '<div style="margin-bottom:14px">';
+            html += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;' +
+                    'letter-spacing:0.06em;color:var(--text-dim);margin-bottom:6px">' + slotLabel + '</div>';
+
+            sg.upgrades.forEach(function(u) {
+                var item     = u.item;
+                var deltaStr = '+' + (u.baseSc - sg.equippedSc).toFixed(1);
+                var maxStr   = u.maxIlvl !== u.baseIlvl ? ' → <span style="color:var(--gold)">' + u.maxIlvl + '</span> 6/6' : '';
+                var wowheadUrl = 'https://www.wowhead.com/item=' + item.itemId;
+
+                html += '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;' +
+                        'border-bottom:1px solid var(--border);font-size:13px">';
+
+                // Item name with wowhead link
+                html += '<a href="' + wowheadUrl + '" target="_blank" ' +
+                        'style="color:var(--text);text-decoration:none;flex:1;font-weight:500" ' +
+                        'onmouseover="WH.showTooltip(this,event)" ' +
+                        'data-wh-icon-size="small">' + item.name + '</a>';
+
+                // ilvl badge
+                html += '<span style="font-size:12px;color:var(--text-dim)">' +
+                        u.baseIlvl + maxStr + '</span>';
+
+                // Score delta
+                html += '<span style="font-size:12px;color:var(--green);font-weight:600;min-width:40px;text-align:right">' +
+                        deltaStr + '</span>';
+
+                // Boss source
+                html += '<span style="font-size:11px;color:var(--text-dim);max-width:120px;text-align:right;line-height:1.3">' +
+                        item.bossName + '</span>';
+
+                html += '</div>';
+            });
+            html += '</div>';
+        });
+
+        if (weights) {
+            var topStats = Object.keys(weights).sort(function(a,b){return weights[b]-weights[a];}).slice(0,2);
+            html += '<div style="font-size:11px;color:var(--text-dim);margin-top:4px">' +
+                    (isPT ? 'Score = ilvl + stats ponderados pelo Archon.gg (' : 'Score = ilvl + stats weighted by Archon.gg (') +
+                    topStats.join(', ') + ')</div>';
+        } else {
+            html += '<div style="font-size:11px;color:var(--text-dim);margin-top:4px">' +
+                    (isPT ? 'Score baseado apenas em ilvl (sem dados do Archon.gg)' : 'Score based on ilvl only (no Archon.gg data)') + '</div>';
+        }
+
+        body.innerHTML = html;
+        if (typeof WH !== 'undefined' && WH.getLocale) refreshWowheadTooltips();
+    });
+}
+
 function renderChar(c) {
     if (!c) return;
     var id = cid(c);
@@ -377,6 +633,7 @@ function renderChar(c) {
 
     refreshWowheadTooltips();
     loadStatSuggestions(c);
+    renderGearUpgrades(c);
 
     // Still preload in background for better UX
     preloadImages(gearResult.imgUrls).then(function () {

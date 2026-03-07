@@ -114,6 +114,8 @@ var I18N = {
   refresh_done: { en: 'Refresh complete!', pt_BR: 'Atualização concluída!' },
   attributes: { en: 'Attributes', pt_BR: 'Atributos' },
   attributes_recommended: { en: 'Recommended Attributes', pt_BR: 'Atributos Recomendados' },
+  gear_upgrades:          { en: 'Gear Upgrades', pt_BR: 'Upgrades de Equipamento' },
+  loot_no_data:           { en: 'Loot table not loaded yet. Run the scraper first.', pt_BR: 'Tabela de loot não carregada. Execute o scraper primeiro.' },
   stamina: { en: 'Stamina', pt_BR: 'Vigor' },
   intellect: { en: 'Intellect', pt_BR: 'Intelecto' },
   strength: { en: 'Strength', pt_BR: 'Força' },

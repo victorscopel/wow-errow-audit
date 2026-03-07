@@ -1,0 +1,43 @@
+name: Atualizar Loot Table (Midnight S1)
+
+on:
+  # Roda uma vez — novo raid tier só muda com patch major
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Digite "sim" para confirmar o scrape'
+        required: true
+        default: ''
+
+jobs:
+  scrape:
+    if: ${{ github.event.inputs.confirm == 'sim' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar dependências
+        run: npm install node-fetch@2
+
+      - name: Rodar scraper
+        env:
+          BNET_CLIENT_ID:     ${{ secrets.BNET_CLIENT_ID }}
+          BNET_CLIENT_SECRET: ${{ secrets.BNET_CLIENT_SECRET }}
+          WORKER_URL:         ${{ secrets.WORKER_URL }}
+          ADMIN_TOKEN:        ${{ secrets.ADMIN_TOKEN }}
+        run: node scrape_loot.js
+
+      - name: Salvar resultado como artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: loot-table-midnight-s1
+          path: loot_midnight_s1.json
+          retention-days: 90
