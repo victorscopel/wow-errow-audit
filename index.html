@@ -4,138 +4,326 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GuildAudit — Rastreador de Guild WoW</title>
-  <meta name="description" content="Acompanhe equipamentos, encantos, sets de tier, ratings de M+ e prontidão para raid da sua guild.">
+  <meta name="description" content="Acompanhe equipamentos, encantos, sets de tier, ratings de M+ e prontidão para raid da sua guild de World of Warcraft.">
   <link rel="icon" href="https://wow.zamimg.com/images/wow/icons/medium/inv_scroll_11.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg:#080b10; --bg2:#0d1117; --bg3:#161b22; --border:#21262d;
-      --text:#e6edf3; --dim:#7d8590; --gold:#ffc107; --gold2:#e6a800;
-      --red:#f85149; --blue:#58a6ff; --purple:#a67df4; --glow:rgba(255,193,7,.12);
+      --bg:#060810; --bg2:#0d1117; --bg3:#161b22; --border:rgba(255,255,255,.1);
+      --text:#e6edf3; --dim:#8b949e; --gold:#ffc107; --gold2:#e6a800;
+      --red:#f85149; --blue:#58a6ff; --glow:rgba(255,193,7,.15);
     }
     html { scroll-behavior: smooth; }
     body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; }
-    .bg-layer {
-      position:fixed; inset:0; z-index:0; pointer-events:none;
+
+    /* ── Fixed background image ─────────────────────── */
+    .bg-hero-img {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background: url('https://i.imgur.com/gnMe3lp.png') center center / cover no-repeat;
+      pointer-events: none;
+    }
+    /* Dark gradient overlays for readability */
+    .bg-hero-img::after {
+      content: '';
+      position: absolute;
+      inset: 0;
       background:
-        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255,193,7,.07) 0%, transparent 60%),
-        radial-gradient(ellipse 40% 40% at 80% 60%, rgba(166,125,244,.05) 0%, transparent 50%),
-        radial-gradient(ellipse 30% 30% at 10% 80%, rgba(88,166,255,.04) 0%, transparent 50%);
+        linear-gradient(to bottom,
+          rgba(6,8,16,.55) 0%,
+          rgba(6,8,16,.35) 30%,
+          rgba(6,8,16,.55) 65%,
+          rgba(6,8,16,.95) 100%
+        ),
+        radial-gradient(ellipse 70% 50% at 50% 40%, rgba(0,0,0,.2) 0%, transparent 70%);
     }
+
+    /* ── Nav ─────────────────────────────────────────── */
     nav {
-      position:relative; z-index:10;
-      display:flex; align-items:center; justify-content:space-between;
-      padding:20px 48px;
-      border-bottom:1px solid var(--border);
-      background:rgba(8,11,16,.8); backdrop-filter:blur(12px);
+      position: relative; z-index: 10;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 48px;
+      background: rgba(6,8,16,.6);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255,193,7,.12);
     }
-    .nav-logo { font-family:'Cinzel',serif; font-size:1.25rem; font-weight:700; color:var(--gold); letter-spacing:.05em; text-decoration:none; }
-    .nav-logo span { color:var(--dim); font-weight:400; }
-    .lang-btn {
-      background:var(--bg3); border:1px solid var(--border); border-radius:6px;
-      color:var(--dim); font-family:'Inter',sans-serif; font-size:.78rem;
-      font-weight:600; letter-spacing:.06em; padding:6px 14px; cursor:pointer;
-      transition:border-color .2s, color .2s;
+    .nav-logo {
+      font-family: 'Cinzel', serif; font-size: 1.3rem; font-weight: 700;
+      color: var(--gold); letter-spacing: .06em; text-decoration: none;
+      text-shadow: 0 0 20px rgba(255,193,7,.4);
     }
-    .lang-btn:hover { border-color:var(--gold2); color:var(--text); }
-    .hero {
-      position:relative; z-index:1;
-      display:flex; flex-direction:column; align-items:center;
-      text-align:center; padding:100px 24px 80px;
-    }
-    .hero-eyebrow {
-      font-size:.75rem; font-weight:600; letter-spacing:.15em;
-      text-transform:uppercase; color:var(--gold); margin-bottom:20px;
-      display:flex; align-items:center; gap:10px;
-    }
-    .hero-eyebrow::before, .hero-eyebrow::after { content:''; display:block; width:32px; height:1px; background:var(--gold2); opacity:.4; }
-    .hero h1 { font-family:'Cinzel',serif; font-size:clamp(2.8rem,7vw,5.5rem); font-weight:900; line-height:1.05; letter-spacing:-.01em; color:var(--text); margin-bottom:24px; }
-    .hero h1 em { font-style:normal; background:linear-gradient(135deg,var(--gold) 0%,#ff9800 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-    .hero-sub { font-size:1.15rem; color:var(--dim); font-weight:300; max-width:520px; line-height:1.7; margin-bottom:56px; }
-    .search-card {
-      width:100%; max-width:540px; background:var(--bg3);
-      border:1px solid var(--border); border-radius:16px; padding:32px;
-      box-shadow:0 0 60px var(--glow), 0 24px 48px rgba(0,0,0,.4);
-    }
-    .search-card h2 { font-family:'Cinzel',serif; font-size:1rem; font-weight:700; color:var(--gold); letter-spacing:.06em; text-transform:uppercase; margin-bottom:24px; text-align:left; }
-    .field { margin-bottom:14px; }
-    .field label { display:block; font-size:.72rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--dim); margin-bottom:6px; }
-    .field select, .field input {
-      width:100%; background:var(--bg2); border:1px solid var(--border); border-radius:8px;
-      color:var(--text); font-family:'Inter',sans-serif; font-size:.95rem; padding:10px 14px;
-      outline:none; transition:border-color .2s, box-shadow .2s; appearance:none; -webkit-appearance:none;
-    }
-    .field select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237d8590' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:36px; }
-    .field select:focus, .field input:focus { border-color:var(--gold2); box-shadow:0 0 0 3px rgba(255,193,7,.1); }
-    .field input::placeholder { color:var(--dim); }
-    .btn-go {
-      width:100%; margin-top:8px; padding:13px;
-      background:linear-gradient(135deg,var(--gold) 0%,#e68a00 100%);
-      color:#080b10; font-family:'Cinzel',serif; font-size:.9rem; font-weight:700;
-      letter-spacing:.08em; text-transform:uppercase; border:none; border-radius:8px;
-      cursor:pointer; transition:opacity .2s, transform .15s, box-shadow .2s;
-      box-shadow:0 4px 20px rgba(255,193,7,.25);
-    }
-    .btn-go:hover { opacity:.9; transform:translateY(-1px); box-shadow:0 8px 28px rgba(255,193,7,.35); }
-    .btn-go:active { transform:translateY(0); }
-    .search-hint { font-size:.75rem; color:var(--dim); text-align:center; margin-top:14px; line-height:1.6; }
-    .search-hint code { background:var(--bg2); border:1px solid var(--border); border-radius:4px; padding:1px 6px; font-size:.72rem; color:var(--blue); }
-    .features { position:relative; z-index:1; max-width:1000px; margin:80px auto 0; padding:0 24px 100px; }
-    .features-title { font-family:'Cinzel',serif; font-size:1.6rem; font-weight:700; text-align:center; margin-bottom:48px; color:var(--text); }
-    .features-title span { color:var(--gold); }
-    .feat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px; }
-    .feat-card { background:var(--bg3); border:1px solid var(--border); border-radius:12px; padding:24px; transition:border-color .2s, transform .2s; }
-    .feat-card:hover { border-color:rgba(255,193,7,.3); transform:translateY(-2px); }
-    .feat-icon { font-size:1.6rem; margin-bottom:14px; display:block; filter:drop-shadow(0 0 8px rgba(255,193,7,.2)); }
-    .feat-card h3 { font-size:.95rem; font-weight:600; color:var(--text); margin-bottom:6px; }
-    .feat-card p { font-size:.82rem; color:var(--dim); line-height:1.6; }
-    footer { position:relative; z-index:1; border-top:1px solid var(--border); padding:24px 48px; display:flex; align-items:center; justify-content:space-between; font-size:.78rem; color:var(--dim); }
-    .err-msg { display:none; font-size:.8rem; color:var(--red); margin-top:10px; text-align:center; }
-    .err-msg.show { display:block; }
-    @media (max-width:600px) {
-      nav { padding:16px 20px; }
-      .hero { padding:64px 20px 48px; }
-      .search-card { padding:24px 20px; }
-      footer { flex-direction:column; gap:8px; text-align:center; }
+    .nav-logo span { color: rgba(255,255,255,.5); font-weight: 600; }
+    .nav-right { display: flex; align-items: center; gap: 14px; }
+    .nav-wow-badge {
+      font-size: .68rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+      color: rgba(255,193,7,.6); border: 1px solid rgba(255,193,7,.2);
+      border-radius: 4px; padding: 3px 8px;
     }
     .lang-select {
-      background:var(--bg3); border:1px solid var(--border);
-      border-radius:8px; padding:6px 30px 6px 10px;
-      color:var(--text); font-family:'Inter',sans-serif;
-      font-size:.82rem; font-weight:500; cursor:pointer;
-      outline:none; appearance:none; -webkit-appearance:none;
-      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237d8590' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-      background-repeat:no-repeat; background-position:right 10px center;
-      transition:border-color .2s;
+      background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.15);
+      border-radius: 8px; padding: 6px 30px 6px 10px;
+      color: var(--text); font-family: 'Inter', sans-serif;
+      font-size: .82rem; font-weight: 500; cursor: pointer;
+      outline: none; appearance: none; -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238b949e' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 10px center;
+      transition: border-color .2s, background-color .2s;
     }
-    .lang-select:hover, .lang-select:focus { border-color:var(--gold2); }
+    .lang-select:hover, .lang-select:focus { border-color: var(--gold2); background-color: rgba(255,255,255,.1); }
+
+    /* ── Hero ────────────────────────────────────────── */
+    .hero {
+      position: relative; z-index: 1;
+      display: flex;
+      min-height: calc(100vh - 65px);
+      align-items: center;
+      padding: 60px 48px;
+      gap: 80px;
+    }
+    .hero-text {
+      flex: 1;
+      max-width: 560px;
+    }
+    .hero-game-tag {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: .72rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 20px;
+      padding: 5px 14px; border: 1px solid rgba(255,193,7,.25);
+      border-radius: 20px; background: rgba(255,193,7,.07);
+      backdrop-filter: blur(8px);
+    }
+    .hero-game-tag::before {
+      content: ''; display: block; width: 6px; height: 6px;
+      border-radius: 50%; background: var(--gold);
+      box-shadow: 0 0 6px var(--gold); animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: .5; transform: scale(.8); }
+    }
+    .hero h1 {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(2.6rem, 5vw, 4.2rem);
+      font-weight: 900; line-height: 1.08;
+      letter-spacing: -.01em;
+      color: #fff;
+      margin-bottom: 22px;
+      text-shadow: 0 2px 30px rgba(0,0,0,.8);
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--gold) 0%, #ff9800 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 20px rgba(255,193,7,.3));
+    }
+    .hero-sub {
+      font-size: 1.05rem; color: rgba(230,237,243,.75); font-weight: 300;
+      line-height: 1.75; margin-bottom: 16px;
+    }
+    .hero-wow-line {
+      font-size: .8rem; color: rgba(255,193,7,.55);
+      font-weight: 500; letter-spacing: .03em;
+      margin-bottom: 44px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .hero-wow-line::before {
+      content: ''; display: block; width: 24px; height: 1px;
+      background: rgba(255,193,7,.4);
+    }
+    .hero-stats {
+      display: flex; gap: 28px; margin-bottom: 0;
+    }
+    .hero-stat {
+      text-align: left;
+    }
+    .hero-stat-num {
+      font-family: 'Cinzel', serif; font-size: 1.6rem; font-weight: 700;
+      color: var(--gold); line-height: 1;
+    }
+    .hero-stat-label {
+      font-size: .72rem; color: var(--dim); letter-spacing: .06em;
+      text-transform: uppercase; margin-top: 2px;
+    }
+
+    /* ── Search Card ─────────────────────────────────── */
+    .search-card {
+      flex-shrink: 0;
+      width: 100%; max-width: 420px;
+      background: rgba(13,17,23,.85);
+      border: 1px solid rgba(255,193,7,.2);
+      border-radius: 20px; padding: 32px;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,.04),
+        0 32px 64px rgba(0,0,0,.6),
+        0 0 80px rgba(255,193,7,.06),
+        inset 0 1px 0 rgba(255,255,255,.06);
+      backdrop-filter: blur(24px);
+    }
+    .card-header {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 26px;
+    }
+    .card-header-icon {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--gold), #e68a00);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9rem; flex-shrink: 0;
+    }
+    .search-card h2 {
+      font-family: 'Cinzel', serif; font-size: .9rem; font-weight: 700;
+      color: var(--gold); letter-spacing: .06em; text-transform: uppercase;
+    }
+    .field { margin-bottom: 14px; }
+    .field label {
+      display: block; font-size: .68rem; font-weight: 600;
+      letter-spacing: .1em; text-transform: uppercase;
+      color: var(--dim); margin-bottom: 6px;
+    }
+    .field select, .field input {
+      width: 100%; background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12); border-radius: 10px;
+      color: var(--text); font-family: 'Inter', sans-serif; font-size: .92rem; padding: 10px 14px;
+      outline: none; transition: border-color .2s, box-shadow .2s, background .2s;
+      appearance: none; -webkit-appearance: none;
+    }
+    .field select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238b949e' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px;
+    }
+    .field select:focus, .field input:focus {
+      border-color: rgba(255,193,7,.5);
+      box-shadow: 0 0 0 3px rgba(255,193,7,.08);
+      background: rgba(255,255,255,.09);
+    }
+    .field select option { background: #0d1117; }
+    .field input::placeholder { color: rgba(139,148,158,.5); }
+    .btn-go {
+      width: 100%; margin-top: 8px; padding: 14px;
+      background: linear-gradient(135deg, var(--gold) 0%, #e68a00 100%);
+      color: #060810; font-family: 'Cinzel', serif; font-size: .88rem; font-weight: 700;
+      letter-spacing: .1em; text-transform: uppercase; border: none; border-radius: 10px;
+      cursor: pointer; transition: opacity .2s, transform .15s, box-shadow .2s;
+      box-shadow: 0 4px 24px rgba(255,193,7,.3);
+    }
+    .btn-go:hover { opacity: .92; transform: translateY(-1px); box-shadow: 0 8px 32px rgba(255,193,7,.4); }
+    .btn-go:active { transform: translateY(0); }
+    .err-msg { display: none; font-size: .78rem; color: var(--red); margin-top: 10px; text-align: center; }
+    .err-msg.show { display: block; }
+    .search-hint { font-size: .72rem; color: rgba(139,148,158,.6); text-align: center; margin-top: 14px; line-height: 1.6; }
+    .search-hint code {
+      background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 3px; padding: 1px 5px; font-size: .7rem; color: #58a6ff;
+    }
+
+    /* ── Features ────────────────────────────────────── */
+    .features-wrap {
+      position: relative; z-index: 1;
+      background: rgba(6,8,16,.92);
+      border-top: 1px solid rgba(255,193,7,.1);
+      padding: 80px 48px 80px;
+    }
+    .features-inner { max-width: 1100px; margin: 0 auto; }
+    .features-title {
+      font-family: 'Cinzel', serif; font-size: 1.5rem; font-weight: 700;
+      text-align: center; margin-bottom: 48px; color: var(--text);
+    }
+    .features-title span { color: var(--gold); }
+    .feat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px,1fr)); gap: 16px; }
+    .feat-card {
+      background: rgba(255,255,255,.035);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 14px; padding: 24px;
+      transition: border-color .2s, transform .2s, box-shadow .2s;
+    }
+    .feat-card:hover {
+      border-color: rgba(255,193,7,.25);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(0,0,0,.3), 0 0 20px rgba(255,193,7,.04);
+    }
+    .feat-icon { font-size: 1.5rem; margin-bottom: 14px; display: block; }
+    .feat-card h3 { font-size: .92rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .feat-card p { font-size: .8rem; color: var(--dim); line-height: 1.65; }
+
+    /* ── Footer ──────────────────────────────────────── */
+    footer {
+      position: relative; z-index: 1;
+      background: rgba(6,8,16,.98);
+      border-top: 1px solid rgba(255,255,255,.06);
+      padding: 20px 48px;
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: .74rem; color: rgba(139,148,158,.6);
+      flex-wrap: wrap; gap: 8px;
+    }
+
+    /* ── Responsive ──────────────────────────────────── */
+    @media (max-width: 900px) {
+      .hero { flex-direction: column; align-items: center; text-align: center; padding: 56px 24px; gap: 48px; }
+      .hero-text { max-width: 100%; }
+      .hero-game-tag { margin: 0 auto 20px; }
+      .hero-wow-line { justify-content: center; }
+      .hero-stats { justify-content: center; }
+      .search-card { max-width: 100%; }
+    }
+    @media (max-width: 600px) {
+      nav { padding: 16px 20px; }
+      .nav-wow-badge { display: none; }
+      .features-wrap { padding: 60px 20px; }
+      footer { flex-direction: column; text-align: center; padding: 16px 20px; }
+    }
   </style>
 </head>
 <body>
 
-<div class="bg-layer"></div>
+<div class="bg-hero-img"></div>
 
 <nav>
   <a class="nav-logo" href="/">Guild<span>Audit</span></a>
-  <select class="lang-select" id="lang-select" onchange="setLang(this.value)">
-    <option value="pt-BR">🇧🇷 Português</option>
-    <option value="en">🇺🇸 English</option>
-  </select>
+  <div class="nav-right">
+    <span class="nav-wow-badge">World of Warcraft</span>
+    <select class="lang-select" id="lang-select" onchange="setLang(this.value)">
+      <option value="pt-BR">🇧🇷 Português</option>
+      <option value="en">🇺🇸 English</option>
+    </select>
+  </div>
 </nav>
 
 <section class="hero">
-  <div class="hero-eyebrow" data-i18n="eyebrow">Ferramenta de Prontidão para Raid</div>
-  <h1 data-i18n-html="h1">Conheça sua guild.<br><em>Antes da noite de raid.</em></h1>
-  <p class="hero-sub" data-i18n="sub">
-    Acompanhe equipamentos, encantos, gemas, sets de tier, ratings de M+ e embelezamentos
-    de cada membro da sua guild — atualizado automaticamente.
-  </p>
+  <div class="hero-text">
+    <div class="hero-game-tag" data-i18n="game-tag">World of Warcraft Guild Tool</div>
+    <h1 data-i18n-html="h1">Conheça sua guild.<br><em>Antes da noite de raid.</em></h1>
+    <p class="hero-sub" data-i18n="sub">
+      Acompanhe equipamentos, encantos, gemas, sets de tier, ratings de M+ e embelezamentos
+      de cada membro da sua guild — atualizado automaticamente.
+    </p>
+    <div class="hero-wow-line" data-i18n="wow-line">
+      Para guilds de World of Warcraft® — US, EU, KR e TW
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-num">4</div>
+        <div class="hero-stat-label" data-i18n="stat-regions">Regiões</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num">Free</div>
+        <div class="hero-stat-label" data-i18n="stat-price">Para sempre</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num">API</div>
+        <div class="hero-stat-label" data-i18n="stat-source">Blizzard oficial</div>
+      </div>
+    </div>
+  </div>
 
   <div class="search-card">
-    <h2 data-i18n="card-title">Abrir sua guild</h2>
+    <div class="card-header">
+      <div class="card-header-icon">⚔</div>
+      <h2 data-i18n="card-title">Abrir sua guild</h2>
+    </div>
 
     <div class="field">
       <label data-i18n="label-region">Região</label>
@@ -163,47 +351,48 @@
     <div class="err-msg" id="err-msg" data-i18n="err">Preencha o servidor e o nome da guild.</div>
 
     <p class="search-hint" data-i18n-html="hint">
-      Você será levado para <code>/{região}/{servidor}/{guild}</code><br>
       Officers podem entrar com Battle.net para editar roster e configurações.
     </p>
   </div>
 </section>
 
-<section class="features">
-  <h2 class="features-title" data-i18n-html="feat-title">Tudo que seu <span>líder de raid</span> precisa</h2>
-  <div class="feat-grid">
-    <div class="feat-card">
-      <span class="feat-icon">⚔️</span>
-      <h3 data-i18n="f1-title">Equipamento & iLvl</h3>
-      <p data-i18n="f1-desc">Visão completa dos itens equipados com nível, qualidade e encantos ou gemas faltando destacados na hora.</p>
-    </div>
-    <div class="feat-card">
-      <span class="feat-icon">⬡</span>
-      <h3 data-i18n="f2-title">Progresso do Set de Tier</h3>
-      <p data-i18n="f2-desc">Veja quais slots de tier cada jogador tem — coloridos por Mítico, Heroico ou Normal — e quem ainda precisa do bônus de 4 peças.</p>
-    </div>
-    <div class="feat-card">
-      <span class="feat-icon">✵</span>
-      <h3 data-i18n="f3-title">Verificação de Embelezamentos</h3>
-      <p data-i18n="f3-desc">Marca jogadores que não estão usando os 2 itens embelezados recomendados para que nada passe despercebido.</p>
-    </div>
-    <div class="feat-card">
-      <span class="feat-icon">📊</span>
-      <h3 data-i18n="f4-title">Rating de M+</h3>
-      <p data-i18n="f4-desc">Score de Mythic+ por jogador com tiers coloridos, direto da API da Blizzard — sem scraping de terceiros.</p>
-    </div>
-    <div class="feat-card">
-      <span class="feat-icon">🔒</span>
-      <h3 data-i18n="f5-title">Login com Battle.net</h3>
-      <p data-i18n="f5-desc">Officers entram com Battle.net. As permissões são derivadas automaticamente do rank da guild no jogo.</p>
-    </div>
-    <div class="feat-card">
-      <span class="feat-icon">🔄</span>
-      <h3 data-i18n="f6-title">Atualização Automática</h3>
-      <p data-i18n="f6-desc">Os dados do roster atualizam a cada 15 minutos em segundo plano. O líder de raid sempre vê o gear atual.</p>
+<div class="features-wrap">
+  <div class="features-inner">
+    <h2 class="features-title" data-i18n-html="feat-title">Tudo que seu <span>líder de raid</span> precisa</h2>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <span class="feat-icon">⚔️</span>
+        <h3 data-i18n="f1-title">Equipamento & iLvl</h3>
+        <p data-i18n="f1-desc">Visão completa dos itens equipados com nível, qualidade e encantos ou gemas faltando destacados na hora.</p>
+      </div>
+      <div class="feat-card">
+        <span class="feat-icon">⬡</span>
+        <h3 data-i18n="f2-title">Progresso do Set de Tier</h3>
+        <p data-i18n="f2-desc">Veja quais slots de tier cada jogador tem — coloridos por Mítico, Heroico ou Normal — e quem ainda precisa do bônus de 4 peças.</p>
+      </div>
+      <div class="feat-card">
+        <span class="feat-icon">✵</span>
+        <h3 data-i18n="f3-title">Verificação de Embelezamentos</h3>
+        <p data-i18n="f3-desc">Marca jogadores que não estão usando os 2 itens embelezados recomendados para que nada passe despercebido.</p>
+      </div>
+      <div class="feat-card">
+        <span class="feat-icon">📊</span>
+        <h3 data-i18n="f4-title">Rating de M+</h3>
+        <p data-i18n="f4-desc">Score de Mythic+ por jogador com tiers coloridos, direto da API da Blizzard — sem scraping de terceiros.</p>
+      </div>
+      <div class="feat-card">
+        <span class="feat-icon">🔒</span>
+        <h3 data-i18n="f5-title">Login com Battle.net</h3>
+        <p data-i18n="f5-desc">Officers entram com Battle.net. As permissões são derivadas automaticamente do rank da guild no jogo.</p>
+      </div>
+      <div class="feat-card">
+        <span class="feat-icon">🔄</span>
+        <h3 data-i18n="f6-title">Atualização Automática</h3>
+        <p data-i18n="f6-desc">Os dados do roster atualizam a cada 15 minutos em segundo plano. O líder de raid sempre vê o gear atual.</p>
+      </div>
     </div>
   </div>
-</section>
+</div>
 
 <footer>
   <span data-i18n="footer1">GuildAudit — não afiliado à Blizzard Entertainment</span>
@@ -213,16 +402,21 @@
 <script>
 var STRINGS = {
   'pt-BR': {
-    'eyebrow':    'Ferramenta de Prontidão para Raid',
+    'game-tag':   'Ferramenta para World of Warcraft',
     'h1':         'Conheça sua guild.<br><em>Antes da noite de raid.</em>',
     'sub':        'Acompanhe equipamentos, encantos, gemas, sets de tier, ratings de M+ e embelezamentos de cada membro da sua guild — atualizado automaticamente.',
+    'wow-line':   'Para guilds de World of Warcraft® — US, EU, KR e TW',
+    'stat-regions':'Regiões',
+    'stat-price': 'Para sempre',
+    'stat-source':'Blizzard oficial',
     'card-title': 'Abrir sua guild',
     'label-region':'Região',
     'label-realm': 'Servidor',
+    'label-realm-placeholder': '— selecione um servidor —',
     'label-guild': 'Nome da guild',
     'btn':         'Abrir Guild →',
     'err':         'Preencha o servidor e o nome da guild.',
-    'hint':        'Você será levado para <code>/{região}/{servidor}/{guild}</code><br>Officers podem entrar com Battle.net para editar roster e configurações.',
+    'hint':        'Officers podem entrar com Battle.net para editar roster e configurações.',
     'feat-title':  'Tudo que seu <span>líder de raid</span> precisa',
     'f1-title': 'Equipamento & iLvl',
     'f1-desc':  'Visão completa dos itens equipados com nível, qualidade e encantos ou gemas faltando destacados na hora.',
@@ -239,23 +433,28 @@ var STRINGS = {
     'footer1':  'GuildAudit — não afiliado à Blizzard Entertainment',
   },
   en: {
-    'eyebrow':    'Raid Readiness Tool',
+    'game-tag':   'World of Warcraft Guild Tool',
     'h1':         'Know your guild.<br><em>Before raid night.</em>',
     'sub':        'Track gear, enchants, gems, tier sets, M+ ratings and embellishments for every member of your WoW guild — updated automatically.',
+    'wow-line':   'For World of Warcraft® guilds — US, EU, KR and TW',
+    'stat-regions':'Regions',
+    'stat-price': 'Forever free',
+    'stat-source':'Official Blizzard API',
     'card-title': 'Open your guild',
     'label-region':'Region',
     'label-realm': 'Realm',
+    'label-realm-placeholder': '— select a realm —',
     'label-guild': 'Guild name',
     'btn':         'Open Guild →',
     'err':         'Please fill in realm and guild name.',
-    'hint':        'You\'ll be taken to <code>/{region}/{realm}/{guild}</code><br>Officers can log in with Battle.net to edit roster and settings.',
+    'hint':        'Officers can log in with Battle.net to edit roster and settings.',
     'feat-title':  'Everything your <span>raid lead</span> needs',
     'f1-title': 'Gear & iLvl Tracking',
     'f1-desc':  'Full equipment breakdown with item level, quality tiers and missing enchants or gems highlighted instantly.',
     'f2-title': 'Tier Set Progress',
     'f2-desc':  'See which tier slots each player has — colored by Mythic, Heroic or Normal — and who still needs the 4pc bonus.',
     'f3-title': 'Embellishment Check',
-    'f3-desc':  'Flags players who aren\'t running the recommended 2 embellished items, so nothing slips through the cracks.',
+    'f3-desc':  "Flags players who aren't running the recommended 2 embellished items, so nothing slips through the cracks.",
     'f4-title': 'M+ Ratings',
     'f4-desc':  'Mythic+ score per player with color-coded tiers, straight from the Blizzard API — no third-party scraping.',
     'f5-title': 'Battle.net Login',
@@ -286,11 +485,14 @@ function applyLang(lang) {
 
   var ls = document.getElementById('lang-select');
   if (ls) ls.value = lang;
+
+  // Update realm placeholder
+  var ph = document.querySelector('#inp-realm option[value=""]');
+  if (ph) ph.textContent = s['label-realm-placeholder'] || '—';
 }
 
-function setLang(newLang) { lang = newLang; localStorage.setItem('ga_lang', lang); applyLang(lang); }
-function toggleLang() {
-  currentLang = currentLang === 'pt-BR' ? 'en' : 'pt-BR';
+function setLang(newLang) {
+  currentLang = newLang;
   localStorage.setItem('ga_lang', currentLang);
   applyLang(currentLang);
 }
@@ -298,7 +500,7 @@ function toggleLang() {
 // ── Realms per region ──────────────────────────────────
 var REALMS = {
   us: ["Aegwynn","Agamaggan","Aggramar","Akama","Alexstrasza","Alleria","Altar of Storms","Alterac Mountains","Aman'Thul","Andorhal","Anetheron","Anub'arak","Antonidas","Anvilmar","Arathor","Archimonde","Area 52","Argent Dawn","Arthas","Arygos","Auchindoun","Azgalor","Azjol-Nerub","Azralon","Azshara","Azuremyst","Baelgun","Balnazzar","Black Dragonflight","Blackhand","Blackrock","Blackwater Raiders","Blackwing Lair","Blade's Edge","Bladefist","Bleeding Hollow","Blood Furnace","Bloodhoof","Bloodscalp","Bonechewer","Borean Tundra","Boulderfist","Bronze Dragonflight","Bronzebeard","Burning Blade","Burning Legion","Caelestrasz","Cairne","Cenarion Circle","Cenarion Expedition","Cenarius","Cho'gall","Chromaggus","Coilfang","Crushridge","Daggerspine","Dalaran","Dalvengyr","Dark Iron","Darkspear","Darrowmere","Dawnbringer","Deathwing","Demon Soul","Dentarg","Destromath","Dethecus","Detheroc","Doomhammer","Draenor","Dragonblight","Dragonmaw","Drak'Tharon","Drak'thul","Dreadmaul","Drenden","Dunemaul","Durotan","Duskwood","Earthen Ring","Echo Isles","Eitrigg","Eldre'Thalas","Elune","Emerald Dream","Eonar","Eredar","Executus","Exodar","Farstriders","Feathermoon","Fenris","Fizzcrank","Frostmane","Frostmourne","Frostwolf","Galakrond","Gallywix","Garona","Garrosh","Ghostlands","Gilneas","Gnomeregan","Goldrinn","Gordunni","Greymane","Grizzly Hills","Gul'dan","Gundrak","Gurubashi","Hakkar","Haomarush","Hellscream","Hydraxis","Hyjal","Icecrown","Illidan","Jaedenar","Jubei'Thos","Kael'thas","Kalecgos","Kargath","Kel'Thuzad","Khadgar","Khaz Modan","Khaz'goroth","Kil'jaeden","Kilrogg","Kirin Tor","Korgath","Kul Tiras","Laughing Skull","Lethon","Lightbringer","Lightning's Blade","Lightninghoof","Llane","Lothar","Lunar Falls","Madoran","Maelstrom","Magtheridon","Maiev","Mal'Ganis","Malfurion","Malorne","Malygos","Mannoroth","Medivh","Misha","Mok'Nathal","Moon Guard","Moonrunner","Mug'thol","Muradin","Nazgrel","Nazjatar","Neltharion","Nemesis","Ner'zhul","Nesingwary","Nightfall","Norgannon","Onyxia","Perenolde","Proudmoore","Quel'dorei","Quel'Thalas","Ragnaros","Ravencrest","Ravenholdt","Rexxar","Rivendare","Runetotem","Sargeras","Saurfang","Scarlet Crusade","Sen'jin","Sentinels","Shadow Council","Shadowmoon","Shadowsong","Shattered Halls","Shattered Hand","Silver Hand","Silvermoon","Sisters of Elune","Skullcrusher","Skywall","Smolderthorn","Spinebreaker","Spirestone","Staghelm","Steamwheedle Cartel","Stonemaul","Stormrage","Stormreaver","Stormscale","Suramar","Tanaris","Terenas","Terokkar","Thaurissan","The Forgotten Coast","The Underbog","The Venture Co","Thorium Brotherhood","Thunderhorn","Thunderlord","Tichondrius","Tirion","Tortheldrin","Trollbane","Turalyon","Twisting Nether","Tygris","Uldaman","Uldum","Undermine","Ursin","Uther","Vashj","Vek'nilash","Velen","Warsong","Whisperwind","Wildhammer","Windrunner","Winterhoof","Wyrmrest Accord","Ysera","Ysondre","Zangarmarsh","Zul'jin","Zuluhed"],
-  eu: ["Aegwynn","Aerie Peak","Agamaggan","Aggra (Português)","Aggramar","Ahn'Qiraj","Al'Akir","Alexstrasza","Alleria","Alonsus","Aman'Thul","Ambossar","Anachronos","Anetheron","Antonidas","Anub'arak","Anvilmar","Arathor","Archimonde","Area 52","Argent Dawn","Arthas","Arygos","Aszune","Auchindoun","Azjol-Nerub","Azshara","Azuregos","Azuremyst","Baelgun","Balnazzar","Black Dragonflight","Blackhand","Blackmoore","Blackrock","Blackscar","Blade's Edge","Bladefist","Bloodfeather","Bloodhoof","Bloodscalp","Blutkessel","Boulderfist","Bronze Dragonflight","Bronzebeard","Burning Blade","Burning Legion","Burning Steppes","C'Thun","Chamber of Aspects","Chants éternels","Cho'gall","Chromaggus","Confrérie du Thorium","Conseil des Ombres","Crushridge","Culte de la Rive noire","Daggerspine","Dalaran","Dalvengyr","Dark Iron","Darkspear","Das Konsortium","Das Syndikat","Deathguard","Deathweaver","Deathwing","Defias Brotherhood","Dentarg","Der Mithrilorden","Der Rat von Dalaran","Destromath","Dethecus","Die Aldor","Die Arguswacht","Die ewige Wacht","Die Nachtwache","Die Silberne Hand","Die Todeskrallen","Die ewige Wacht","Doomhammer","Draenor","Dragonblight","Dragonmaw","Drak'thul","Drek'Thar","Dun Morogh","Durotan","Earthen Ring","Echo Isles","Eitrigg","Eldre'Thalas","Elune","Emerald Dream","Eonar","Eredar","Executus","Exodar","Festung der Stürme","Forscherliga","Frostmane","Frostmourne","Frostwolf","Garona","Garrosh","Genjuros","Ghostlands","Gilneas","Goldrinn","Grim Batol","Gul'dan","Hakkar","Hellfire","Hellscream","Hyjal","Icecrown","Illidan","Jaedenar","Kael'thas","Karazhan","Kargath","Kel'Thuzad","Khadgar","Khaz Modan","Kil'jaeden","Kilrogg","Kirin Tor","Krag'jin","Krasus","Kult der Verdammten","La Croisade écarlate","Les Clairvoyants","Les Sentinelles","Lightbringer","Lightning's Blade","Lordaeron","Los Errantes","Lothar","Madmortem","Magtheridon","Maiev","Mal'Ganis","Malfurion","Malorne","Malygos","Mannoroth","Marécage de Zangar","Medivh","Minahonda","Moonglade","Muradin","Nathrezim","Naxxramas","Nazjatar","Nefarian","Nemesis","Ner'zhul","Nera'thor","Nethersturm","Nordrassil","Norgannon","Nozdormu","Onyxia","Outland","Perenolde","Proudmoore","Quel'Thalas","Ragnaros","Ravencrest","Ravenholdt","Rexxar","Runetotem","Sargeras","Saurfang","Scarshield Legion","Sen'jin","Sentinels","Shadow Council","Shadowmoon","Shadowsong","Shattered Halls","Shattered Hand","Silvermoon","Sinstralis","Sisters of Elune","Skullcrusher","Skywall","Spinebreaker","Spirestone","Steamwheedle Cartel","Stormrage","Stormreaver","Stormscale","Sunstrider","Suramar","Sylvanas","Taerar","Talnivarr","Tarren Mill","Terenas","Terokkar","Terrordar","The Maelstrom","The Sha'tar","The Venture Co","Theradras","Thrall","Thunderhorn","Tichondrius","Tirion","Tortheldrin","Trollbane","Turalyon","Twilight's Hammer","Twisting Nether","Tyrande","Uldaman","Uldum","Un'Goro","Undermine","Vashj","Vek'lor","Vek'nilash","Velen","Vol'jin","Wildhammer","Windrunner","Wrathbringer","Xavius","Ysera","Zenedar","Zirkel des Cenarius","Zul'jin","Zuluhed"],
+  eu: ["Aegwynn","Aerie Peak","Agamaggan","Aggra (Português)","Aggramar","Ahn'Qiraj","Al'Akir","Alexstrasza","Alleria","Alonsus","Aman'Thul","Ambossar","Anachronos","Anetheron","Antonidas","Anub'arak","Anvilmar","Arathor","Archimonde","Area 52","Argent Dawn","Arthas","Arygos","Aszune","Auchindoun","Azjol-Nerub","Azshara","Azuregos","Azuremyst","Baelgun","Balnazzar","Black Dragonflight","Blackhand","Blackmoore","Blackrock","Blackscar","Blade's Edge","Bladefist","Bloodfeather","Bloodhoof","Bloodscalp","Blutkessel","Boulderfist","Bronze Dragonflight","Bronzebeard","Burning Blade","Burning Legion","Burning Steppes","C'Thun","Chamber of Aspects","Chants éternels","Cho'gall","Chromaggus","Confrérie du Thorium","Conseil des Ombres","Crushridge","Culte de la Rive noire","Daggerspine","Dalaran","Dalvengyr","Dark Iron","Darkspear","Das Konsortium","Das Syndikat","Deathguard","Deathweaver","Deathwing","Defias Brotherhood","Dentarg","Der Mithrilorden","Der Rat von Dalaran","Destromath","Dethecus","Die Aldor","Die Arguswacht","Die ewige Wacht","Die Nachtwache","Die Silberne Hand","Die Todeskrallen","Doomhammer","Draenor","Dragonblight","Dragonmaw","Drak'thul","Drek'Thar","Dun Morogh","Durotan","Earthen Ring","Echo Isles","Eitrigg","Eldre'Thalas","Elune","Emerald Dream","Eonar","Eredar","Executus","Exodar","Festung der Stürme","Forscherliga","Frostmane","Frostmourne","Frostwolf","Garona","Garrosh","Genjuros","Ghostlands","Gilneas","Goldrinn","Grim Batol","Gul'dan","Hakkar","Hellfire","Hellscream","Hyjal","Icecrown","Illidan","Jaedenar","Kael'thas","Karazhan","Kargath","Kel'Thuzad","Khadgar","Khaz Modan","Kil'jaeden","Kilrogg","Kirin Tor","Krag'jin","Krasus","Kult der Verdammten","La Croisade écarlate","Les Clairvoyants","Les Sentinelles","Lightbringer","Lightning's Blade","Lordaeron","Los Errantes","Lothar","Madmortem","Magtheridon","Maiev","Mal'Ganis","Malfurion","Malorne","Malygos","Mannoroth","Marécage de Zangar","Medivh","Minahonda","Moonglade","Muradin","Nathrezim","Naxxramas","Nazjatar","Nefarian","Nemesis","Ner'zhul","Nera'thor","Nethersturm","Nordrassil","Norgannon","Nozdormu","Onyxia","Outland","Perenolde","Proudmoore","Quel'Thalas","Ragnaros","Ravencrest","Ravenholdt","Rexxar","Runetotem","Sargeras","Saurfang","Scarshield Legion","Sen'jin","Sentinels","Shadow Council","Shadowmoon","Shadowsong","Shattered Halls","Shattered Hand","Silvermoon","Sinstralis","Sisters of Elune","Skullcrusher","Skywall","Spinebreaker","Spirestone","Steamwheedle Cartel","Stormrage","Stormreaver","Stormscale","Sunstrider","Suramar","Sylvanas","Taerar","Talnivarr","Tarren Mill","Terenas","Terokkar","Terrordar","The Maelstrom","The Sha'tar","The Venture Co","Theradras","Thrall","Thunderhorn","Tichondrius","Tirion","Tortheldrin","Trollbane","Turalyon","Twilight's Hammer","Twisting Nether","Tyrande","Uldaman","Uldum","Un'Goro","Undermine","Vashj","Vek'lor","Vek'nilash","Velen","Vol'jin","Wildhammer","Windrunner","Wrathbringer","Xavius","Ysera","Zenedar","Zirkel des Cenarius","Zul'jin","Zuluhed"],
   kr: ["가로나","굴단","데스윙","렉사르","불타는 군단","세나리우스","아즈샤라","윈드러너","울두아르","지울진","칼렉고스","킬제덴"],
   tw: ["世界之樹","冰霜之刃","地獄吼","夜空之歌","宇宙之心","巨龍之喉","末日之觸","水晶之刺","狂熱之刃","聖光之願","銀翼要塞","阿薩斯","骨槌"]
 };
@@ -320,9 +522,8 @@ function populateRealms() {
   });
 }
 
-function onRealmChange() { /* just used by onchange */ }
+function onRealmChange() { /* used by onchange */ }
 
-// Populate on region change
 document.getElementById('inp-region').addEventListener('change', populateRealms);
 
 // Pre-fill from last visit
@@ -336,8 +537,9 @@ document.getElementById('inp-region').addEventListener('change', populateRealms)
       if (p[1]) document.getElementById('inp-realm').value  = p[1];
       if (p[2]) document.getElementById('inp-guild').value  = p[2];
     } catch(e) {}
+  } else {
+    populateRealms();
   }
-  populateRealms();
   applyLang(currentLang);
 })();
 
@@ -354,10 +556,8 @@ function goToGuild() {
   window.location.href = basePath + '/guild.html?guild=' + region + '/' + realm + '/' + guild;
 }
 
-['inp-guild'].forEach(function(id) {
-  document.getElementById(id).addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') goToGuild();
-  });
+document.getElementById('inp-guild').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') goToGuild();
 });
 </script>
 
