@@ -299,7 +299,10 @@ function goToGuild() {
   if (!realm || !guild) { err.classList.add('show'); return; }
   err.classList.remove('show');
   localStorage.setItem('ga_last_guild', region + ':' + realm + ':' + guild);
-  window.location.href = '/' + region + '/' + realm + '/' + guild;
+  // Preserve repo subfolder: /wow-errow-audit/us/azralon/errow
+  var pathParts = window.location.pathname.replace(/\/+$/, '').split('/').filter(Boolean);
+  var basePath  = pathParts.length >= 1 ? '/' + pathParts[0] : '';
+  window.location.href = basePath + '/' + region + '/' + realm + '/' + guild;
 }
 
 ['inp-realm','inp-guild'].forEach(function(id) {

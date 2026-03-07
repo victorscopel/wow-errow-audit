@@ -74,12 +74,17 @@ function applyPermissions() {
 
 function loginBattleNet() {
     var cfg = getAPICfg();
-    // Pass guild context so Worker knows which guild to verify rank against
     var guildParam = cfg.region + ':' + cfg.realm + ':' + cfg.guild;
+    // APP_URL in the worker already points to the GH Pages root with repo path
     window.location.href = cfg.workerBase + '/auth/login?guild=' + encodeURIComponent(guildParam);
 }
 
 function logoutBattleNet() {
     localStorage.removeItem('ga_jwt');
     window.location.reload();
+}
+
+function getHomeUrl() {
+    var cfg = getAPICfg();
+    return (cfg.basePath || '') + '/';
 }

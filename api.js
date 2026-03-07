@@ -7,10 +7,9 @@
 // guild.html is served at /{region}/{realm}/{guild}
 // GitHub Pages uses hash routing or path — we read from pathname
 function getAPICfg() {
-    // Pathname: /us/azralon/errow  (or /us/azralon/errow/index.html on GH Pages)
+    // Pathname: /wow-errow-audit/us/azralon/errow
+    // Skip any leading path segments that aren't region codes
     var parts = window.location.pathname.replace(/\/+$/, '').split('/').filter(Boolean);
-    // If served from a subdir like /guildaudit/us/azralon/errow, skip the repo name
-    // We detect the region as the first part that looks like a region code
     var regionCodes = ['us','eu','kr','tw'];
     var ri = parts.findIndex(function(p) { return regionCodes.includes(p.toLowerCase()); });
 
@@ -18,10 +17,15 @@ function getAPICfg() {
     var realm  = ri >= 0 ? parts[ri+1] : (localStorage.getItem('ga_realm')  || '');
     var guild  = ri >= 0 ? parts[ri+2] : (localStorage.getItem('ga_guild')  || '');
 
+    // Base path = everything before the region segment (e.g. "/wow-errow-audit")
+    var basePath = ri >= 0 ? ('/' + parts.slice(0, ri).join('/')).replace(/\/+$/, '') : '';
+    window._basePath = basePath; // store for use in auth redirect
+
     var workerBase = (localStorage.getItem('ga_worker') || 'https://midnight.victorscopel.workers.dev').replace(/\/+$/, '');
 
     return {
         workerBase: workerBase,
+        basePath:   basePath,
         region:     (region || 'us').toLowerCase(),
         realm:      (realm  || '').toLowerCase().replace(/ /g, '-'),
         guild:      (guild  || '').toLowerCase().replace(/ /g, '-'),
