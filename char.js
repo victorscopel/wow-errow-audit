@@ -270,7 +270,7 @@ function loadStatSuggestions(c) {
         return;
     }
 
-    var cardHtml = '<div style="font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px">⚡ ' + T('attributes') + '</div>';
+    var cardHtml = '<div style="font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px">⚡ ' + T('attributes_recommended') + '</div>';
     var archonDate = null;
     var classSlug = (c.class || '').toLowerCase().replace(/\s+/g, '-');
     var specSlug = (c.spec || '').toLowerCase().replace(/\s+/g, '-');
@@ -335,7 +335,6 @@ function loadStatSuggestions(c) {
         }
 
         cardHtml += '<div style="margin-bottom:10px;font-size:14px">';
-        cardHtml += '<div style="font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-dim);margin-bottom:4px">' + T('attributes') + '</div>';
         cardHtml += recRow;
         if (issues.length === 0) {
             cardHtml += '<div style="color:var(--green);font-size:13px">✓ ' + T('stat_ok') + '</div>';

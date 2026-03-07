@@ -113,6 +113,7 @@ var I18N = {
   refreshing: { en: 'Refreshing existing members...', pt_BR: 'Atualizando membros existentes...' },
   refresh_done: { en: 'Refresh complete!', pt_BR: 'Atualização concluída!' },
   attributes: { en: 'Attributes', pt_BR: 'Atributos' },
+  attributes_recommended: { en: 'Recommended Attributes', pt_BR: 'Atributos Recomendados' },
   stamina: { en: 'Stamina', pt_BR: 'Vigor' },
   intellect: { en: 'Intellect', pt_BR: 'Intelecto' },
   strength: { en: 'Strength', pt_BR: 'Força' },
