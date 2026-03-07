@@ -85,6 +85,12 @@ function logoutBattleNet() {
 }
 
 function getHomeUrl() {
-    var cfg = getAPICfg();
-    return (cfg.basePath || '') + '/';
+    var pathParts = window.location.pathname.replace(/\/+$/, '').split('/').filter(Boolean);
+    // On GitHub Pages: pathname is /wow-errow-audit/guild.html → base = /wow-errow-audit/
+    // Detect if first segment is repo name (not a region code)
+    var regionCodes = ['us','eu','kr','tw'];
+    if (pathParts.length >= 1 && !regionCodes.includes(pathParts[0])) {
+        return '/' + pathParts[0] + '/';
+    }
+    return '/';
 }

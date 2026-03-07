@@ -7,19 +7,32 @@
 // guild.html is served at /{region}/{realm}/{guild}
 // GitHub Pages uses hash routing or path — we read from pathname
 function getAPICfg() {
-    // Pathname: /wow-errow-audit/us/azralon/errow
-    // Skip any leading path segments that aren't region codes
-    var parts = window.location.pathname.replace(/\/+$/, '').split('/').filter(Boolean);
-    var regionCodes = ['us','eu','kr','tw'];
-    var ri = parts.findIndex(function(p) { return regionCodes.includes(p.toLowerCase()); });
+    // Supports two URL formats:
+    // 1. ?guild=us/azralon/errow  (GitHub Pages)
+    // 2. /us/azralon/errow        (custom domain with proper routing)
+    var params     = new URLSearchParams(window.location.search);
+    var guildParam = params.get('guild') || '';
+    var region, realm, guild;
 
-    var region = ri >= 0 ? parts[ri]   : (localStorage.getItem('ga_region') || 'us');
-    var realm  = ri >= 0 ? parts[ri+1] : (localStorage.getItem('ga_realm')  || '');
-    var guild  = ri >= 0 ? parts[ri+2] : (localStorage.getItem('ga_guild')  || '');
+    if (guildParam) {
+        var gp = guildParam.split('/').map(function(s){ return s.trim().toLowerCase(); });
+        region = gp[0] || 'us';
+        realm  = gp[1] || '';
+        guild  = gp[2] || '';
+    } else {
+        // Fallback: try to read from pathname (custom domain)
+        var parts      = window.location.pathname.replace(/\/+$/, '').split('/').filter(Boolean);
+        var regionCodes = ['us','eu','kr','tw'];
+        var ri         = parts.findIndex(function(p){ return regionCodes.includes(p.toLowerCase()); });
+        region = ri >= 0 ? parts[ri]   : (localStorage.getItem('ga_region') || 'us');
+        realm  = ri >= 0 ? parts[ri+1] : (localStorage.getItem('ga_realm')  || '');
+        guild  = ri >= 0 ? parts[ri+2] : (localStorage.getItem('ga_guild')  || '');
+    }
 
-    // Base path = everything before the region segment (e.g. "/wow-errow-audit")
-    var basePath = ri >= 0 ? ('/' + parts.slice(0, ri).join('/')).replace(/\/+$/, '') : '';
-    window._basePath = basePath; // store for use in auth redirect
+    // Base path = repo subfolder (e.g. /wow-errow-audit)
+    var pathParts = window.location.pathname.replace(/\/+$/, '').split('/').filter(Boolean);
+    var basePath  = pathParts.length >= 1 ? '/' + pathParts[0] : '';
+    window._basePath = basePath;
 
     var workerBase = (localStorage.getItem('ga_worker') || 'https://midnight.victorscopel.workers.dev').replace(/\/+$/, '');
 
