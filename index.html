@@ -101,19 +101,17 @@
       .search-card { padding:24px 20px; }
       footer { flex-direction:column; gap:8px; text-align:center; }
     }
-    .lang-flags { display:flex; gap:3px; align-items:center; }
-    .flag-btn {
+    .lang-select {
       background:var(--bg3); border:1px solid var(--border);
-      border-radius:8px; padding:5px 8px;
-      font-size:1.15rem; cursor:pointer; line-height:1;
-      opacity:.65; transition:opacity .15s, border-color .15s, transform .1s, background .15s;
+      border-radius:8px; padding:6px 30px 6px 10px;
+      color:var(--text); font-family:'Inter',sans-serif;
+      font-size:.82rem; font-weight:500; cursor:pointer;
+      outline:none; appearance:none; -webkit-appearance:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237d8590' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat:no-repeat; background-position:right 10px center;
+      transition:border-color .2s;
     }
-    .flag-btn:hover { opacity:1; transform:scale(1.08); border-color:rgba(255,193,7,.4); }
-    .flag-btn.flag-active {
-      opacity:1; border-color:var(--gold2);
-      background:rgba(255,193,7,.12);
-      box-shadow:0 0 0 2px rgba(255,193,7,.15);
-    }
+    .lang-select:hover, .lang-select:focus { border-color:var(--gold2); }
   </style>
 </head>
 <body>
@@ -122,10 +120,10 @@
 
 <nav>
   <a class="nav-logo" href="/">Guild<span>Audit</span></a>
-  <div class="lang-flags">
-    <button class="flag-btn" id="flag-pt" onclick="setLang('pt-BR')" title="Português">🇧🇷</button>
-    <button class="flag-btn" id="flag-en" onclick="setLang('en')" title="English">🇺🇸</button>
-  </div>
+  <select class="lang-select" id="lang-select" onchange="setLang(this.value)">
+    <option value="pt-BR">🇧🇷 Português</option>
+    <option value="en">🇺🇸 English</option>
+  </select>
 </nav>
 
 <section class="hero">
@@ -286,8 +284,8 @@ function applyLang(lang) {
     if (s && s[key] !== undefined) el.innerHTML = s[key];
   });
 
-  document.getElementById('flag-pt').classList.toggle('flag-active', lang === 'pt-BR');
-  document.getElementById('flag-en').classList.toggle('flag-active', lang === 'en');
+  var ls = document.getElementById('lang-select');
+  if (ls) ls.value = lang;
 }
 
 function setLang(newLang) { lang = newLang; localStorage.setItem('ga_lang', lang); applyLang(lang); }
@@ -296,22 +294,6 @@ function toggleLang() {
   localStorage.setItem('ga_lang', currentLang);
   applyLang(currentLang);
 }
-
-// Pre-fill from last visit
-(function() {
-  var last = localStorage.getItem('ga_last_guild');
-  if (last) {
-    try {
-      var p = last.split(':');
-      if (p[0]) document.getElementById('inp-region').value = p[0];
-      populateRealms();
-      if (p[1]) document.getElementById('inp-realm').value  = p[1];
-      if (p[2]) document.getElementById('inp-guild').value  = p[2];
-    } catch(e) {}
-  }
-  populateRealms();
-  applyLang(currentLang);
-})();
 
 // ── Realms per region ──────────────────────────────────
 var REALMS = {
@@ -342,6 +324,22 @@ function onRealmChange() { /* just used by onchange */ }
 
 // Populate on region change
 document.getElementById('inp-region').addEventListener('change', populateRealms);
+
+// Pre-fill from last visit
+(function() {
+  var last = localStorage.getItem('ga_last_guild');
+  if (last) {
+    try {
+      var p = last.split(':');
+      if (p[0]) document.getElementById('inp-region').value = p[0];
+      populateRealms();
+      if (p[1]) document.getElementById('inp-realm').value  = p[1];
+      if (p[2]) document.getElementById('inp-guild').value  = p[2];
+    } catch(e) {}
+  }
+  populateRealms();
+  applyLang(currentLang);
+})();
 
 function goToGuild() {
   var region = document.getElementById('inp-region').value.trim().toLowerCase();
