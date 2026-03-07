@@ -66,67 +66,14 @@ function locSpec(s) { return window._lang === 'pt-BR' ? (PT_SPEC[s] || s) : s; }
 function locArmor(a) { return window._lang === 'pt-BR' ? (PT_ARMOR[a] || a) : a; }
 
 function translateIssue(raw) {
-  if (typeof raw === 'string') {
-    if (raw === 'embellishment:none') return T('emb_none');
-    if (raw === 'embellishment:only_one') return T('emb_one');
-    if (raw.startsWith('tierset:')) {
-      var tp = raw.split(':');
-      var have = tp[1] || '0';
-      var missing = tp[2] || '0';
-      return T('tierset_missing').replace('{have}', have).replace('{n}', missing);
-    }
-    if (raw.includes(':')) {
-      var parts = raw.split(':');
-      var slot = parts[0];
-      var key = parts[1];
-      var countInfo = parts[2] ? ' (' + parts[2].replace('_', '/') + ')' : '';
-      return slotLabel(slot) + ': ' + T(key) + countInfo;
-    }
+  if (typeof raw === 'string' && raw.includes(':')) {
+    var parts = raw.split(':');
+    var slot = parts[0];
+    var key = parts[1];
+    var countInfo = parts[2] ? ' (' + parts[2].replace('_', '/') + ')' : '';
+    return slotLabel(slot) + ': ' + T(key) + countInfo;
   }
   return raw;
-}
-
-// ── Tier piece cell ──────────────────────────────────────
-// Renders colored initials (H S C G L) for each tier slot.
-// Color reflects item quality: mythic=gold, epic=purple, rare=blue, none=dim dash
-function tierPiecesCell(c) {
-  var gear = c.gear || {};
-  var isPT = (window._lang === 'pt-BR');
-
-  var QUALITY_COLOR = {
-    mythic:    'var(--gold)',
-    legendary: '#ff8000',
-    epic:      '#a335ee',
-    rare:      '#0070dd',
-    uncommon:  '#1eff00',
-    common:    'var(--text-dim)',
-  };
-
-  // Translated quality labels
-  var QUALITY_LABEL = isPT
-    ? { mythic: 'Mítico', legendary: 'Lendário', epic: 'Heroico', rare: 'Normal', uncommon: 'Comum', common: 'Pobre' }
-    : { mythic: 'Mythic', legendary: 'Legendary', epic: 'Heroic', rare: 'Normal', uncommon: 'Uncommon', common: 'Common' };
-
-  // Translated slot initials
-  var INITIALS_PT = { head: 'C', shoulder: 'O', chest: 'T', hands: 'M', legs: 'P' };
-  var INITIALS_EN = { head: 'H', shoulder: 'S', chest: 'C', hands: 'G', legs: 'L' };
-  var initials = isPT ? INITIALS_PT : INITIALS_EN;
-
-  var slots = ['head', 'shoulder', 'chest', 'hands', 'legs'];
-
-  var bits = slots.map(function(slot) {
-    var item = gear[slot];
-    if (item && item.isTierSet) {
-      var col = QUALITY_COLOR[item.quality] || QUALITY_COLOR.epic;
-      var qualLabel = QUALITY_LABEL[item.quality] || item.quality || '?';
-      var slotLabel2 = slotLabel(slot);
-      var tipText = slotLabel2 + ' — Tier ' + qualLabel;
-      return '<span class="tier-pip" style="--pip-col:' + col + '" data-tip="' + tipText + '">' + initials[slot] + '</span>';
-    }
-    return '<span class="tier-pip tier-pip--empty">·</span>';
-  });
-
-  return '<div class="tier-cell">' + bits.join('') + '</div>';
 }
 
 function applyI18n() {
@@ -135,7 +82,7 @@ function applyI18n() {
     't-overview': 'overview', 't-roster': 'roster', 't-vault': 'great_vault', 't-settings': 'settings',
     't-back': 'back_btn',
     't-show-issues': 'show_issues', 't-show-vault': 'show_vault', 't-show-rating': 'show_rating',
-    't-show-notes': 'show_notes', 't-show-tier': 'show_tier', 't-auto-refresh': 'auto_refresh',
+    't-show-notes': 'show_notes', 't-auto-refresh': 'auto_refresh',
     'sl-members': 'members', 'sl-avgilvl': 'avg_ilvl', 'sl-maxilvl': 'max_ilvl',
     'sl-ready': 'ready', 'sl-issues': 'issues', 'sl-missing': 'missing',
     'ss-raiders': 'raiders', 'ss-equipped': 'equipped', 'ss-highest': 'highest',
@@ -239,7 +186,6 @@ function renderOverview() {
   var vTh = CFG.sv ? '<th>' + T('vault') + '</th>' : '';
   var rTh = CFG.sr ? ovSth('mythicRating', T('m_rating')) : '';
   var nTh = CFG.sn ? '<th>' + T('note') + '</th>' : '';
-  var tTh = CFG.st ? '<th title="Head · Shoulder · Chest · Gloves · Legs">' + T('tier_pieces') + '</th>' : '';
   var rmTh = hasPerm('officer') ? '<th></th>' : '';
   var minIlvl = CFG.ilvlMin || 0;
   var rows = data.map(function (c, i) {
@@ -249,11 +195,10 @@ function renderOverview() {
     var vTd = CFG.sv ? '<td style="color:var(--text-dim)">' + fmtVault(c) + '</td>' : '';
     var rTd = CFG.sr ? '<td><span style="font-weight:700;color:' + ratingCol(c.mythicRating) + '">' + (c.mythicRating || '—') + '</span></td>' : '';
     var nTd = CFG.sn ? '<td><span class="note-c" onclick="editNote(\'' + id + '\')">' + (c.note ? esc(c.note) : '<span style="opacity:.3">+</span>') + '</span></td>' : '';
-    var tTd = CFG.st ? '<td>' + tierPiecesCell(c) + '</td>' : '';
     var rmTd = hasPerm('officer') ? '<td><button class="btn btn-danger btn-sm" onclick="rmMember(\'' + id + '\')">✕</button></td>' : '';
-    return '<tr' + (isUnder ? ' class="row-under-min"' : '') + '><td style="color:var(--text-dim);width:35px">' + (i + 1) + '</td><td>' + cnCell(c) + '</td><td>' + roleBadge(c.role) + '</td><td><span class="ilvl ' + ilvlC(c.ilvl) + '">' + (c.ilvl || '—') + '</span></td>' + isTd + vTd + rTd + tTd + nTd + rmTd + '</tr>';
+    return '<tr' + (isUnder ? ' class="row-under-min"' : '') + '><td style="color:var(--text-dim);width:35px">' + (i + 1) + '</td><td>' + cnCell(c) + '</td><td>' + roleBadge(c.role) + '</td><td><span class="ilvl ' + ilvlC(c.ilvl) + '">' + (c.ilvl || '—') + '</span></td>' + isTd + vTd + rTd + nTd + rmTd + '</tr>';
   }).join('');
-  el.innerHTML = '<table><thead><tr><th>#</th>' + ovSth('name', T('character')) + ovSth('role', T('role')) + ovSth('ilvl', T('ilvl')) + isTh + vTh + rTh + tTh + nTh + rmTh + '</tr></thead><tbody>' + rows + '</tbody></table>';
+  el.innerHTML = '<table><thead><tr><th>#</th>' + ovSth('name', T('character')) + ovSth('role', T('role')) + ovSth('ilvl', T('ilvl')) + isTh + vTh + rTh + nTh + rmTh + '</tr></thead><tbody>' + rows + '</tbody></table>';
 }
 
 function renderRoster() {
@@ -275,24 +220,22 @@ function renderRoster() {
   var isTh = CFG.si ? sth('issues', T('issues')) : '';
   var rTh = CFG.sr ? sth('mythicRating', T('m_rating')) : '';
   var nTh = CFG.sn ? sth('note', T('note')) : '';
-  var tTh = CFG.st ? '<th title="Head · Shoulder · Chest · Gloves · Legs">' + T('tier_pieces') + '</th>' : '';
   var rmTh = hasPerm('officer') ? '<th></th>' : '';
   var canEditRole = hasPerm('officer');
   var minIlvl = CFG.ilvlMin || 0;
   var rows = filtered.map(function (c) {
     var id = cid(c);
     var isUnder = minIlvl > 0 && (c.ilvl || 0) < minIlvl;
-    var isTd = CFG.si ? '<td><div style="display:flex;flex-wrap:wrap;gap:3px">' + (c.issues?.length ? c.issues.slice(0, 2).map(function (i) { var t = translateIssue(i); var short = (i.includes(':') && !i.startsWith('embellishment:') && !i.startsWith('tierset:')) ? t.replace(/.*: /, '') : t; return '<span class="it it-e">' + short + '</span>'; }).join('') + (c.issues.length > 2 ? '<span class="it" style="color:var(--text-dim);border:1px solid var(--border)">+' + (c.issues.length - 2) + '</span>' : '') : '<span class="it it-ok">✓</span>') + '</div></td>' : '';
+    var isTd = CFG.si ? '<td><div style="display:flex;flex-wrap:wrap;gap:3px">' + (c.issues?.length ? c.issues.slice(0, 2).map(function (i) { return '<span class="it it-e">' + translateIssue(i).replace(/.*: /, '') + '</span>'; }).join('') + (c.issues.length > 2 ? '<span class="it" style="color:var(--text-dim);border:1px solid var(--border)">+' + (c.issues.length - 2) + '</span>' : '') : '<span class="it it-ok">✓</span>') + '</div></td>' : '';
     var rTd = CFG.sr ? '<td><span style="font-weight:700;color:' + ratingCol(c.mythicRating) + '">' + (c.mythicRating || '—') + '</span></td>' : '';
     var nTd = CFG.sn ? '<td><span class="note-c" onclick="editNote(\'' + id + '\')">' + (c.note ? esc(c.note) : '<span style="opacity:.3">+</span>') + '</span></td>' : '';
-    var tTd = CFG.st ? '<td>' + tierPiecesCell(c) + '</td>' : '';
     var roleCell = canEditRole
       ? '<select class="rs" onchange="changeRole(\'' + id + '\',this.value)"><option ' + (c.role === ROLE_TANK ? 'selected' : '') + '>Tank</option><option ' + (c.role === ROLE_HEALER ? 'selected' : '') + '>Healer</option><option ' + (c.role === ROLE_DPS_MELEE ? 'selected' : '') + '>DPS Melee</option><option ' + (c.role === ROLE_DPS_RANGE ? 'selected' : '') + '>DPS Ranged</option></select>'
       : roleBadge(c.role);
     var rmTd = hasPerm('officer') ? '<td><button class="btn btn-danger btn-sm" onclick="rmMember(\'' + id + '\')">✕</button></td>' : '';
-    return '<tr' + (isUnder ? ' class="row-under-min"' : '') + '><td>' + cnCell(c) + '</td><td>' + roleCell + '</td><td><span class="ilvl ' + ilvlC(c.ilvl) + '">' + (c.ilvl || '—') + '</span></td>' + isTd + rTd + tTd + nTd + rmTd + '</tr>';
+    return '<tr' + (isUnder ? ' class="row-under-min"' : '') + '><td>' + cnCell(c) + '</td><td>' + roleCell + '</td><td><span class="ilvl ' + ilvlC(c.ilvl) + '">' + (c.ilvl || '—') + '</span></td>' + isTd + rTd + nTd + rmTd + '</tr>';
   }).join('');
-  el.innerHTML = '<table><thead><tr>' + sth('name', T('character')) + sth('role', T('role')) + sth('ilvl', T('ilvl')) + isTh + rTh + tTh + nTh + rmTh + '</tr></thead><tbody>' + rows + '</tbody></table>';
+  el.innerHTML = '<table><thead><tr>' + sth('name', T('character')) + sth('role', T('role')) + sth('ilvl', T('ilvl')) + isTh + rTh + nTh + rmTh + '</tr></thead><tbody>' + rows + '</tbody></table>';
 }
 
 function renderVault() {
@@ -374,14 +317,10 @@ function renderAll() {
   updateStats(); renderComp(); renderOverview(); renderRoster(); renderVault();
   if (roster.length) {
     var g = roster[0];
-    document.getElementById('hmeta').textContent = roster.length + ' ' + T('members');
-    document.getElementById('rts').textContent = relativeTime(g.lastUpdated);
+    var hmeta = document.getElementById('hmeta');
+    var rts   = document.getElementById('rts');
+    if (hmeta) hmeta.textContent = roster.length + ' ' + T('members');
+    if (rts)   rts.textContent   = relativeTime(g.lastUpdated);
   }
-  var guildName = null;
-  try { var a = JSON.parse(localStorage.getItem('ga_api') || '{}'); guildName = a.guild; } catch (e) { }
-  if (roster.length && roster[0].guild) guildName = roster[0].guild;
-  if (guildName) {
-    document.getElementById('hdr-title').textContent = guildName.charAt(0).toUpperCase() + guildName.slice(1);
-    document.title = guildName.charAt(0).toUpperCase() + guildName.slice(1) + ' — Audit';
-  }
+  // Guild title is set by app.js init() from URL params — don't overwrite here
 }

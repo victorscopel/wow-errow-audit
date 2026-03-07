@@ -41,11 +41,18 @@ function T(k) {
 function init() {
     initAuth();
 
-    // Persist region/realm/guild from URL so char.html and other pages can read them
     var cfg = getAPICfg();
-    if (cfg.realm) localStorage.setItem('ga_realm', cfg.realm);
-    if (cfg.guild) localStorage.setItem('ga_guild', cfg.guild);
-    if (cfg.region) localStorage.setItem('ga_region', cfg.region);
+
+    // Guard: guild.html always requires ?guild= in the URL
+    if (!cfg.guild || !cfg.realm) {
+        window.location.replace(getHomeUrl());
+        return;
+    }
+
+    // Persist for char.html
+    localStorage.setItem('ga_realm',  cfg.realm);
+    localStorage.setItem('ga_guild',  cfg.guild);
+    localStorage.setItem('ga_region', cfg.region);
 
     // Load local roster cache
     var sd = ls('ga_data');

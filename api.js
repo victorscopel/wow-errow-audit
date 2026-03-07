@@ -20,13 +20,16 @@ function getAPICfg() {
         realm  = gp[1] || '';
         guild  = gp[2] || '';
     } else {
-        // Fallback: try to read from pathname (custom domain)
-        var parts      = window.location.pathname.replace(/\/+$/, '').split('/').filter(Boolean);
+        // Fallback: try to read from pathname (custom domain with proper routing)
+        var parts       = window.location.pathname.replace(/\/+$/, '').split('/').filter(Boolean);
         var regionCodes = ['us','eu','kr','tw'];
-        var ri         = parts.findIndex(function(p){ return regionCodes.includes(p.toLowerCase()); });
-        region = ri >= 0 ? parts[ri]   : (localStorage.getItem('ga_region') || 'us');
-        realm  = ri >= 0 ? parts[ri+1] : (localStorage.getItem('ga_realm')  || '');
-        guild  = ri >= 0 ? parts[ri+2] : (localStorage.getItem('ga_guild')  || '');
+        var ri          = parts.findIndex(function(p){ return regionCodes.includes(p.toLowerCase()); });
+        if (ri >= 0) {
+            region = parts[ri];
+            realm  = parts[ri+1] || '';
+            guild  = parts[ri+2] || '';
+        }
+        // No localStorage fallback — if no guild in URL, caller should redirect to landing
     }
 
     // Base path = repo subfolder (e.g. /wow-errow-audit)
