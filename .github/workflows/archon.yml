@@ -1,0 +1,30 @@
+name: Atualizar Archon Stats
+
+on:
+  schedule:
+    # Toda terça-feira às 06:00 UTC (03:00 BRT)
+    - cron: '0 6 * * 2'
+  workflow_dispatch:   # permite rodar manualmente pela interface do GitHub
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar dependências
+        run: npm install puppeteer
+
+      - name: Rodar scraper
+        env:
+          WORKER_URL:   ${{ secrets.WORKER_URL }}
+          ADMIN_TOKEN:  ${{ secrets.ADMIN_TOKEN }}
+        run: node scrape_archon.js

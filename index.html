@@ -101,6 +101,15 @@
       .search-card { padding:24px 20px; }
       footer { flex-direction:column; gap:8px; text-align:center; }
     }
+    .lang-flags { display:flex; gap:4px; align-items:center; }
+    .flag-btn {
+      background:none; border:2px solid transparent;
+      border-radius:6px; padding:2px 5px;
+      font-size:1.25rem; cursor:pointer; line-height:1;
+      opacity:.4; transition:opacity .15s, border-color .15s, transform .1s;
+    }
+    .flag-btn:hover { opacity:.85; transform:scale(1.1); }
+    .flag-btn.flag-active { opacity:1; border-color:var(--gold2,#c9a84c); background:rgba(201,168,76,.1); }
   </style>
 </head>
 <body>
@@ -264,18 +273,18 @@ function applyLang(lang) {
 
   document.querySelectorAll('[data-i18n]').forEach(function(el) {
     var key = el.getAttribute('data-i18n');
-    if (s[key] !== undefined) el.textContent = s[key];
+    if (s && s[key] !== undefined) el.textContent = s[key];
   });
   document.querySelectorAll('[data-i18n-html]').forEach(function(el) {
     var key = el.getAttribute('data-i18n-html');
-    if (s[key] !== undefined) el.innerHTML = s[key];
+    if (s && s[key] !== undefined) el.innerHTML = s[key];
   });
 
   document.getElementById('flag-pt').classList.toggle('flag-active', lang === 'pt');
   document.getElementById('flag-en').classList.toggle('flag-active', lang === 'en');
 }
 
-function setLang(newLang) { lang = newLang; localStorage.setItem('ga_lang', lang); applyI18n(); }
+function setLang(newLang) { lang = newLang; localStorage.setItem('ga_lang', lang); applyLang(lang); }
 function toggleLang() {
   currentLang = currentLang === 'pt' ? 'en' : 'pt';
   localStorage.setItem('ga_lang', currentLang);
