@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GuildAudit — Rastreador de Guild WoW</title>
-  <meta name="description" content="Acompanhe equipamentos, encantos, sets de tier, ratings de M+ e prontidão para raid da sua guild de World of Warcraft.">
+  <title>GuildAudit, Rastreador de Guild WoW</title>
+  <meta name="description" content="Acompanhe a prontidão para raid da sua guild de World of Warcraft.">
   <link rel="icon" href="https://wow.zamimg.com/images/wow/icons/medium/inv_scroll_11.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -286,11 +286,11 @@
     <div class="hero-game-tag" data-i18n="game-tag">World of Warcraft Guild Tool</div>
     <h1 data-i18n-html="h1">Conheça sua guild.<br><em>Antes da noite de raid.</em></h1>
     <p class="hero-sub" data-i18n="sub">
-      Acompanhe equipamentos, encantos, gemas, sets de tier, ratings de M+ e embelezamentos
-      de cada membro da sua guild — atualizado automaticamente.
+      Acompanhe equipamentos, encantamentos, gemas, sets de tier, ratings de M+ e embelezamentos
+      de cada membro da sua guild, atualizado automaticamente.
     </p>
     <div class="hero-wow-line" data-i18n="wow-line">
-      Para guilds de World of Warcraft® — US, EU, KR e TW
+      Para guilds de World of Warcraft®, US, EU, KR e TW
     </div>
 
   </div>
@@ -314,7 +314,7 @@
     <div class="field">
       <label data-i18n="label-realm">Servidor</label>
       <select id="inp-realm" onchange="onRealmChange()">
-        <option value="" data-i18n="label-realm-placeholder">— selecione um servidor —</option>
+        <option value="" data-i18n="label-realm-placeholder">— selecione um servidor,</option>
       </select>
     </div>
 
@@ -339,12 +339,12 @@
       <div class="feat-card">
         <span class="feat-icon">⚔️</span>
         <h3 data-i18n="f1-title">Equipamento & iLvl</h3>
-        <p data-i18n="f1-desc">Visão completa dos itens equipados com nível, qualidade e encantos ou gemas faltando destacados na hora.</p>
+        <p data-i18n="f1-desc">Visão completa dos itens equipados com nível, qualidade e encantamentos ou gemas faltando destacados na hora.</p>
       </div>
       <div class="feat-card">
         <span class="feat-icon">⬡</span>
         <h3 data-i18n="f2-title">Progresso do Set de Tier</h3>
-        <p data-i18n="f2-desc">Veja quais slots de tier cada jogador tem — coloridos por Mítico, Heroico ou Normal — e quem ainda precisa do bônus de 4 peças.</p>
+        <p data-i18n="f2-desc">Veja quais slots de tier cada jogador tem, coloridos por Mítico, Heroico ou Normal, e quem ainda precisa do bônus de 4 peças.</p>
       </div>
       <div class="feat-card">
         <span class="feat-icon">✵</span>
@@ -354,7 +354,7 @@
       <div class="feat-card">
         <span class="feat-icon">📊</span>
         <h3 data-i18n="f4-title">Rating de M+</h3>
-        <p data-i18n="f4-desc">Score de Mythic+ por jogador com tiers coloridos, direto da API da Blizzard — sem scraping de terceiros.</p>
+        <p data-i18n="f4-desc">Score de Mythic+ por jogador com tiers coloridos, direto da API da Blizzard.</p>
       </div>
       <div class="feat-card">
         <span class="feat-icon">🔒</span>
@@ -371,7 +371,7 @@
 </div>
 
 <footer>
-  <span data-i18n="footer1">GuildAudit — não afiliado à Blizzard Entertainment</span>
+  <span data-i18n="footer1">GuildAudit, não afiliado à Blizzard Entertainment</span>
   <span>World of Warcraft® is a trademark of Blizzard Entertainment, Inc.</span>
 </footer>
 
@@ -380,40 +380,40 @@ var STRINGS = {
   'pt-BR': {
     'game-tag':   'Ferramenta para World of Warcraft',
     'h1':         'Conheça sua guild.<br><em>Antes da noite de raid.</em>',
-    'sub':        'Acompanhe equipamentos, encantos, gemas, sets de tier, ratings de M+ e embelezamentos de cada membro da sua guild — atualizado automaticamente.',
-    'wow-line':   'Para guilds de World of Warcraft® — US, EU, KR e TW',
+    'sub':        'Acompanhe a prontidão para raid da sua guild, atualizado automaticamente.',
+    'wow-line':   'Para guilds de World of Warcraft®, US, EU, KR e TW',
     'card-title': 'Acessar sua guild',
     'label-region':'Região',
     'label-realm': 'Servidor',
-    'label-realm-placeholder': '— selecione um servidor —',
+    'label-realm-placeholder': '— selecione um servidor,',
     'label-guild': 'Nome da guild',
     'btn':         'Acessar Guild →',
     'err':         'Preencha o servidor e o nome da guild.',
     'hint':        'Officers podem entrar com Battle.net para editar roster e configurações.',
     'feat-title':  'Tudo que seu <span>líder de raid</span> precisa',
     'f1-title': 'Equipamento & iLvl',
-    'f1-desc':  'Visão completa dos itens equipados com nível, qualidade e encantos ou gemas faltando destacados na hora.',
+    'f1-desc':  'Visão completa dos itens equipados com nível, qualidade e encantamentos ou gemas faltando destacados na hora.',
     'f2-title': 'Progresso do Set de Tier',
-    'f2-desc':  'Veja quais slots de tier cada jogador tem — coloridos por Mítico, Heroico ou Normal — e quem ainda precisa do bônus de 4 peças.',
+    'f2-desc':  'Veja quais slots de tier cada jogador tem, coloridos por Mítico, Heroico ou Normal, e quem ainda precisa do bônus de 4 peças.',
     'f3-title': 'Verificação de Embelezamentos',
     'f3-desc':  'Marca jogadores que não estão usando os 2 itens embelezados recomendados para que nada passe despercebido.',
     'f4-title': 'Rating de M+',
-    'f4-desc':  'Score de Mythic+ por jogador com tiers coloridos, direto da API da Blizzard — sem scraping de terceiros.',
+    'f4-desc':  'Score de Mythic+ por jogador com tiers coloridos, direto da API da Blizzard.',
     'f5-title': 'Login com Battle.net',
     'f5-desc':  'Officers entram com Battle.net. As permissões são derivadas automaticamente do rank da guild no jogo.',
     'f6-title': 'Atualização Automática',
     'f6-desc':  'Os dados do roster atualizam a cada 15 minutos em segundo plano. O líder de raid sempre vê o gear atual.',
-    'footer1':  'GuildAudit — não afiliado à Blizzard Entertainment',
+    'footer1':  'GuildAudit, não afiliado à Blizzard Entertainment',
   },
   en: {
     'game-tag':   'World of Warcraft Guild Tool',
     'h1':         'Know your guild.<br><em>Before raid night.</em>',
-    'sub':        'Track gear, enchants, gems, tier sets, M+ ratings and embellishments for every member of your WoW guild — updated automatically.',
-    'wow-line':   'For World of Warcraft® guilds — US, EU, KR and TW',
+    'sub':        'Track gear, enchants, gems, tier sets, M+ ratings and embellishments for every member of your WoW guild, updated automatically.',
+    'wow-line':   'For World of Warcraft® guilds, US, EU, KR and TW',
     'card-title': 'Access your guild',
     'label-region':'Region',
     'label-realm': 'Realm',
-    'label-realm-placeholder': '— select a realm —',
+    'label-realm-placeholder': '— select a realm,',
     'label-guild': 'Guild name',
     'btn':         'Access Guild →',
     'err':         'Please fill in realm and guild name.',
@@ -422,16 +422,16 @@ var STRINGS = {
     'f1-title': 'Gear & iLvl Tracking',
     'f1-desc':  'Full equipment breakdown with item level, quality tiers and missing enchants or gems highlighted instantly.',
     'f2-title': 'Tier Set Progress',
-    'f2-desc':  'See which tier slots each player has — colored by Mythic, Heroic or Normal — and who still needs the 4pc bonus.',
+    'f2-desc':  'See which tier slots each player has, colored by Mythic, Heroic or Normal, and who still needs the 4pc bonus.',
     'f3-title': 'Embellishment Check',
     'f3-desc':  "Flags players who aren't running the recommended 2 embellished items, so nothing slips through the cracks.",
     'f4-title': 'M+ Ratings',
-    'f4-desc':  'Mythic+ score per player with color-coded tiers, straight from the Blizzard API — no third-party scraping.',
+    'f4-desc':  'Mythic+ score per player with color-coded tiers, straight from the Blizzard API.',
     'f5-title': 'Battle.net Login',
     'f5-desc':  'Officers log in with Battle.net. Permissions are derived from your in-game guild rank automatically.',
     'f6-title': 'Auto-refresh',
     'f6-desc':  'Roster data refreshes every 15 minutes in the background. Your raid lead always sees current gear.',
-    'footer1':  'GuildAudit — not affiliated with Blizzard Entertainment',
+    'footer1':  'GuildAudit, not affiliated with Blizzard Entertainment',
   }
 };
 
@@ -441,8 +441,8 @@ function applyLang(lang) {
   var s = STRINGS[lang];
   document.documentElement.lang = lang === 'pt-BR' ? 'pt-BR' : 'en';
   document.title = lang === 'pt-BR'
-    ? 'GuildAudit — Rastreador de Guild WoW'
-    : 'GuildAudit — WoW Guild Tracker';
+    ? 'GuildAudit, Rastreador de Guild WoW'
+    : 'GuildAudit, WoW Guild Tracker';
 
   document.querySelectorAll('[data-i18n]').forEach(function(el) {
     var key = el.getAttribute('data-i18n');
@@ -480,7 +480,7 @@ function populateRealms() {
   var sel    = document.getElementById('inp-realm');
   var prev   = sel.value;
   var isPT   = (localStorage.getItem('ga_lang') === 'pt-BR');
-  var placeholder = isPT ? '— selecione um servidor —' : '— select a realm —';
+  var placeholder = isPT ? '— selecione um servidor,' : '— select a realm,';
   sel.innerHTML = '<option value="">' + placeholder + '</option>';
   var list = REALMS[region] || [];
   list.forEach(function(r) {
