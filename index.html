@@ -101,15 +101,19 @@
       .search-card { padding:24px 20px; }
       footer { flex-direction:column; gap:8px; text-align:center; }
     }
-    .lang-flags { display:flex; gap:4px; align-items:center; }
+    .lang-flags { display:flex; gap:3px; align-items:center; }
     .flag-btn {
-      background:none; border:2px solid transparent;
-      border-radius:6px; padding:2px 5px;
-      font-size:1.25rem; cursor:pointer; line-height:1;
-      opacity:.4; transition:opacity .15s, border-color .15s, transform .1s;
+      background:var(--bg3); border:1px solid var(--border);
+      border-radius:8px; padding:5px 8px;
+      font-size:1.15rem; cursor:pointer; line-height:1;
+      opacity:.65; transition:opacity .15s, border-color .15s, transform .1s, background .15s;
     }
-    .flag-btn:hover { opacity:.85; transform:scale(1.1); }
-    .flag-btn.flag-active { opacity:1; border-color:var(--gold2,#c9a84c); background:rgba(201,168,76,.1); }
+    .flag-btn:hover { opacity:1; transform:scale(1.08); border-color:rgba(255,193,7,.4); }
+    .flag-btn.flag-active {
+      opacity:1; border-color:var(--gold2);
+      background:rgba(255,193,7,.12);
+      box-shadow:0 0 0 2px rgba(255,193,7,.15);
+    }
   </style>
 </head>
 <body>
@@ -119,7 +123,7 @@
 <nav>
   <a class="nav-logo" href="/">Guild<span>Audit</span></a>
   <div class="lang-flags">
-    <button class="flag-btn" id="flag-pt" onclick="setLang('pt')" title="Português">🇧🇷</button>
+    <button class="flag-btn" id="flag-pt" onclick="setLang('pt-BR')" title="Português">🇧🇷</button>
     <button class="flag-btn" id="flag-en" onclick="setLang('en')" title="English">🇺🇸</button>
   </div>
 </nav>
@@ -147,12 +151,14 @@
 
     <div class="field">
       <label data-i18n="label-realm">Servidor</label>
-      <input type="text" id="inp-realm" placeholder="azralon" spellcheck="false" autocomplete="off">
+      <select id="inp-realm" onchange="onRealmChange()">
+        <option value="" data-i18n="label-realm-placeholder">— selecione um servidor —</option>
+      </select>
     </div>
 
     <div class="field">
       <label data-i18n="label-guild">Nome da guild</label>
-      <input type="text" id="inp-guild" placeholder="errow" spellcheck="false" autocomplete="off">
+      <input type="text" id="inp-guild" placeholder="" spellcheck="false" autocomplete="off">
     </div>
 
     <button class="btn-go" onclick="goToGuild()" data-i18n="btn">Abrir Guild →</button>
@@ -208,7 +214,7 @@
 
 <script>
 var STRINGS = {
-  pt: {
+  'pt-BR': {
     'eyebrow':    'Ferramenta de Prontidão para Raid',
     'h1':         'Conheça sua guild.<br><em>Antes da noite de raid.</em>',
     'sub':        'Acompanhe equipamentos, encantos, gemas, sets de tier, ratings de M+ e embelezamentos de cada membro da sua guild — atualizado automaticamente.',
@@ -262,12 +268,12 @@ var STRINGS = {
   }
 };
 
-var currentLang = localStorage.getItem('ga_lang') || 'pt';
+var currentLang = localStorage.getItem('ga_lang') || 'pt-BR';
 
 function applyLang(lang) {
   var s = STRINGS[lang];
-  document.documentElement.lang = lang === 'pt' ? 'pt-BR' : 'en';
-  document.title = lang === 'pt'
+  document.documentElement.lang = lang === 'pt-BR' ? 'pt-BR' : 'en';
+  document.title = lang === 'pt-BR'
     ? 'GuildAudit — Rastreador de Guild WoW'
     : 'GuildAudit — WoW Guild Tracker';
 
@@ -280,13 +286,13 @@ function applyLang(lang) {
     if (s && s[key] !== undefined) el.innerHTML = s[key];
   });
 
-  document.getElementById('flag-pt').classList.toggle('flag-active', lang === 'pt');
+  document.getElementById('flag-pt').classList.toggle('flag-active', lang === 'pt-BR');
   document.getElementById('flag-en').classList.toggle('flag-active', lang === 'en');
 }
 
 function setLang(newLang) { lang = newLang; localStorage.setItem('ga_lang', lang); applyLang(lang); }
 function toggleLang() {
-  currentLang = currentLang === 'pt' ? 'en' : 'pt';
+  currentLang = currentLang === 'pt-BR' ? 'en' : 'pt-BR';
   localStorage.setItem('ga_lang', currentLang);
   applyLang(currentLang);
 }
@@ -298,16 +304,48 @@ function toggleLang() {
     try {
       var p = last.split(':');
       if (p[0]) document.getElementById('inp-region').value = p[0];
+      populateRealms();
       if (p[1]) document.getElementById('inp-realm').value  = p[1];
       if (p[2]) document.getElementById('inp-guild').value  = p[2];
     } catch(e) {}
   }
+  populateRealms();
   applyLang(currentLang);
 })();
 
+// ── Realms per region ──────────────────────────────────
+var REALMS = {
+  us: ["Aegwynn","Agamaggan","Aggramar","Akama","Alexstrasza","Alleria","Altar of Storms","Alterac Mountains","Aman'Thul","Andorhal","Anetheron","Anub'arak","Antonidas","Anvilmar","Arathor","Archimonde","Area 52","Argent Dawn","Arthas","Arygos","Auchindoun","Azgalor","Azjol-Nerub","Azralon","Azshara","Azuremyst","Baelgun","Balnazzar","Black Dragonflight","Blackhand","Blackrock","Blackwater Raiders","Blackwing Lair","Blade's Edge","Bladefist","Bleeding Hollow","Blood Furnace","Bloodhoof","Bloodscalp","Bonechewer","Borean Tundra","Boulderfist","Bronze Dragonflight","Bronzebeard","Burning Blade","Burning Legion","Caelestrasz","Cairne","Cenarion Circle","Cenarion Expedition","Cenarius","Cho'gall","Chromaggus","Coilfang","Crushridge","Daggerspine","Dalaran","Dalvengyr","Dark Iron","Darkspear","Darrowmere","Dawnbringer","Deathwing","Demon Soul","Dentarg","Destromath","Dethecus","Detheroc","Doomhammer","Draenor","Dragonblight","Dragonmaw","Drak'Tharon","Drak'thul","Dreadmaul","Drenden","Dunemaul","Durotan","Duskwood","Earthen Ring","Echo Isles","Eitrigg","Eldre'Thalas","Elune","Emerald Dream","Eonar","Eredar","Executus","Exodar","Farstriders","Feathermoon","Fenris","Fizzcrank","Frostmane","Frostmourne","Frostwolf","Galakrond","Gallywix","Garona","Garrosh","Ghostlands","Gilneas","Gnomeregan","Goldrinn","Gordunni","Greymane","Grizzly Hills","Gul'dan","Gundrak","Gurubashi","Hakkar","Haomarush","Hellscream","Hydraxis","Hyjal","Icecrown","Illidan","Jaedenar","Jubei'Thos","Kael'thas","Kalecgos","Kargath","Kel'Thuzad","Khadgar","Khaz Modan","Khaz'goroth","Kil'jaeden","Kilrogg","Kirin Tor","Korgath","Kul Tiras","Laughing Skull","Lethon","Lightbringer","Lightning's Blade","Lightninghoof","Llane","Lothar","Lunar Falls","Madoran","Maelstrom","Magtheridon","Maiev","Mal'Ganis","Malfurion","Malorne","Malygos","Mannoroth","Medivh","Misha","Mok'Nathal","Moon Guard","Moonrunner","Mug'thol","Muradin","Nazgrel","Nazjatar","Neltharion","Nemesis","Ner'zhul","Nesingwary","Nightfall","Norgannon","Onyxia","Perenolde","Proudmoore","Quel'dorei","Quel'Thalas","Ragnaros","Ravencrest","Ravenholdt","Rexxar","Rivendare","Runetotem","Sargeras","Saurfang","Scarlet Crusade","Sen'jin","Sentinels","Shadow Council","Shadowmoon","Shadowsong","Shattered Halls","Shattered Hand","Silver Hand","Silvermoon","Sisters of Elune","Skullcrusher","Skywall","Smolderthorn","Spinebreaker","Spirestone","Staghelm","Steamwheedle Cartel","Stonemaul","Stormrage","Stormreaver","Stormscale","Suramar","Tanaris","Terenas","Terokkar","Thaurissan","The Forgotten Coast","The Underbog","The Venture Co","Thorium Brotherhood","Thunderhorn","Thunderlord","Tichondrius","Tirion","Tortheldrin","Trollbane","Turalyon","Twisting Nether","Tygris","Uldaman","Uldum","Undermine","Ursin","Uther","Vashj","Vek'nilash","Velen","Warsong","Whisperwind","Wildhammer","Windrunner","Winterhoof","Wyrmrest Accord","Ysera","Ysondre","Zangarmarsh","Zul'jin","Zuluhed"],
+  eu: ["Aegwynn","Aerie Peak","Agamaggan","Aggra (Português)","Aggramar","Ahn'Qiraj","Al'Akir","Alexstrasza","Alleria","Alonsus","Aman'Thul","Ambossar","Anachronos","Anetheron","Antonidas","Anub'arak","Anvilmar","Arathor","Archimonde","Area 52","Argent Dawn","Arthas","Arygos","Aszune","Auchindoun","Azjol-Nerub","Azshara","Azuregos","Azuremyst","Baelgun","Balnazzar","Black Dragonflight","Blackhand","Blackmoore","Blackrock","Blackscar","Blade's Edge","Bladefist","Bloodfeather","Bloodhoof","Bloodscalp","Blutkessel","Boulderfist","Bronze Dragonflight","Bronzebeard","Burning Blade","Burning Legion","Burning Steppes","C'Thun","Chamber of Aspects","Chants éternels","Cho'gall","Chromaggus","Confrérie du Thorium","Conseil des Ombres","Crushridge","Culte de la Rive noire","Daggerspine","Dalaran","Dalvengyr","Dark Iron","Darkspear","Das Konsortium","Das Syndikat","Deathguard","Deathweaver","Deathwing","Defias Brotherhood","Dentarg","Der Mithrilorden","Der Rat von Dalaran","Destromath","Dethecus","Die Aldor","Die Arguswacht","Die ewige Wacht","Die Nachtwache","Die Silberne Hand","Die Todeskrallen","Die ewige Wacht","Doomhammer","Draenor","Dragonblight","Dragonmaw","Drak'thul","Drek'Thar","Dun Morogh","Durotan","Earthen Ring","Echo Isles","Eitrigg","Eldre'Thalas","Elune","Emerald Dream","Eonar","Eredar","Executus","Exodar","Festung der Stürme","Forscherliga","Frostmane","Frostmourne","Frostwolf","Garona","Garrosh","Genjuros","Ghostlands","Gilneas","Goldrinn","Grim Batol","Gul'dan","Hakkar","Hellfire","Hellscream","Hyjal","Icecrown","Illidan","Jaedenar","Kael'thas","Karazhan","Kargath","Kel'Thuzad","Khadgar","Khaz Modan","Kil'jaeden","Kilrogg","Kirin Tor","Krag'jin","Krasus","Kult der Verdammten","La Croisade écarlate","Les Clairvoyants","Les Sentinelles","Lightbringer","Lightning's Blade","Lordaeron","Los Errantes","Lothar","Madmortem","Magtheridon","Maiev","Mal'Ganis","Malfurion","Malorne","Malygos","Mannoroth","Marécage de Zangar","Medivh","Minahonda","Moonglade","Muradin","Nathrezim","Naxxramas","Nazjatar","Nefarian","Nemesis","Ner'zhul","Nera'thor","Nethersturm","Nordrassil","Norgannon","Nozdormu","Onyxia","Outland","Perenolde","Proudmoore","Quel'Thalas","Ragnaros","Ravencrest","Ravenholdt","Rexxar","Runetotem","Sargeras","Saurfang","Scarshield Legion","Sen'jin","Sentinels","Shadow Council","Shadowmoon","Shadowsong","Shattered Halls","Shattered Hand","Silvermoon","Sinstralis","Sisters of Elune","Skullcrusher","Skywall","Spinebreaker","Spirestone","Steamwheedle Cartel","Stormrage","Stormreaver","Stormscale","Sunstrider","Suramar","Sylvanas","Taerar","Talnivarr","Tarren Mill","Terenas","Terokkar","Terrordar","The Maelstrom","The Sha'tar","The Venture Co","Theradras","Thrall","Thunderhorn","Tichondrius","Tirion","Tortheldrin","Trollbane","Turalyon","Twilight's Hammer","Twisting Nether","Tyrande","Uldaman","Uldum","Un'Goro","Undermine","Vashj","Vek'lor","Vek'nilash","Velen","Vol'jin","Wildhammer","Windrunner","Wrathbringer","Xavius","Ysera","Zenedar","Zirkel des Cenarius","Zul'jin","Zuluhed"],
+  kr: ["가로나","굴단","데스윙","렉사르","불타는 군단","세나리우스","아즈샤라","윈드러너","울두아르","지울진","칼렉고스","킬제덴"],
+  tw: ["世界之樹","冰霜之刃","地獄吼","夜空之歌","宇宙之心","巨龍之喉","末日之觸","水晶之刺","狂熱之刃","聖光之願","銀翼要塞","阿薩斯","骨槌"]
+};
+
+function populateRealms() {
+  var region = document.getElementById('inp-region').value;
+  var sel    = document.getElementById('inp-realm');
+  var prev   = sel.value;
+  var isPT   = (localStorage.getItem('ga_lang') === 'pt-BR');
+  var placeholder = isPT ? '— selecione um servidor —' : '— select a realm —';
+  sel.innerHTML = '<option value="">' + placeholder + '</option>';
+  var list = REALMS[region] || [];
+  list.forEach(function(r) {
+    var opt = document.createElement('option');
+    opt.value = r.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+    opt.textContent = r;
+    if (opt.value === prev) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function onRealmChange() { /* just used by onchange */ }
+
+// Populate on region change
+document.getElementById('inp-region').addEventListener('change', populateRealms);
+
 function goToGuild() {
   var region = document.getElementById('inp-region').value.trim().toLowerCase();
-  var realm  = document.getElementById('inp-realm').value.trim().toLowerCase().replace(/\s+/g, '-');
+  var realm  = (document.getElementById('inp-realm').value || '').trim().toLowerCase().replace(/\s+/g, '-');
   var guild  = document.getElementById('inp-guild').value.trim().toLowerCase().replace(/\s+/g, '-');
   var err    = document.getElementById('err-msg');
   if (!realm || !guild) { err.classList.add('show'); return; }
@@ -318,7 +356,7 @@ function goToGuild() {
   window.location.href = basePath + '/guild.html?guild=' + region + '/' + realm + '/' + guild;
 }
 
-['inp-realm','inp-guild'].forEach(function(id) {
+['inp-guild'].forEach(function(id) {
   document.getElementById(id).addEventListener('keydown', function(e) {
     if (e.key === 'Enter') goToGuild();
   });

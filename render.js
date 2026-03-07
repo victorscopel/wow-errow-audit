@@ -84,10 +84,10 @@ function translateIssue(raw) {
   return raw;
 }
 
-// ── Tier piece cell ─────────────────────────────────────
-// Shows all 5 tier slots as small pips. Lit = has tier piece (color = quality).
-// Empty = dim dot. Tooltip on hover shows slot + quality.
-function tierPiecesCell(c) {
+// ── Tier badge ────────────────────────────────────────────
+// Always shows all 5 slots (C O T M P / H S C G L).
+// Active = color of quality with border. Inactive = dim with border.
+function tierBadge(c) {
   var gear = c.gear || {};
   var isPT = (window._lang === 'pt-BR');
   var QUALITY_COLOR = {
@@ -101,17 +101,27 @@ function tierPiecesCell(c) {
   var INITIALS_EN = { head: 'H', shoulder: 'S', chest: 'C', hands: 'G', legs: 'L' };
   var initials = isPT ? INITIALS_PT : INITIALS_EN;
   var slots = ['head', 'shoulder', 'chest', 'hands', 'legs'];
-  var bits = slots.map(function(slot) {
+  var html = '<span style="display:inline-flex;gap:2px">';
+  slots.forEach(function(slot) {
     var item = gear[slot];
     if (item && item.isTierSet) {
       var col = QUALITY_COLOR[item.quality] || QUALITY_COLOR.epic;
       var qualLabel = QUALITY_LABEL[item.quality] || item.quality || '?';
-      var tipText = slotLabel(slot) + ' — Tier ' + qualLabel;
-      return '<span class="tier-pip" style="--pip-col:' + col + '" data-tip="' + tipText + '">' + initials[slot] + '</span>';
+      var tip = slotLabel(slot) + ' — Tier ' + qualLabel;
+      html += '<span class="tier-pip" style="--pip-col:' + col + '" data-tip="' + tip + '">' + initials[slot] + '</span>';
+    } else {
+      html += '<span class="tier-pip tier-pip--empty" title="' + slotLabel(slot) + '">' + initials[slot] + '</span>';
     }
-    return '<span class="tier-pip tier-pip--empty">·</span>';
   });
-  return '<div class="tier-cell">' + bits.join('') + '</div>';
+  html += '</span>';
+  return html;
+}
+
+function embBadge(c) {
+  var embCount = Object.values(c.gear || {}).filter(function(g){ return g && g.isEmbellished; }).length;
+  if (embCount >= 2) return '';
+  if (embCount === 0) return '<span class="badge-emb" style="margin-left:3px" title="Sem embellishments">0✦</span>';
+  return '<span class="badge-emb" style="margin-left:3px;opacity:.7" title="Apenas 1 embellishment">1✦</span>';
 }
 
 function applyI18n() {
@@ -236,7 +246,7 @@ function renderOverview() {
     var vTd   = CFG.sv ? '<td style="color:var(--text-dim)">' + fmtVault(c) + '</td>' : '';
     var rTd   = CFG.sr ? '<td><span style="font-weight:700;color:' + ratingCol(c.mythicRating) + '">' + (c.mythicRating || '—') + '</span></td>' : '';
     var nTd   = CFG.sn ? '<td><span class="note-c" onclick="editNote(\'' + id + '\')">' + (c.note ? esc(c.note) : '<span style="opacity:.3">+</span>') + '</span></td>' : '';
-    var stTd  = CFG.st ? '<td>' + tierPiecesCell(c) + '</td>' : '';
+    var stTd  = CFG.st ? '<td>' + tierBadge(c) + '</td>' : '';
     var rmTd  = hasPerm('officer') ? '<td><button class="btn btn-danger btn-sm" onclick="rmMember(\'' + id + '\')">✕</button></td>' : '';
     return '<tr' + (isUnder ? ' class="row-under-min"' : '') + '><td style="color:var(--text-dim);width:35px">' + (i + 1) + '</td><td>' + cnCell(c) + '</td><td>' + roleBadge(c.role) + '</td><td><span class="ilvl ' + ilvlC(c.ilvl) + '">' + (c.ilvl || '—') + '</span></td>' + isTd + vTd + rTd + stTd + nTd + rmTd + '</tr>';
   }).join('');
@@ -272,7 +282,7 @@ function renderRoster() {
     var isTd = CFG.si ? '<td><div style="display:flex;flex-wrap:wrap;gap:3px">' + (c.issues?.length ? c.issues.slice(0, 2).map(function (i) { var t = translateIssue(i); var short = (i.includes(':') && !i.startsWith('embellishment:') && !i.startsWith('tierset:')) ? t.replace(/.*: /, '') : t; return '<span class="it it-e">' + short + '</span>'; }).join('') + (c.issues.length > 2 ? '<span class="it" style="color:var(--text-dim);border:1px solid var(--border)">+' + (c.issues.length - 2) + '</span>' : '') : '<span class="it it-ok">✓</span>') + '</div></td>' : '';
     var rTd  = CFG.sr ? '<td><span style="font-weight:700;color:' + ratingCol(c.mythicRating) + '">' + (c.mythicRating || '—') + '</span></td>' : '';
     var nTd  = CFG.sn ? '<td><span class="note-c" onclick="editNote(\'' + id + '\')">' + (c.note ? esc(c.note) : '<span style="opacity:.3">+</span>') + '</span></td>' : '';
-    var stTd = CFG.st ? '<td>' + tierPiecesCell(c) + '</td>' : '';
+    var stTd = CFG.st ? '<td>' + tierBadge(c) + embBadge(c) + '</td>' : '';
     var roleCell = canEditRole
       ? '<select class="rs" onchange="changeRole(\'' + id + '\',this.value)"><option ' + (c.role === ROLE_TANK ? 'selected' : '') + '>Tank</option><option ' + (c.role === ROLE_HEALER ? 'selected' : '') + '>Healer</option><option ' + (c.role === ROLE_DPS_MELEE ? 'selected' : '') + '>DPS Melee</option><option ' + (c.role === ROLE_DPS_RANGE ? 'selected' : '') + '>DPS Ranged</option></select>'
       : roleBadge(c.role);

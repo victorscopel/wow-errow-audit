@@ -75,7 +75,9 @@ function init() {
     // Show guild name in header
     var guildTitle = document.getElementById('guild-title');
     if (guildTitle && cfg.guild) {
-        guildTitle.textContent = cfg.guild.replace(/-/g, ' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+        var guildName = cfg.guild.replace(/-/g, ' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+        guildTitle.textContent = guildName;
+        document.title = 'GuildAudit — ' + guildName;
     }
     var realmTitle = document.getElementById('realm-title');
     if (realmTitle && cfg.realm) {

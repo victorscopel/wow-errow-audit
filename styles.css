@@ -520,15 +520,25 @@ tr:hover {
 
 .tier-pip {
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  font-size: .62rem;
   font-weight: 800;
   color: var(--pip-col, var(--gold));
+  background: color-mix(in srgb, var(--pip-col, var(--gold)) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--pip-col, var(--gold)) 50%, transparent);
   cursor: default;
-  /* Custom tooltip trigger */
 }
 
 .tier-pip--empty {
-  color: var(--border);
-  font-weight: 400;
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid var(--border);
+  opacity: .5;
 }
 
 /* Custom tooltip */
