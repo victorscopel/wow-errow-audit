@@ -1,18 +1,16 @@
 // ══════════════════════════════════════════════════════════
 //  GUILDAUDIT — app.js
-//  State, initialization, navigation, user actions
+//  State, initialization, navigation (multi-guild)
 // ══════════════════════════════════════════════════════════
 
 // ── State ─────────────────────────────────────────────────
 var roster = [];
-var CFG = { si: true, sv: true, sr: true, sn: true, st: true, ar: true, ilvlMin: 0, archon: "" };
+var CFG = { si: true, sv: true, sr: true, sn: true, st: true, ar: true, ilvlMin: 0, archon: '', archonDiff: 'heroic' };
 window._lang = localStorage.getItem('ga_lang') || 'pt-BR';
 var sortC = 'ilvl', sortD = -1;
 var ovSortC = 'ilvl', ovSortD = -1;
 var arTimer = null;
 var prevPage = 'overview';
-
-// Storage helpers moved to data.js
 
 // ── API logger ────────────────────────────────────────────
 var alog = [];
@@ -27,13 +25,10 @@ function lg(msg, type) {
 }
 function sprog(p) { var el = document.getElementById('aprog'); if (el) el.style.width = p + '%'; }
 
-// ── Locales ───────────────────────────────────────────────
+// ── i18n ──────────────────────────────────────────────────
 function saveLang() {
     var dlEl = document.getElementById('cfg-dispLang');
-    if (dlEl) {
-        window._lang = dlEl.value;
-        localStorage.setItem('ga_lang', window._lang);
-    }
+    if (dlEl) { window._lang = dlEl.value; localStorage.setItem('ga_lang', window._lang); }
 }
 
 function T(k) {
@@ -46,9 +41,17 @@ function T(k) {
 function init() {
     initAuth();
 
+    // Persist region/realm/guild from URL so char.html and other pages can read them
+    var cfg = getAPICfg();
+    if (cfg.realm) localStorage.setItem('ga_realm', cfg.realm);
+    if (cfg.guild) localStorage.setItem('ga_guild', cfg.guild);
+    if (cfg.region) localStorage.setItem('ga_region', cfg.region);
+
+    // Load local roster cache
     var sd = ls('ga_data');
     if (sd) try { roster = JSON.parse(sd); } catch (e) { }
 
+    // Load config
     var sc = ls('ga_cfg');
     if (sc) try { CFG = Object.assign({}, CFG, JSON.parse(sc)); } catch (e) { }
     ['si', 'sv', 'sr', 'sn', 'st', 'ar'].forEach(function (k) {
@@ -62,17 +65,14 @@ function init() {
     var dlEl = document.getElementById('cfg-dispLang');
     if (dlEl) dlEl.value = window._lang;
 
-    var sa = ls('ga_api');
-    if (sa) {
-        try {
-            var a = JSON.parse(sa);
-            ['proxy', 'reg', 'realm', 'guild'].forEach(function (k) {
-                var el = document.getElementById('cfg-' + k);
-                if (el && a[k]) el.value = a[k];
-            });
-            if (a.realm) document.getElementById('imp-realm').value = a.realm;
-            if (a.guild) document.getElementById('imp-guild').value = a.guild;
-        } catch (e) { }
+    // Show guild name in header
+    var guildTitle = document.getElementById('guild-title');
+    if (guildTitle && cfg.guild) {
+        guildTitle.textContent = cfg.guild.replace(/-/g, ' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+    }
+    var realmTitle = document.getElementById('realm-title');
+    if (realmTitle && cfg.realm) {
+        realmTitle.textContent = cfg.realm.replace(/-/g, ' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); }) + ' — ' + cfg.region.toUpperCase();
     }
 
     applyI18n();
@@ -82,8 +82,8 @@ function init() {
 
     if (hasAPICfg()) {
         if (typeof loadBackendRoster !== 'undefined') loadBackendRoster();
-        if (typeof loadBackendCfg !== 'undefined') loadBackendCfg();
-        if (typeof loadArchonStats !== 'undefined') loadArchonStats();
+        if (typeof loadBackendCfg    !== 'undefined') loadBackendCfg();
+        if (typeof loadArchonStats   !== 'undefined') loadArchonStats();
     }
 
     if (CFG.ar && hasAPICfg() && roster.length && hasPerm('officer')) {
@@ -98,6 +98,7 @@ function init() {
     }
 }
 
+// ── Save config ───────────────────────────────────────────
 function saveCfg() {
     var oc = JSON.stringify(CFG);
     ['si', 'sv', 'sr', 'sn', 'st', 'ar'].forEach(function (k) { CFG[k] = document.getElementById('cfg-' + k)?.checked || false; });
@@ -106,29 +107,21 @@ function saveCfg() {
     if (archonEl) CFG.archon = archonEl.value.trim();
     var nc = JSON.stringify(CFG);
     lss('ga_cfg', nc);
-    if (oc !== nc && typeof startSyncCfg !== 'undefined') {
-        startSyncCfg();
-        if (JSON.parse(oc).archon !== CFG.archon) {
-            startSyncArchonStats(CFG.archon);
-        }
-    }
+    if (oc !== nc && typeof saveCfgKV !== 'undefined') saveCfgKV();
     setupAR();
 }
 
-function saveAPI() {
-    var a = {};
-    ['proxy', 'reg', 'realm', 'guild'].forEach(function (k) {
-        a[k] = document.getElementById('cfg-' + k)?.value?.trim() || '';
-    });
-    a.loc = 'en_US';
-    lss('ga_api', JSON.stringify(a));
-    notify(T('save') + '!');
+// ── saveRoster — local + KV ───────────────────────────────
+function saveRoster() {
+    lss('ga_data', JSON.stringify(roster));
+    if (typeof saveRosterKV === 'function') saveRosterKV();
 }
 
 // ── Auto refresh ──────────────────────────────────────────
 function setupAR() {
     clearInterval(arTimer);
-    document.getElementById('rdot').classList.toggle('off', !CFG.ar);
+    var rdot = document.getElementById('rdot');
+    if (rdot) rdot.classList.toggle('off', !CFG.ar);
     if (CFG.ar && hasPerm('officer')) {
         arTimer = setInterval(function () {
             if (hasAPICfg() && roster.length) refreshExisting();
@@ -137,14 +130,11 @@ function setupAR() {
 }
 
 function forceRefresh() {
-    if (!hasPerm('officer')) { notify(T('Sem permissão. Faça Login.')); return; }
+    if (!hasPerm('officer')) { notify(T('no_perm') || 'Sem permissão.'); return; }
     if (!hasAPICfg()) { openImport(); return; }
     if (!roster.length) { notify(T('no_data')); return; }
     refreshExisting(true);
 }
-
-
-// forceRefreshAllMeta removed
 
 // ── Navigation ────────────────────────────────────────────
 function showPage(id, btn) {
@@ -157,23 +147,23 @@ function showPage(id, btn) {
 
 function openChar(id) {
     var parts = id.split('|');
-    var name = parts[0] || '';
-    var realm = parts[1] || 'azralon';
+    var name  = parts[0] || '';
+    var realm = parts[1] || getAPICfg().realm || 'azralon';
     if (!name) return;
     window.location.href = 'char.html?name=' + encodeURIComponent(name) + '&realm=' + encodeURIComponent(realm);
 }
 
-// ── Member actions ────────────────────────────────────────
+// ── Sorting ───────────────────────────────────────────────
 function srt(col) {
     if (sortC === col) sortD *= -1; else { sortC = col; sortD = -1; }
     renderRoster();
 }
-
 function ovSrt(col) {
     if (ovSortC === col) ovSortD *= -1; else { ovSortC = col; ovSortD = -1; }
     renderOverview();
 }
 
+// ── Member actions ────────────────────────────────────────
 function changeRole(id, role) {
     var c = roster.find(function (x) { return cid(x) === id; });
     if (c) { c.role = role; saveRoster(); updateStats(); renderComp(); renderOverview(); renderRoster(); }
@@ -198,16 +188,14 @@ function editNote(id) {
 function addManual() {
     var name = document.getElementById('m-n').value.trim();
     if (!name) { notify('Digite um nome.'); return; }
-    var cls = document.getElementById('m-c').value;
     roster.push({
-        name: name, realm: document.getElementById('m-r').value.trim(),
-        class: cls,
+        name: name, realm: document.getElementById('m-r').value.trim() || getAPICfg().realm,
+        class: document.getElementById('m-c').value,
         role: document.getElementById('m-ro').value,
         spec: document.getElementById('m-sp').value.trim(),
         ilvl: parseInt(document.getElementById('m-il').value) || null,
         note: document.getElementById('m-no').value.trim(),
-        issues: [], gear: {},
-        renderUrl: null,
+        issues: [], gear: {}, renderUrl: null,
         lastUpdated: new Date().toISOString(),
     });
     saveRoster(); renderAll(); notify(name + ' adicionado!');
@@ -219,9 +207,7 @@ function exportJSON() {
     if (!roster.length) { notify('Sem dados.'); return; }
     var b = new Blob([JSON.stringify(roster, null, 2)], { type: 'application/json' });
     var a = document.createElement('a');
-    a.href = URL.createObjectURL(b);
-    a.download = 'guildaudit.json';
-    a.click();
+    a.href = URL.createObjectURL(b); a.download = 'guildaudit.json'; a.click();
 }
 
 function importJSON() {
@@ -244,9 +230,6 @@ function openImport() {
     var el = document.getElementById('alog');
     if (el) el.innerHTML = '';
     sprog(0);
-    var a = JSON.parse(ls('ga_api') || '{}');
-    if (a.realm) document.getElementById('imp-realm').value = a.realm;
-    if (a.guild) document.getElementById('imp-guild').value = a.guild;
     document.getElementById('importMo').classList.add('open');
 }
 function closeMo(id) { document.getElementById(id).classList.remove('open'); }
@@ -262,17 +245,17 @@ function notify(msg) {
 // ── Demo data ─────────────────────────────────────────────
 function loadDemo() {
     roster = [
-        { name: 'Redtalon', realm: 'azralon', guild: 'Errow', class: 'Death Knight', spec: 'Blood', role: ROLE_TANK, specId: 250, ilvl: 648, mythicRating: 2840, issues: [], note: 'Main tank', gear: {}, vault: { mythic: 8, raid: 7, world: 3 }, renderUrl: null, lastUpdated: new Date().toISOString() },
-        { name: 'Solarheal', realm: 'azralon', guild: 'Errow', class: 'Druid', spec: 'Restoration', role: ROLE_HEALER, specId: 105, ilvl: 645, mythicRating: 2210, issues: [], note: '', gear: {}, vault: { mythic: 6, raid: 10, world: 1 }, renderUrl: null, lastUpdated: new Date().toISOString() },
-        { name: 'Aeerys', realm: 'azralon', guild: 'Errow', class: 'Mage', spec: 'Frost', role: ROLE_DPS_RANGE, specId: 64, ilvl: 641, mythicRating: 1980, issues: [], note: '', gear: {}, vault: { mythic: 4, raid: 7, world: 2 }, renderUrl: null, lastUpdated: new Date().toISOString() },
-        { name: 'Doppel', realm: 'illidan', guild: 'Errow', class: 'Rogue', spec: 'Assassination', role: ROLE_DPS_MELEE, specId: 259, ilvl: 638, mythicRating: 1750, issues: [], note: 'Cross-realm', gear: {}, vault: { mythic: 3, raid: 5, world: 0 }, renderUrl: null, lastUpdated: new Date().toISOString() },
-        { name: 'Zaag', realm: 'azralon', guild: 'Errow', class: 'Warrior', spec: 'Arms', role: ROLE_DPS_MELEE, specId: 71, ilvl: 635, mythicRating: 1600, issues: [], note: '', gear: {}, vault: { mythic: 2, raid: 3, world: 1 }, renderUrl: null, lastUpdated: new Date().toISOString() },
-        { name: 'Ironshield', realm: 'azralon', guild: 'Errow', class: 'Paladin', spec: 'Protection', role: ROLE_TANK, specId: 66, ilvl: 633, mythicRating: 1500, issues: [], note: 'Off tank', gear: {}, vault: { mythic: 5, raid: 6, world: 2 }, renderUrl: null, lastUpdated: new Date().toISOString() },
-        { name: 'Windrunner', realm: 'azralon', guild: 'Errow', class: 'Hunter', spec: 'Marksmanship', role: ROLE_DPS_RANGE, specId: 254, ilvl: 628, mythicRating: 1200, issues: [], note: '', gear: {}, vault: { mythic: 1, raid: 2, world: 0 }, renderUrl: null, lastUpdated: new Date().toISOString() },
-        { name: 'Saturno', realm: 'azralon', guild: 'Errow', class: 'Shaman', spec: 'Restoration', role: ROLE_HEALER, specId: 264, ilvl: 624, mythicRating: 980, issues: [], note: '', gear: {}, vault: { mythic: 2, raid: 4, world: 1 }, renderUrl: null, lastUpdated: new Date().toISOString() },
-        { name: 'Darkbrew', realm: 'silvermoon', guild: 'Errow', class: 'Monk', spec: 'Windwalker', role: ROLE_DPS_MELEE, specId: 269, ilvl: 631, mythicRating: 1100, issues: [], note: 'Cross-realm', gear: {}, vault: { mythic: 3, raid: 4, world: 1 }, renderUrl: null, lastUpdated: new Date().toISOString() },
-        { name: 'Níghtwólf', realm: 'azralon', guild: 'Errow', class: 'Demon Hunter', spec: 'Havoc', role: ROLE_DPS_MELEE, specId: 577, ilvl: 615, mythicRating: 620, issues: [], note: 'Trial', gear: {}, vault: { mythic: 0, raid: 1, world: 0 }, renderUrl: null, lastUpdated: new Date().toISOString() },
-        { name: 'Archontus', realm: 'nemesis', guild: 'Errow', class: 'Paladin', spec: 'Holy', role: ROLE_HEALER, specId: 65, ilvl: 619, mythicRating: 890, issues: [], note: 'Cross-realm', gear: {}, vault: { mythic: 1, raid: 3, world: 0 }, renderUrl: null, lastUpdated: new Date().toISOString() },
+        { name:'Redtalon',   realm:'azralon',   guild:'Errow', class:'Death Knight', spec:'Blood',          role:ROLE_TANK,       specId:250, ilvl:648, mythicRating:2840, issues:[], note:'Main tank',   gear:{}, vault:{mythic:8,raid:7,world:3}, renderUrl:null, lastUpdated:new Date().toISOString() },
+        { name:'Solarheal',  realm:'azralon',   guild:'Errow', class:'Druid',        spec:'Restoration',    role:ROLE_HEALER,     specId:105, ilvl:645, mythicRating:2210, issues:[], note:'',             gear:{}, vault:{mythic:6,raid:10,world:1}, renderUrl:null, lastUpdated:new Date().toISOString() },
+        { name:'Aeerys',     realm:'azralon',   guild:'Errow', class:'Mage',         spec:'Frost',          role:ROLE_DPS_RANGE,  specId:64,  ilvl:641, mythicRating:1980, issues:[], note:'',             gear:{}, vault:{mythic:4,raid:7,world:2},  renderUrl:null, lastUpdated:new Date().toISOString() },
+        { name:'Doppel',     realm:'illidan',   guild:'Errow', class:'Rogue',        spec:'Assassination',  role:ROLE_DPS_MELEE,  specId:259, ilvl:638, mythicRating:1750, issues:[], note:'Cross-realm',  gear:{}, vault:{mythic:3,raid:5,world:0},  renderUrl:null, lastUpdated:new Date().toISOString() },
+        { name:'Zaag',       realm:'azralon',   guild:'Errow', class:'Warrior',      spec:'Arms',           role:ROLE_DPS_MELEE,  specId:71,  ilvl:635, mythicRating:1600, issues:[], note:'',             gear:{}, vault:{mythic:2,raid:3,world:1},  renderUrl:null, lastUpdated:new Date().toISOString() },
+        { name:'Ironshield', realm:'azralon',   guild:'Errow', class:'Paladin',      spec:'Protection',     role:ROLE_TANK,       specId:66,  ilvl:633, mythicRating:1500, issues:[], note:'Off tank',     gear:{}, vault:{mythic:5,raid:6,world:2},  renderUrl:null, lastUpdated:new Date().toISOString() },
+        { name:'Windrunner', realm:'azralon',   guild:'Errow', class:'Hunter',       spec:'Marksmanship',   role:ROLE_DPS_RANGE,  specId:254, ilvl:628, mythicRating:1200, issues:[], note:'',             gear:{}, vault:{mythic:1,raid:2,world:0},  renderUrl:null, lastUpdated:new Date().toISOString() },
+        { name:'Saturno',    realm:'azralon',   guild:'Errow', class:'Shaman',       spec:'Restoration',    role:ROLE_HEALER,     specId:264, ilvl:624, mythicRating:980,  issues:[], note:'',             gear:{}, vault:{mythic:2,raid:4,world:1},  renderUrl:null, lastUpdated:new Date().toISOString() },
+        { name:'Darkbrew',   realm:'silvermoon',guild:'Errow', class:'Monk',         spec:'Windwalker',     role:ROLE_DPS_MELEE,  specId:269, ilvl:631, mythicRating:1100, issues:[], note:'Cross-realm',  gear:{}, vault:{mythic:3,raid:4,world:1},  renderUrl:null, lastUpdated:new Date().toISOString() },
+        { name:'Níghtwólf',  realm:'azralon',   guild:'Errow', class:'Demon Hunter', spec:'Havoc',          role:ROLE_DPS_MELEE,  specId:577, ilvl:615, mythicRating:620,  issues:[], note:'Trial',        gear:{}, vault:{mythic:0,raid:1,world:0},  renderUrl:null, lastUpdated:new Date().toISOString() },
+        { name:'Archontus',  realm:'nemesis',   guild:'Errow', class:'Paladin',      spec:'Holy',           role:ROLE_HEALER,     specId:65,  ilvl:619, mythicRating:890,  issues:[], note:'Cross-realm',  gear:{}, vault:{mythic:1,raid:3,world:0},  renderUrl:null, lastUpdated:new Date().toISOString() },
     ];
     saveRoster(); renderAll(); notify('Demo carregado!');
 }

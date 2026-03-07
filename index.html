@@ -1,247 +1,313 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GuildAudit</title>
-    <meta name="description"
-        content="WoW Guild Audit — track gear, enchants, gems and M+ ratings for your raid roster.">
-    <link rel="icon" type="image/x-icon" href="https://wow.zamimg.com/images/wow/icons/medium/inv_scroll_11.jpg">
-    <link rel="stylesheet" href="styles.css?v=7">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GuildAudit — Rastreador de Guild WoW</title>
+  <meta name="description" content="Acompanhe equipamentos, encantos, sets de tier, ratings de M+ e prontidão para raid da sua guild.">
+  <link rel="icon" href="https://wow.zamimg.com/images/wow/icons/medium/inv_scroll_11.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:#080b10; --bg2:#0d1117; --bg3:#161b22; --border:#21262d;
+      --text:#e6edf3; --dim:#7d8590; --gold:#ffc107; --gold2:#e6a800;
+      --red:#f85149; --blue:#58a6ff; --purple:#a67df4; --glow:rgba(255,193,7,.12);
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; }
+    .bg-layer {
+      position:fixed; inset:0; z-index:0; pointer-events:none;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255,193,7,.07) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 40% at 80% 60%, rgba(166,125,244,.05) 0%, transparent 50%),
+        radial-gradient(ellipse 30% 30% at 10% 80%, rgba(88,166,255,.04) 0%, transparent 50%);
+    }
+    nav {
+      position:relative; z-index:10;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:20px 48px;
+      border-bottom:1px solid var(--border);
+      background:rgba(8,11,16,.8); backdrop-filter:blur(12px);
+    }
+    .nav-logo { font-family:'Cinzel',serif; font-size:1.25rem; font-weight:700; color:var(--gold); letter-spacing:.05em; text-decoration:none; }
+    .nav-logo span { color:var(--dim); font-weight:400; }
+    .lang-btn {
+      background:var(--bg3); border:1px solid var(--border); border-radius:6px;
+      color:var(--dim); font-family:'Inter',sans-serif; font-size:.78rem;
+      font-weight:600; letter-spacing:.06em; padding:6px 14px; cursor:pointer;
+      transition:border-color .2s, color .2s;
+    }
+    .lang-btn:hover { border-color:var(--gold2); color:var(--text); }
+    .hero {
+      position:relative; z-index:1;
+      display:flex; flex-direction:column; align-items:center;
+      text-align:center; padding:100px 24px 80px;
+    }
+    .hero-eyebrow {
+      font-size:.75rem; font-weight:600; letter-spacing:.15em;
+      text-transform:uppercase; color:var(--gold); margin-bottom:20px;
+      display:flex; align-items:center; gap:10px;
+    }
+    .hero-eyebrow::before, .hero-eyebrow::after { content:''; display:block; width:32px; height:1px; background:var(--gold2); opacity:.4; }
+    .hero h1 { font-family:'Cinzel',serif; font-size:clamp(2.8rem,7vw,5.5rem); font-weight:900; line-height:1.05; letter-spacing:-.01em; color:var(--text); margin-bottom:24px; }
+    .hero h1 em { font-style:normal; background:linear-gradient(135deg,var(--gold) 0%,#ff9800 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .hero-sub { font-size:1.15rem; color:var(--dim); font-weight:300; max-width:520px; line-height:1.7; margin-bottom:56px; }
+    .search-card {
+      width:100%; max-width:540px; background:var(--bg3);
+      border:1px solid var(--border); border-radius:16px; padding:32px;
+      box-shadow:0 0 60px var(--glow), 0 24px 48px rgba(0,0,0,.4);
+    }
+    .search-card h2 { font-family:'Cinzel',serif; font-size:1rem; font-weight:700; color:var(--gold); letter-spacing:.06em; text-transform:uppercase; margin-bottom:24px; text-align:left; }
+    .field { margin-bottom:14px; }
+    .field label { display:block; font-size:.72rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--dim); margin-bottom:6px; }
+    .field select, .field input {
+      width:100%; background:var(--bg2); border:1px solid var(--border); border-radius:8px;
+      color:var(--text); font-family:'Inter',sans-serif; font-size:.95rem; padding:10px 14px;
+      outline:none; transition:border-color .2s, box-shadow .2s; appearance:none; -webkit-appearance:none;
+    }
+    .field select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237d8590' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:36px; }
+    .field select:focus, .field input:focus { border-color:var(--gold2); box-shadow:0 0 0 3px rgba(255,193,7,.1); }
+    .field input::placeholder { color:var(--dim); }
+    .btn-go {
+      width:100%; margin-top:8px; padding:13px;
+      background:linear-gradient(135deg,var(--gold) 0%,#e68a00 100%);
+      color:#080b10; font-family:'Cinzel',serif; font-size:.9rem; font-weight:700;
+      letter-spacing:.08em; text-transform:uppercase; border:none; border-radius:8px;
+      cursor:pointer; transition:opacity .2s, transform .15s, box-shadow .2s;
+      box-shadow:0 4px 20px rgba(255,193,7,.25);
+    }
+    .btn-go:hover { opacity:.9; transform:translateY(-1px); box-shadow:0 8px 28px rgba(255,193,7,.35); }
+    .btn-go:active { transform:translateY(0); }
+    .search-hint { font-size:.75rem; color:var(--dim); text-align:center; margin-top:14px; line-height:1.6; }
+    .search-hint code { background:var(--bg2); border:1px solid var(--border); border-radius:4px; padding:1px 6px; font-size:.72rem; color:var(--blue); }
+    .features { position:relative; z-index:1; max-width:1000px; margin:80px auto 0; padding:0 24px 100px; }
+    .features-title { font-family:'Cinzel',serif; font-size:1.6rem; font-weight:700; text-align:center; margin-bottom:48px; color:var(--text); }
+    .features-title span { color:var(--gold); }
+    .feat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px; }
+    .feat-card { background:var(--bg3); border:1px solid var(--border); border-radius:12px; padding:24px; transition:border-color .2s, transform .2s; }
+    .feat-card:hover { border-color:rgba(255,193,7,.3); transform:translateY(-2px); }
+    .feat-icon { font-size:1.6rem; margin-bottom:14px; display:block; filter:drop-shadow(0 0 8px rgba(255,193,7,.2)); }
+    .feat-card h3 { font-size:.95rem; font-weight:600; color:var(--text); margin-bottom:6px; }
+    .feat-card p { font-size:.82rem; color:var(--dim); line-height:1.6; }
+    footer { position:relative; z-index:1; border-top:1px solid var(--border); padding:24px 48px; display:flex; align-items:center; justify-content:space-between; font-size:.78rem; color:var(--dim); }
+    .err-msg { display:none; font-size:.8rem; color:var(--red); margin-top:10px; text-align:center; }
+    .err-msg.show { display:block; }
+    @media (max-width:600px) {
+      nav { padding:16px 20px; }
+      .hero { padding:64px 20px 48px; }
+      .search-card { padding:24px 20px; }
+      footer { flex-direction:column; gap:8px; text-align:center; }
+    }
+  </style>
 </head>
-
 <body>
 
-    <div class="app-container">
+<div class="bg-layer"></div>
 
-        <header class="hdr">
-            <div class="hdr-left">
-                <div class="hdr-title" id="hdr-title">GuildAudit</div>
-                <div class="hdr-meta"><span id="rdot"></span><span id="rts">—</span></div>
-            </div>
-            <div class="hdr-right">
-                <span id="hmeta" style="font-size:.85rem;color:var(--text-dim)"></span>
-                <button class="btn btn-secondary btn-sm perm-officer perm-inline" onclick="forceRefresh()"
-                    id="btnRefresh">↻ <span class="t-refresh">Atualizar</span></button>
-                <button class="btn btn-secondary btn-sm perm-officer perm-inline" onclick="exportJSON()">⬇ <span
-                        class="t-export">Exportar</span></button>
-                <button class="btn btn-primary btn-sm perm-officer perm-inline" onclick="openImport()">⬆ <span
-                        class="t-import">Importar</span></button>
-                <div id="user-info" style="display:none;align-items:center;gap:8px">
-                    <span id="user-battletag" style="font-size:.85rem;color:var(--text)"></span>
-                    <span id="user-perm" class="perm-badge"></span>
-                    <button class="btn btn-secondary btn-sm" onclick="logoutBattleNet()" title="Logout">⏻</button>
-                </div>
-                <button id="btn-login" class="btn btn-primary btn-sm" onclick="loginBattleNet()">🔗 Login</button>
-            </div>
-        </header>
+<nav>
+  <a class="nav-logo" href="/">Guild<span>Audit</span></a>
+  <button class="lang-btn" id="lang-btn" onclick="toggleLang()">EN</button>
+</nav>
 
-        <div class="nav" id="navTabs">
-            <button class="nav-tab active" data-page="overview" onclick="showPage('overview',this)"><span
-                    class="t-overview">Overview</span></button>
-            <button class="nav-tab perm-officer" data-page="roster" onclick="showPage('roster',this)"><span
-                    class="t-roster">Roster</span></button>
-            <button class="nav-tab" data-page="vault" onclick="showPage('vault',this)"><span class="t-vault">Great
-                    Vault</span></button>
-            <button class="nav-tab perm-officer" data-page="settings" onclick="showPage('settings',this)"><span
-                    class="t-settings">Configurações</span></button>
+<section class="hero">
+  <div class="hero-eyebrow" data-i18n="eyebrow">Ferramenta de Prontidão para Raid</div>
+  <h1 data-i18n-html="h1">Conheça sua guild.<br><em>Antes da noite de raid.</em></h1>
+  <p class="hero-sub" data-i18n="sub">
+    Acompanhe equipamentos, encantos, gemas, sets de tier, ratings de M+ e embelezamentos
+    de cada membro da sua guild — atualizado automaticamente.
+  </p>
 
-            <div style="margin-left:auto; display:flex; align-items:center; padding-right:12px;">
-                <select id="cfg-dispLang" class="lang-select" onchange="saveLang();applyI18n();renderAll()">
-                    <option value="pt-BR">PT-BR</option>
-                    <option value="en">EN</option>
-                </select>
-            </div>
-        </div>
+  <div class="search-card">
+    <h2 data-i18n="card-title">Abrir sua guild</h2>
 
-        <!-- ═══ OVERVIEW ══════════════════════════════════════════════ -->
-        <div class="page active" id="page-overview">
-            <div class="stat-grid" id="statsGrid">
-                <div class="stat-card">
-                    <div class="stat-label" id="sl-members">Membros</div>
-                    <div class="stat-val" id="st-t">0</div>
-                    <div class="stat-sub" id="ss-raiders">raiders</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label" id="sl-avgilvl">iLvl Médio</div>
-                    <div class="stat-val" id="st-a">—</div>
-                    <div class="stat-sub" id="ss-equipped">equipado</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label" id="sl-maxilvl">iLvl Máx</div>
-                    <div class="stat-val" id="st-m">—</div>
-                    <div class="stat-sub" id="ss-highest">melhor</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label" id="sl-ready">Prontos</div>
-                    <div class="stat-val" id="st-r">0</div>
-                    <div class="stat-sub" id="ss-noissues">sem issues</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label" id="sl-issues">Issues</div>
-                    <div class="stat-val" id="st-i">0</div>
-                    <div class="stat-sub" id="ss-problems">com problema</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label" id="sl-missing">Faltando</div>
-                    <div class="stat-val" id="st-e">0</div>
-                    <div class="stat-sub" id="ss-enchgems">enchants/gems</div>
-                </div>
-            </div>
-            <div class="comp-grid" id="compGrid"></div>
-            <div class="section-title" id="st-ranking">Ranking por iLvl</div>
-            <div id="ovTable"></div>
-        </div>
-
-        <!-- ═══ ROSTER (officer only) ═════════════════════════════════ -->
-        <div class="page" id="page-roster">
-            <div class="comp-grid" id="rosterCompGrid"></div>
-            <div class="toolbar">
-                <input type="text" id="srch" placeholder="Buscar..." oninput="debouncedRoster()">
-            </div>
-
-            <div style="margin-bottom:16px">
-                <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px">
-                    <div
-                        style="font-weight:700;font-size:.85rem;color:var(--gold-light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">
-                        Adicionar Membro</div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
-                        <div style="flex:1;min-width:140px"><label
-                                style="font-size:.75rem;color:var(--text-dim)">Nome</label><input type="text" id="add-n"
-                                placeholder="Arthas" class="form-input"></div>
-                        <div style="flex:1;min-width:140px"><label
-                                style="font-size:.75rem;color:var(--text-dim)">Realm</label><input type="text"
-                                id="add-r" placeholder="azralon" class="form-input"></div>
-                        <button class="btn btn-primary btn-sm" onclick="trackChar()">🔍 Buscar e Adicionar</button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="rosterTable"></div>
-        </div>
-
-        <!-- ═══ GREAT VAULT ═══════════════════════════════════════════ -->
-        <div class="page" id="page-vault">
-            <div class="section-title">Great Vault</div>
-            <div id="vaultTable"></div>
-        </div>
-
-        <!-- ═══ SETTINGS (officer+) ═══════════════════════════════════ -->
-        <div class="page" id="page-settings">
-            <div class="settings-grid">
-
-                <div class="settings-card perm-officer perm-block">
-                    <h3 id="sc-display">Exibição</h3>
-                    <label><span class="toggle"><input type="checkbox" id="cfg-si" checked
-                                onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span
-                            class="t-show-issues">Exibir Issues</span></label>
-                    <label><span class="toggle"><input type="checkbox" id="cfg-sv" checked
-                                onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span
-                            class="t-show-vault">Exibir Vault</span></label>
-                    <label><span class="toggle"><input type="checkbox" id="cfg-sr" checked
-                                onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span
-                            class="t-show-rating">Exibir M+ Rating</span></label>
-                    <label><span class="toggle"><input type="checkbox" id="cfg-sn" checked
-                                onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span
-                            class="t-show-notes">Exibir Notas</span></label>
-                    <label><span class="toggle"><input type="checkbox" id="cfg-st" checked
-                                onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span
-                            class="t-show-tier">Exibir Peças de Tier</span></label>
-                    <label><span class="toggle"><input type="checkbox" id="cfg-ar" checked
-                                onchange="saveCfg();setupAR()"><span class="toggle-slider"></span></span> <span
-                            class="t-auto-refresh">Auto-refresh (15min)</span></label>
-                    <div style="margin-top:12px">
-                        <label style="font-weight:600" id="lbl-ilvl-min">iLvl Mínimo</label>
-                        <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:4px" class="t-ilvl-min-desc">
-                            Destacar
-                            jogadores abaixo deste iLvl</div>
-                        <input type="number" id="cfg-ilvlMin" class="form-input" placeholder="0" value="0"
-                            onchange="saveCfg();renderAll()" style="width:120px">
-                    </div>
-                    <!-- Meta Builds (WarcraftLogs) block removed -->
-                    <div style="margin-top:12px;margin-bottom:12px;border-top:1px solid var(--border);padding-top:12px">
-                        <label style="font-weight:600">Meta Stats (Archon)</label>
-                        <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:6px" class="t-archon-desc">
-                            Cole o conteúdo do arquivo txt aqui</div>
-                        <textarea id="cfg-archon" class="form-input"
-                            style="height:120px;width:100%;resize:vertical;font-family:monospace;font-size:11px;"
-                            placeholder="archon_stats_meta{...}"></textarea>
-                        <button class="btn btn-secondary" onclick="saveCfg();renderAll()"
-                            style="width:100%;margin-top:8px">💾 Salvar Atributos</button>
-                    </div>
-                </div>
-
-                <div class="settings-card perm-admin perm-block">
-                    <h3 id="sc-api">API Blizzard</h3>
-                    <label style="font-size:.8rem">URL do Worker</label>
-                    <input type="text" id="cfg-proxy" placeholder="https://your-worker.workers.dev/">
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-                        <div><label style="font-size:.8rem">Região</label><select id="cfg-reg" class="form-select"
-                                style="width:100%">
-                                <option value="us">US</option>
-                                <option value="eu">EU</option>
-                            </select></div>
-                        <div><label style="font-size:.8rem">Realm</label><input type="text" id="cfg-realm"
-                                placeholder="azralon">
-                        </div>
-                    </div>
-                    <label style="font-size:.8rem">Guild</label>
-                    <input type="text" id="cfg-guild" placeholder="errow">
-                    <button class="btn btn-primary" onclick="saveAPI()" style="width:100%">💾 Salvar</button>
-                </div>
-
-                <div class="settings-card perm-admin perm-block">
-                    <h3 id="sc-data">Dados</h3>
-                    <div style="display:grid;gap:8px">
-                        <button class="btn btn-secondary" onclick="exportJSON()">⬇ Exportar JSON</button>
-                        <label style="font-size:.8rem">Importar JSON</label>
-                        <textarea id="json-in" class="form-input" style="height:60px;resize:vertical"></textarea>
-                        <button class="btn btn-secondary" onclick="importJSON()">📥 Importar</button>
-                        <button class="btn btn-secondary" onclick="loadDemo()">🎮 Carregar Demo</button>
-                        <button class="btn btn-danger" onclick="clearAll()">🗑 Limpar Todos os Dados</button>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-
+    <div class="field">
+      <label data-i18n="label-region">Região</label>
+      <select id="inp-region">
+        <option value="us">US</option>
+        <option value="eu">EU</option>
+        <option value="kr">KR</option>
+        <option value="tw">TW</option>
+      </select>
     </div>
 
-    <!-- ═══ IMPORT MODAL ══════════════════════════════════════════ -->
-    <div class="mo" id="importMo">
-        <div class="mo-box">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-                <div class="mo-title" style="margin:0">Importar — Blizzard API</div>
-                <button class="btn btn-secondary btn-sm" onclick="closeMo('importMo')">✕</button>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-                <div><label style="font-size:.85rem">Realm</label><input type="text" id="imp-realm"
-                        placeholder="azralon" class="form-input"></div>
-                <div><label style="font-size:.85rem">Guild</label><input type="text" id="imp-guild" placeholder="errow"
-                        class="form-input"></div>
-            </div>
-            <button class="btn btn-primary" onclick="fetchAPI()" style="width:100%">🔗 Importar (ranks 0–2)</button>
-            <div class="progress-bar">
-                <div class="progress-bar-fill" id="aprog"></div>
-            </div>
-            <div id="alog"></div>
-        </div>
+    <div class="field">
+      <label data-i18n="label-realm">Servidor</label>
+      <input type="text" id="inp-realm" placeholder="azralon" spellcheck="false" autocomplete="off">
     </div>
 
-    <div id="notif"></div>
+    <div class="field">
+      <label data-i18n="label-guild">Nome da guild</label>
+      <input type="text" id="inp-guild" placeholder="errow" spellcheck="false" autocomplete="off">
+    </div>
 
-    <script src="data.js?v=7"></script>
-    <script src="api.js?v=7"></script>
-    <script src="render.js?v=7"></script>
-    <script src="auth.js?v=7"></script>
-    <script src="app.js?v=7"></script>
-    <script>
-        window.whTooltips = { colorLinks: false, iconizeLinks: false, renameLinks: true };
-    </script>
-    <script src="https://wow.zamimg.com/widgets/power.js" async></script>
+    <button class="btn-go" onclick="goToGuild()" data-i18n="btn">Abrir Guild →</button>
+    <div class="err-msg" id="err-msg" data-i18n="err">Preencha o servidor e o nome da guild.</div>
+
+    <p class="search-hint" data-i18n-html="hint">
+      Você será levado para <code>/{região}/{servidor}/{guild}</code><br>
+      Officers podem entrar com Battle.net para editar roster e configurações.
+    </p>
+  </div>
+</section>
+
+<section class="features">
+  <h2 class="features-title" data-i18n-html="feat-title">Tudo que seu <span>líder de raid</span> precisa</h2>
+  <div class="feat-grid">
+    <div class="feat-card">
+      <span class="feat-icon">⚔️</span>
+      <h3 data-i18n="f1-title">Equipamento & iLvl</h3>
+      <p data-i18n="f1-desc">Visão completa dos itens equipados com nível, qualidade e encantos ou gemas faltando destacados na hora.</p>
+    </div>
+    <div class="feat-card">
+      <span class="feat-icon">⬡</span>
+      <h3 data-i18n="f2-title">Progresso do Set de Tier</h3>
+      <p data-i18n="f2-desc">Veja quais slots de tier cada jogador tem — coloridos por Mítico, Heroico ou Normal — e quem ainda precisa do bônus de 4 peças.</p>
+    </div>
+    <div class="feat-card">
+      <span class="feat-icon">✵</span>
+      <h3 data-i18n="f3-title">Verificação de Embelezamentos</h3>
+      <p data-i18n="f3-desc">Marca jogadores que não estão usando os 2 itens embelezados recomendados para que nada passe despercebido.</p>
+    </div>
+    <div class="feat-card">
+      <span class="feat-icon">📊</span>
+      <h3 data-i18n="f4-title">Rating de M+</h3>
+      <p data-i18n="f4-desc">Score de Mythic+ por jogador com tiers coloridos, direto da API da Blizzard — sem scraping de terceiros.</p>
+    </div>
+    <div class="feat-card">
+      <span class="feat-icon">🔒</span>
+      <h3 data-i18n="f5-title">Login com Battle.net</h3>
+      <p data-i18n="f5-desc">Officers entram com Battle.net. As permissões são derivadas automaticamente do rank da guild no jogo.</p>
+    </div>
+    <div class="feat-card">
+      <span class="feat-icon">🔄</span>
+      <h3 data-i18n="f6-title">Atualização Automática</h3>
+      <p data-i18n="f6-desc">Os dados do roster atualizam a cada 15 minutos em segundo plano. O líder de raid sempre vê o gear atual.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span data-i18n="footer1">GuildAudit — não afiliado à Blizzard Entertainment</span>
+  <span>World of Warcraft® is a trademark of Blizzard Entertainment, Inc.</span>
+</footer>
+
+<script>
+var STRINGS = {
+  pt: {
+    'eyebrow':    'Ferramenta de Prontidão para Raid',
+    'h1':         'Conheça sua guild.<br><em>Antes da noite de raid.</em>',
+    'sub':        'Acompanhe equipamentos, encantos, gemas, sets de tier, ratings de M+ e embelezamentos de cada membro da sua guild — atualizado automaticamente.',
+    'card-title': 'Abrir sua guild',
+    'label-region':'Região',
+    'label-realm': 'Servidor',
+    'label-guild': 'Nome da guild',
+    'btn':         'Abrir Guild →',
+    'err':         'Preencha o servidor e o nome da guild.',
+    'hint':        'Você será levado para <code>/{região}/{servidor}/{guild}</code><br>Officers podem entrar com Battle.net para editar roster e configurações.',
+    'feat-title':  'Tudo que seu <span>líder de raid</span> precisa',
+    'f1-title': 'Equipamento & iLvl',
+    'f1-desc':  'Visão completa dos itens equipados com nível, qualidade e encantos ou gemas faltando destacados na hora.',
+    'f2-title': 'Progresso do Set de Tier',
+    'f2-desc':  'Veja quais slots de tier cada jogador tem — coloridos por Mítico, Heroico ou Normal — e quem ainda precisa do bônus de 4 peças.',
+    'f3-title': 'Verificação de Embelezamentos',
+    'f3-desc':  'Marca jogadores que não estão usando os 2 itens embelezados recomendados para que nada passe despercebido.',
+    'f4-title': 'Rating de M+',
+    'f4-desc':  'Score de Mythic+ por jogador com tiers coloridos, direto da API da Blizzard — sem scraping de terceiros.',
+    'f5-title': 'Login com Battle.net',
+    'f5-desc':  'Officers entram com Battle.net. As permissões são derivadas automaticamente do rank da guild no jogo.',
+    'f6-title': 'Atualização Automática',
+    'f6-desc':  'Os dados do roster atualizam a cada 15 minutos em segundo plano. O líder de raid sempre vê o gear atual.',
+    'footer1':  'GuildAudit — não afiliado à Blizzard Entertainment',
+  },
+  en: {
+    'eyebrow':    'Raid Readiness Tool',
+    'h1':         'Know your guild.<br><em>Before raid night.</em>',
+    'sub':        'Track gear, enchants, gems, tier sets, M+ ratings and embellishments for every member of your WoW guild — updated automatically.',
+    'card-title': 'Open your guild',
+    'label-region':'Region',
+    'label-realm': 'Realm',
+    'label-guild': 'Guild name',
+    'btn':         'Open Guild →',
+    'err':         'Please fill in realm and guild name.',
+    'hint':        'You\'ll be taken to <code>/{region}/{realm}/{guild}</code><br>Officers can log in with Battle.net to edit roster and settings.',
+    'feat-title':  'Everything your <span>raid lead</span> needs',
+    'f1-title': 'Gear & iLvl Tracking',
+    'f1-desc':  'Full equipment breakdown with item level, quality tiers and missing enchants or gems highlighted instantly.',
+    'f2-title': 'Tier Set Progress',
+    'f2-desc':  'See which tier slots each player has — colored by Mythic, Heroic or Normal — and who still needs the 4pc bonus.',
+    'f3-title': 'Embellishment Check',
+    'f3-desc':  'Flags players who aren\'t running the recommended 2 embellished items, so nothing slips through the cracks.',
+    'f4-title': 'M+ Ratings',
+    'f4-desc':  'Mythic+ score per player with color-coded tiers, straight from the Blizzard API — no third-party scraping.',
+    'f5-title': 'Battle.net Login',
+    'f5-desc':  'Officers log in with Battle.net. Permissions are derived from your in-game guild rank automatically.',
+    'f6-title': 'Auto-refresh',
+    'f6-desc':  'Roster data refreshes every 15 minutes in the background. Your raid lead always sees current gear.',
+    'footer1':  'GuildAudit — not affiliated with Blizzard Entertainment',
+  }
+};
+
+var currentLang = localStorage.getItem('ga_lang') || 'pt';
+
+function applyLang(lang) {
+  var s = STRINGS[lang];
+  document.documentElement.lang = lang === 'pt' ? 'pt-BR' : 'en';
+  document.title = lang === 'pt'
+    ? 'GuildAudit — Rastreador de Guild WoW'
+    : 'GuildAudit — WoW Guild Tracker';
+
+  document.querySelectorAll('[data-i18n]').forEach(function(el) {
+    var key = el.getAttribute('data-i18n');
+    if (s[key] !== undefined) el.textContent = s[key];
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(function(el) {
+    var key = el.getAttribute('data-i18n-html');
+    if (s[key] !== undefined) el.innerHTML = s[key];
+  });
+
+  document.getElementById('lang-btn').textContent = lang === 'pt' ? 'EN' : 'PT';
+}
+
+function toggleLang() {
+  currentLang = currentLang === 'pt' ? 'en' : 'pt';
+  localStorage.setItem('ga_lang', currentLang);
+  applyLang(currentLang);
+}
+
+// Pre-fill from last visit
+(function() {
+  var last = localStorage.getItem('ga_last_guild');
+  if (last) {
+    try {
+      var p = last.split(':');
+      if (p[0]) document.getElementById('inp-region').value = p[0];
+      if (p[1]) document.getElementById('inp-realm').value  = p[1];
+      if (p[2]) document.getElementById('inp-guild').value  = p[2];
+    } catch(e) {}
+  }
+  applyLang(currentLang);
+})();
+
+function goToGuild() {
+  var region = document.getElementById('inp-region').value.trim().toLowerCase();
+  var realm  = document.getElementById('inp-realm').value.trim().toLowerCase().replace(/\s+/g, '-');
+  var guild  = document.getElementById('inp-guild').value.trim().toLowerCase().replace(/\s+/g, '-');
+  var err    = document.getElementById('err-msg');
+  if (!realm || !guild) { err.classList.add('show'); return; }
+  err.classList.remove('show');
+  localStorage.setItem('ga_last_guild', region + ':' + realm + ':' + guild);
+  window.location.href = '/' + region + '/' + realm + '/' + guild;
+}
+
+['inp-realm','inp-guild'].forEach(function(id) {
+  document.getElementById(id).addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') goToGuild();
+  });
+});
+</script>
 
 </body>
-
 </html>

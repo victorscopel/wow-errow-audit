@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GuildAudit</title>
+    <meta name="description" content="WoW Guild Audit — track gear, enchants, gems and M+ ratings for your raid roster.">
+    <link rel="icon" type="image/x-icon" href="https://wow.zamimg.com/images/wow/icons/medium/inv_scroll_11.jpg">
+    <link rel="stylesheet" href="styles.css?v=8">
+</head>
+
+<body>
+
+    <div class="app-container">
+
+        <header class="hdr">
+            <div class="hdr-left">
+                <a href="/" class="hdr-home-link" title="Página inicial">⬡</a>
+                <div>
+                    <div class="hdr-title" id="guild-title">GuildAudit</div>
+                    <div class="hdr-meta">
+                        <span id="rdot"></span>
+                        <span id="realm-title" style="font-size:.78rem;color:var(--text-dim)"></span>
+                        <span id="rts" style="font-size:.78rem;color:var(--text-dim);margin-left:6px">—</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hdr-right">
+                <span id="hmeta" style="font-size:.85rem;color:var(--text-dim)"></span>
+                <button class="btn btn-secondary btn-sm perm-officer perm-inline" onclick="forceRefresh()" id="btnRefresh">↻ <span class="t-refresh">Atualizar</span></button>
+                <button class="btn btn-primary btn-sm perm-officer perm-inline" onclick="openImport()">⬆ <span class="t-import">Importar</span></button>
+                <div id="user-info" style="display:none;align-items:center;gap:8px">
+                    <span id="user-battletag" style="font-size:.85rem;color:var(--text)"></span>
+                    <span id="user-perm" class="perm-badge"></span>
+                    <button class="btn btn-secondary btn-sm" onclick="logoutBattleNet()" title="Logout">⏻</button>
+                </div>
+                <button id="btn-login" class="btn btn-primary btn-sm" onclick="loginBattleNet()">🔗 Login</button>
+            </div>
+        </header>
+
+        <div class="nav" id="navTabs">
+            <button class="nav-tab active" data-page="overview" onclick="showPage('overview',this)"><span class="t-overview">Overview</span></button>
+            <button class="nav-tab perm-officer" data-page="roster" onclick="showPage('roster',this)"><span class="t-roster">Roster</span></button>
+            <button class="nav-tab" data-page="vault" onclick="showPage('vault',this)"><span class="t-vault">Great Vault</span></button>
+            <button class="nav-tab perm-officer" data-page="settings" onclick="showPage('settings',this)"><span class="t-settings">Configurações</span></button>
+
+            <div style="margin-left:auto;display:flex;align-items:center;padding-right:12px">
+                <select id="cfg-dispLang" class="lang-select" onchange="saveLang();applyI18n();renderAll()">
+                    <option value="pt-BR">PT-BR</option>
+                    <option value="en">EN</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- ═══ OVERVIEW ══════════════════════════════════════════════ -->
+        <div class="page active" id="page-overview">
+            <div class="stat-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-label" id="sl-members">Membros</div>
+                    <div class="stat-val" id="st-t">0</div>
+                    <div class="stat-sub" id="ss-raiders">raiders</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label" id="sl-avgilvl">iLvl Médio</div>
+                    <div class="stat-val" id="st-a">—</div>
+                    <div class="stat-sub" id="ss-equipped">equipado</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label" id="sl-maxilvl">iLvl Máx</div>
+                    <div class="stat-val" id="st-m">—</div>
+                    <div class="stat-sub" id="ss-highest">melhor</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label" id="sl-ready">Prontos</div>
+                    <div class="stat-val" id="st-r">0</div>
+                    <div class="stat-sub" id="ss-noissues">sem issues</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label" id="sl-issues">Issues</div>
+                    <div class="stat-val" id="st-i">0</div>
+                    <div class="stat-sub" id="ss-problems">com problema</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label" id="sl-missing">Faltando</div>
+                    <div class="stat-val" id="st-e">0</div>
+                    <div class="stat-sub" id="ss-enchgems">enchants/gems</div>
+                </div>
+            </div>
+            <div class="comp-grid" id="compGrid"></div>
+            <div class="section-title" id="st-ranking">Ranking por iLvl</div>
+            <div id="ovTable"></div>
+        </div>
+
+        <!-- ═══ ROSTER (officer only) ═════════════════════════════════ -->
+        <div class="page" id="page-roster">
+            <div class="comp-grid" id="rosterCompGrid"></div>
+            <div class="toolbar">
+                <input type="text" id="srch" placeholder="Buscar..." oninput="debouncedRoster()">
+            </div>
+
+            <div style="margin-bottom:16px">
+                <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px">
+                    <div style="font-weight:700;font-size:.85rem;color:var(--gold-light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Adicionar Membro</div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+                        <div style="flex:1;min-width:140px">
+                            <label style="font-size:.75rem;color:var(--text-dim)">Nome</label>
+                            <input type="text" id="add-n" placeholder="Arthas" class="form-input">
+                        </div>
+                        <div style="flex:1;min-width:140px">
+                            <label style="font-size:.75rem;color:var(--text-dim)">Realm</label>
+                            <input type="text" id="add-r" placeholder="azralon" class="form-input">
+                        </div>
+                        <button class="btn btn-primary btn-sm" onclick="trackChar()">🔍 Buscar e Adicionar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="rosterTable"></div>
+        </div>
+
+        <!-- ═══ GREAT VAULT ═══════════════════════════════════════════ -->
+        <div class="page" id="page-vault">
+            <div class="section-title">Great Vault</div>
+            <div id="vaultTable"></div>
+        </div>
+
+        <!-- ═══ SETTINGS (officer+) ═══════════════════════════════════ -->
+        <div class="page" id="page-settings">
+            <div class="settings-grid" style="max-width:480px">
+
+                <div class="settings-card perm-officer perm-block">
+                    <h3 id="sc-display">Exibição</h3>
+                    <label><span class="toggle"><input type="checkbox" id="cfg-si" checked onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span class="t-show-issues">Exibir Issues</span></label>
+                    <label><span class="toggle"><input type="checkbox" id="cfg-sv" checked onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span class="t-show-vault">Exibir Vault</span></label>
+                    <label><span class="toggle"><input type="checkbox" id="cfg-sr" checked onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span class="t-show-rating">Exibir M+ Rating</span></label>
+                    <label><span class="toggle"><input type="checkbox" id="cfg-sn" checked onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span class="t-show-notes">Exibir Notas</span></label>
+                    <label><span class="toggle"><input type="checkbox" id="cfg-st" checked onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span class="t-show-tier">Exibir Tier</span></label>
+                    <label><span class="toggle"><input type="checkbox" id="cfg-ar" checked onchange="saveCfg();setupAR()"><span class="toggle-slider"></span></span> <span class="t-auto-refresh">Auto-refresh (15min)</span></label>
+
+                    <div style="margin-top:14px">
+                        <label style="font-weight:600" id="lbl-ilvl-min">iLvl Mínimo</label>
+                        <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:4px" class="t-ilvl-min-desc">Destacar jogadores abaixo deste iLvl</div>
+                        <input type="number" id="cfg-ilvlMin" class="form-input" placeholder="0" value="0" onchange="saveCfg();renderAll()" style="width:120px">
+                    </div>
+
+                    <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
+                        <label style="font-weight:600">Meta Stats (Archon.gg)</label>
+                        <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:10px">Prioridade de atributos por dificuldade de raid</div>
+                        <div style="display:flex;gap:8px">
+                            <label class="archon-diff-btn">
+                                <input type="radio" name="archonDiff" value="heroic" onchange="CFG.archonDiff='heroic';saveCfg();loadArchonStats()">
+                                <span>Heroico</span>
+                            </label>
+                            <label class="archon-diff-btn">
+                                <input type="radio" name="archonDiff" value="mythic" onchange="CFG.archonDiff='mythic';saveCfg();loadArchonStats()">
+                                <span>Mítico</span>
+                            </label>
+                        </div>
+                        <div id="archon-status" style="font-size:.72rem;color:var(--text-dim);margin-top:8px">—</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ═══ IMPORT MODAL ══════════════════════════════════════════ -->
+    <div class="mo" id="importMo">
+        <div class="mo-box">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                <div class="mo-title" style="margin:0">Importar — Blizzard API</div>
+                <button class="btn btn-secondary btn-sm" onclick="closeMo('importMo')">✕</button>
+            </div>
+            <div style="font-size:.82rem;color:var(--text-dim);margin-bottom:12px">
+                Importando guild <strong id="imp-guild-label" style="color:var(--text)"></strong>
+            </div>
+            <button class="btn btn-primary" onclick="fetchAPI()" style="width:100%">🔗 Importar (ranks 0–2)</button>
+            <div class="progress-bar">
+                <div class="progress-bar-fill" id="aprog"></div>
+            </div>
+            <div id="alog"></div>
+        </div>
+    </div>
+
+    <div id="notif"></div>
+
+    <script src="data.js?v=8"></script>
+    <script src="api.js?v=8"></script>
+    <script src="render.js?v=8"></script>
+    <script src="auth.js?v=8"></script>
+    <script src="app.js?v=8"></script>
+    <script>
+        window.whTooltips = { colorLinks: false, iconizeLinks: false, renameLinks: true };
+
+        // Show guild label in import modal and init archon radio
+        document.addEventListener('DOMContentLoaded', function () {
+            var cfg = typeof getAPICfg === 'function' ? getAPICfg() : {};
+            var lbl = document.getElementById('imp-guild-label');
+            if (lbl && cfg.guild) {
+                lbl.textContent = cfg.guild + ' @ ' + cfg.realm + ' (' + (cfg.region || 'us').toUpperCase() + ')';
+            }
+            // Set archon diff radio from saved CFG
+            var diff = (typeof CFG !== 'undefined' && CFG.archonDiff) || localStorage.getItem('ga_archonDiff') || 'heroic';
+            var radio = document.querySelector('input[name="archonDiff"][value="' + diff + '"]');
+            if (radio) radio.checked = true;
+        });
+
+        // Called by loadArchonStats after data loads — show last_updated in status
+        function updateArchonStatus(text) {
+            var el = document.getElementById('archon-status');
+            if (!el) return;
+            var match = text && text.match(/last_updated:([^\s}]+)/);
+            if (match) {
+                var d = new Date(match[1]);
+                el.textContent = 'Atualizado: ' + (isNaN(d) ? match[1] : d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }));
+            } else if (text && text.length > 10) {
+                el.textContent = 'Dados carregados ✓';
+            } else {
+                el.textContent = 'Sem dados do Archon';
+            }
+        }
+    </script>
+    <script src="https://wow.zamimg.com/widgets/power.js" async></script>
+
+</body>
+
+</html>

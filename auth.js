@@ -1,6 +1,6 @@
 // ══════════════════════════════════════════════════════════
 //  GUILDAUDIT — auth.js
-//  Battle.net OAuth + JWT permission system
+//  Battle.net OAuth + JWT permission system (multi-guild)
 // ══════════════════════════════════════════════════════════
 
 function initAuth() {
@@ -36,15 +36,21 @@ function getUser() {
     }
 }
 
+function hasPerm(required) {
+    var p = window._perm || 'guest';
+    if (required === 'officer') return p === 'officer' || p === 'admin';
+    if (required === 'admin')   return p === 'admin';
+    return true;
+}
+
 function applyPermissions() {
     var user = getUser();
     var perm = user ? (user.perm || 'guest') : 'guest';
     window._perm = perm;
 
     document.body.classList.remove('is-admin', 'is-officer');
-    if (perm === 'admin') document.body.classList.add('is-admin');
+    if (perm === 'admin')   document.body.classList.add('is-admin', 'is-officer');
     if (perm === 'officer') document.body.classList.add('is-officer');
-    if (perm === 'admin') document.body.classList.add('is-officer');
 
     var loginBtn = document.getElementById('btn-login');
     var userInfo = document.getElementById('user-info');
@@ -67,10 +73,10 @@ function applyPermissions() {
 }
 
 function loginBattleNet() {
-    var api = JSON.parse(localStorage.getItem('ga_api') || '{}');
-    var proxy = api.proxy || 'https://midnight.victorscopel.workers.dev';
-    var workerUrl = proxy.replace(/\/+$/, '');
-    window.location.href = workerUrl + '/auth/login';
+    var cfg = getAPICfg();
+    // Pass guild context so Worker knows which guild to verify rank against
+    var guildParam = cfg.region + ':' + cfg.realm + ':' + cfg.guild;
+    window.location.href = cfg.workerBase + '/auth/login?guild=' + encodeURIComponent(guildParam);
 }
 
 function logoutBattleNet() {

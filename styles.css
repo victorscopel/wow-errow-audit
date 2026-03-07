@@ -1572,3 +1572,37 @@ tr.row-under-min td {
     font-size: 0.85rem;
   }
 }
+/* ── guild.html additions ── */
+.hdr-home-link {
+    font-size: 1.3rem;
+    color: var(--gold);
+    text-decoration: none;
+    margin-right: 10px;
+    opacity: .7;
+    transition: opacity .2s;
+    line-height: 1;
+}
+.hdr-home-link:hover { opacity: 1; }
+
+/* ── Archon difficulty radio buttons ── */
+.archon-diff-btn {
+    display: flex; align-items: center;
+    cursor: pointer;
+}
+.archon-diff-btn input[type="radio"] { display: none; }
+.archon-diff-btn span {
+    padding: 6px 18px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: .82rem; font-weight: 600;
+    color: var(--text-dim);
+    background: var(--bg2);
+    transition: all .15s;
+    user-select: none;
+}
+.archon-diff-btn input:checked + span {
+    border-color: var(--gold2);
+    color: var(--gold);
+    background: rgba(255,193,7,.08);
+}
+.archon-diff-btn:hover span { border-color: var(--gold2); color: var(--text); }
