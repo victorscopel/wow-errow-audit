@@ -143,8 +143,11 @@ async function scrapeAll() {
 
         // POST to Worker if credentials are set
         if (WORKER_URL && ADMIN_TOKEN) {
+            const url = `${WORKER_URL.replace(/\/+$/, '')}/api/archon/${diff}`;
+            console.log(`\n  → POST ${url}`);
+            console.log(`  → X-Admin-Token: ${ADMIN_TOKEN.slice(0,4)}${'*'.repeat(Math.max(0,ADMIN_TOKEN.length-4))}`);
             try {
-                const res = await fetch(`${WORKER_URL}/api/archon/${diff}`, {
+                const res = await fetch(url, {
                     method:  'POST',
                     headers: {
                         'Content-Type':  'text/plain',
@@ -152,14 +155,20 @@ async function scrapeAll() {
                     },
                     body: output,
                 });
+                const body = await res.text();
+                console.log(`  → HTTP ${res.status}: ${body}`);
                 if (res.ok) {
                     console.log(`✓ POSTed ${diff} to Worker KV`);
                 } else {
-                    console.error(`✗ Worker rejected ${diff}: ${res.status} ${await res.text()}`);
+                    console.error(`✗ Worker rejected ${diff}: ${res.status} — ${body}`);
                 }
             } catch (e) {
                 console.error(`✗ Failed to POST ${diff}: ${e.message}`);
+                console.error(`  (check that WORKER_URL is reachable and has no typo)`);
             }
+        } else {
+            console.warn(`⚠ Skipping Worker POST for ${diff} — WORKER_URL or ADMIN_TOKEN missing`);
+            console.warn(`  WORKER_URL="${WORKER_URL}" ADMIN_TOKEN="${ADMIN_TOKEN ? '[set]' : '[empty]'}"`);
         }
     }
 
