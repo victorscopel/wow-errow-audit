@@ -353,15 +353,9 @@ function buildWHData(item, charData) {
   if (item.gemIds?.length) parts.push('gems=' + item.gemIds.join(':'));
   if (item.bonusIds?.length) parts.push('bonus=' + item.bonusIds.join(':'));
 
-  // Pass pstat so Wowhead resolves the correct primary stat (1=Strength, 3=Agility, 4=Intellect)
-  if (charData && charData.stats) {
-    var st = charData.stats;
-    var pstat = 0;
-    if (st.intellect > st.agility && st.intellect > st.strength) pstat = 4;
-    else if (st.agility >= st.strength)                           pstat = 3;
-    else                                                          pstat = 1;
-    if (pstat) parts.push('pstat=' + pstat);
-  }
+  // Pass spec= (Blizzard spec ID) so Wowhead resolves the correct primary stat
+  // This is exactly what WarcraftLogs does — same spec ID from the Blizzard API
+  if (charData && charData.specId) parts.push('spec=' + charData.specId);
 
   if (charData && charData.gear) {
     var pcs = [];
