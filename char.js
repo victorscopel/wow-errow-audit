@@ -424,7 +424,8 @@ function rmMember(id) {
     if (sd) try { roster = JSON.parse(sd); } catch (e) { }
 
     var rdot = document.getElementById('rdot');
-    if (rdot) rdot.className = 'off';
+    var cfgAR = JSON.parse(localStorage.getItem('ga_cfg') || '{}');
+    if (rdot) rdot.classList.toggle('off', !cfgAR.ar);
 
     function updateHeader() {
         if (roster.length) {

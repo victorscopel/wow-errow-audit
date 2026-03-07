@@ -184,23 +184,25 @@ function renderOverview() {
   });
   var el = document.getElementById('ovTable');
   if (!data.length) { el.innerHTML = '<div class="empty"><div class="empty-i">⚔️</div><div class="empty-t">' + T('no_data') + '</div><div class="empty-s">' + T('import_or_demo') + '</div></div>'; return; }
-  var isTh = CFG.si ? ovSth('issues', T('issues')) : '';
-  var vTh = CFG.sv ? '<th>' + T('vault') + '</th>' : '';
-  var rTh = CFG.sr ? ovSth('mythicRating', T('m_rating')) : '';
-  var nTh = CFG.sn ? '<th>' + T('note') + '</th>' : '';
-  var rmTh = hasPerm('officer') ? '<th></th>' : '';
+  var isTh  = CFG.si ? ovSth('issues', T('issues')) : '';
+  var vTh   = CFG.sv ? '<th>' + T('vault') + '</th>' : '';
+  var rTh   = CFG.sr ? ovSth('mythicRating', T('m_rating')) : '';
+  var nTh   = CFG.sn ? '<th>' + T('note') + '</th>' : '';
+  var stTh  = CFG.st ? '<th style="font-size:.72rem;color:var(--text-dim)">Tier</th>' : '';
+  var rmTh  = hasPerm('officer') ? '<th></th>' : '';
   var minIlvl = CFG.ilvlMin || 0;
   var rows = data.map(function (c, i) {
     var id = cid(c);
     var isUnder = minIlvl > 0 && (c.ilvl || 0) < minIlvl;
-    var isTd = CFG.si ? '<td>' + (c.issues?.length ? '<span style="color:var(--red);font-weight:600">' + c.issues.length + '</span>' : '<span class="it it-ok">✓</span>') + '</td>' : '';
-    var vTd = CFG.sv ? '<td style="color:var(--text-dim)">' + fmtVault(c) + '</td>' : '';
-    var rTd = CFG.sr ? '<td><span style="font-weight:700;color:' + ratingCol(c.mythicRating) + '">' + (c.mythicRating || '—') + '</span></td>' : '';
-    var nTd = CFG.sn ? '<td><span class="note-c" onclick="editNote(\'' + id + '\')">' + (c.note ? esc(c.note) : '<span style="opacity:.3">+</span>') + '</span></td>' : '';
-    var rmTd = hasPerm('officer') ? '<td><button class="btn btn-danger btn-sm" onclick="rmMember(\'' + id + '\')">✕</button></td>' : '';
-    return '<tr' + (isUnder ? ' class="row-under-min"' : '') + '><td style="color:var(--text-dim);width:35px">' + (i + 1) + '</td><td>' + cnCell(c) + '</td><td>' + roleBadge(c.role) + '</td><td><span class="ilvl ' + ilvlC(c.ilvl) + '">' + (c.ilvl || '—') + '</span></td>' + isTd + vTd + rTd + nTd + rmTd + '</tr>';
+    var isTd  = CFG.si ? '<td>' + (c.issues?.length ? '<span style="color:var(--red);font-weight:600">' + c.issues.length + '</span>' : '<span class="it it-ok">✓</span>') + '</td>' : '';
+    var vTd   = CFG.sv ? '<td style="color:var(--text-dim)">' + fmtVault(c) + '</td>' : '';
+    var rTd   = CFG.sr ? '<td><span style="font-weight:700;color:' + ratingCol(c.mythicRating) + '">' + (c.mythicRating || '—') + '</span></td>' : '';
+    var nTd   = CFG.sn ? '<td><span class="note-c" onclick="editNote(\'' + id + '\')">' + (c.note ? esc(c.note) : '<span style="opacity:.3">+</span>') + '</span></td>' : '';
+    var stTd  = CFG.st ? '<td>' + tierBadge(c) + '</td>' : '';
+    var rmTd  = hasPerm('officer') ? '<td><button class="btn btn-danger btn-sm" onclick="rmMember(\'' + id + '\')">✕</button></td>' : '';
+    return '<tr' + (isUnder ? ' class="row-under-min"' : '') + '><td style="color:var(--text-dim);width:35px">' + (i + 1) + '</td><td>' + cnCell(c) + '</td><td>' + roleBadge(c.role) + '</td><td><span class="ilvl ' + ilvlC(c.ilvl) + '">' + (c.ilvl || '—') + '</span></td>' + isTd + vTd + rTd + stTd + nTd + rmTd + '</tr>';
   }).join('');
-  el.innerHTML = '<table><thead><tr><th>#</th>' + ovSth('name', T('character')) + ovSth('role', T('role')) + ovSth('ilvl', T('ilvl')) + isTh + vTh + rTh + nTh + rmTh + '</tr></thead><tbody>' + rows + '</tbody></table>';
+  el.innerHTML = '<table><thead><tr><th>#</th>' + ovSth('name', T('character')) + ovSth('role', T('role')) + ovSth('ilvl', T('ilvl')) + isTh + vTh + rTh + stTh + nTh + rmTh + '</tr></thead><tbody>' + rows + '</tbody></table>';
 }
 
 function renderRoster() {
@@ -220,8 +222,9 @@ function renderRoster() {
   var el = document.getElementById('rosterTable');
   if (!filtered.length) { el.innerHTML = '<div class="empty"><div class="empty-i">👥</div><div class="empty-t">' + T('no_data') + '</div></div>'; return; }
   var isTh = CFG.si ? sth('issues', T('issues')) : '';
-  var rTh = CFG.sr ? sth('mythicRating', T('m_rating')) : '';
-  var nTh = CFG.sn ? sth('note', T('note')) : '';
+  var rTh  = CFG.sr ? sth('mythicRating', T('m_rating')) : '';
+  var nTh  = CFG.sn ? sth('note', T('note')) : '';
+  var stTh = CFG.st ? '<th style="font-size:.72rem;color:var(--text-dim)">Tier</th>' : '';
   var rmTh = hasPerm('officer') ? '<th></th>' : '';
   var canEditRole = hasPerm('officer');
   var minIlvl = CFG.ilvlMin || 0;
@@ -229,15 +232,16 @@ function renderRoster() {
     var id = cid(c);
     var isUnder = minIlvl > 0 && (c.ilvl || 0) < minIlvl;
     var isTd = CFG.si ? '<td><div style="display:flex;flex-wrap:wrap;gap:3px">' + (c.issues?.length ? c.issues.slice(0, 2).map(function (i) { return '<span class="it it-e">' + translateIssue(i).replace(/.*: /, '') + '</span>'; }).join('') + (c.issues.length > 2 ? '<span class="it" style="color:var(--text-dim);border:1px solid var(--border)">+' + (c.issues.length - 2) + '</span>' : '') : '<span class="it it-ok">✓</span>') + '</div></td>' : '';
-    var rTd = CFG.sr ? '<td><span style="font-weight:700;color:' + ratingCol(c.mythicRating) + '">' + (c.mythicRating || '—') + '</span></td>' : '';
-    var nTd = CFG.sn ? '<td><span class="note-c" onclick="editNote(\'' + id + '\')">' + (c.note ? esc(c.note) : '<span style="opacity:.3">+</span>') + '</span></td>' : '';
+    var rTd  = CFG.sr ? '<td><span style="font-weight:700;color:' + ratingCol(c.mythicRating) + '">' + (c.mythicRating || '—') + '</span></td>' : '';
+    var nTd  = CFG.sn ? '<td><span class="note-c" onclick="editNote(\'' + id + '\')">' + (c.note ? esc(c.note) : '<span style="opacity:.3">+</span>') + '</span></td>' : '';
+    var stTd = CFG.st ? '<td>' + tierBadge(c) + embBadge(c) + '</td>' : '';
     var roleCell = canEditRole
       ? '<select class="rs" onchange="changeRole(\'' + id + '\',this.value)"><option ' + (c.role === ROLE_TANK ? 'selected' : '') + '>Tank</option><option ' + (c.role === ROLE_HEALER ? 'selected' : '') + '>Healer</option><option ' + (c.role === ROLE_DPS_MELEE ? 'selected' : '') + '>DPS Melee</option><option ' + (c.role === ROLE_DPS_RANGE ? 'selected' : '') + '>DPS Ranged</option></select>'
       : roleBadge(c.role);
     var rmTd = hasPerm('officer') ? '<td><button class="btn btn-danger btn-sm" onclick="rmMember(\'' + id + '\')">✕</button></td>' : '';
-    return '<tr' + (isUnder ? ' class="row-under-min"' : '') + '><td>' + cnCell(c) + '</td><td>' + roleCell + '</td><td><span class="ilvl ' + ilvlC(c.ilvl) + '">' + (c.ilvl || '—') + '</span></td>' + isTd + rTd + nTd + rmTd + '</tr>';
+    return '<tr' + (isUnder ? ' class="row-under-min"' : '') + '><td>' + cnCell(c) + '</td><td>' + roleCell + '</td><td><span class="ilvl ' + ilvlC(c.ilvl) + '">' + (c.ilvl || '—') + '</span></td>' + isTd + rTd + stTd + nTd + rmTd + '</tr>';
   }).join('');
-  el.innerHTML = '<table><thead><tr>' + sth('name', T('character')) + sth('role', T('role')) + sth('ilvl', T('ilvl')) + isTh + rTh + nTh + rmTh + '</tr></thead><tbody>' + rows + '</tbody></table>';
+  el.innerHTML = '<table><thead><tr>' + sth('name', T('character')) + sth('role', T('role')) + sth('ilvl', T('ilvl')) + isTh + rTh + stTh + nTh + rmTh + '</tr></thead><tbody>' + rows + '</tbody></table>';
 }
 
 function renderVault() {
@@ -314,6 +318,30 @@ function exportCSV() {
 
 var _rosterDebounce = null;
 function debouncedRoster() { clearTimeout(_rosterDebounce); _rosterDebounce = setTimeout(renderRoster, 200); }
+
+
+function tierBadge(c) {
+  var TIER_SLOTS = ['head','shoulder','chest','hands','legs'];
+  var INITIALS = { head:'C', shoulder:'O', chest:'P', hands:'L', legs:'P' };
+  var pieces = TIER_SLOTS.filter(function(s){ return c.gear && c.gear[s] && c.gear[s].isTierSet; });
+  if (!pieces.length) return '<span style="color:var(--text-dim);font-size:.75rem">—</span>';
+  var html = '<span style="display:inline-flex;gap:1px">';
+  TIER_SLOTS.forEach(function(s) {
+    var has = c.gear && c.gear[s] && c.gear[s].isTierSet;
+    html += '<span style="width:14px;height:14px;border-radius:2px;font-size:.6rem;display:inline-flex;align-items:center;justify-content:center;font-weight:700;' +
+      (has ? 'background:rgba(212,175,55,.25);color:var(--gold);border:1px solid var(--gold2)' : 'background:var(--bg2);color:var(--text-dim);border:1px solid var(--border)') +
+      '">' + (INITIALS[s]||s[0].toUpperCase()) + '</span>';
+  });
+  html += '</span>';
+  return html;
+}
+
+function embBadge(c) {
+  var embCount = Object.values(c.gear || {}).filter(function(g){ return g && g.isEmbellished; }).length;
+  if (embCount === 2) return '';
+  if (embCount === 0) return '<span class="badge-emb" style="margin-left:3px" title="Sem embellishments">0✦</span>';
+  return '<span class="badge-emb" style="margin-left:3px;opacity:.7" title="Apenas 1 embellishment">1✦</span>';
+}
 
 function renderAll() {
   updateStats(); renderComp(); renderOverview(); renderRoster(); renderVault();

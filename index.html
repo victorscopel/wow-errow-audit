@@ -109,7 +109,10 @@
 
 <nav>
   <a class="nav-logo" href="/">Guild<span>Audit</span></a>
-  <button class="lang-btn" id="lang-btn" onclick="toggleLang()">EN</button>
+  <div class="lang-flags">
+    <button class="flag-btn" id="flag-pt" onclick="setLang('pt')" title="Português">🇧🇷</button>
+    <button class="flag-btn" id="flag-en" onclick="setLang('en')" title="English">🇺🇸</button>
+  </div>
 </nav>
 
 <section class="hero">
@@ -268,9 +271,11 @@ function applyLang(lang) {
     if (s[key] !== undefined) el.innerHTML = s[key];
   });
 
-  document.getElementById('lang-btn').textContent = lang === 'pt' ? 'EN' : 'PT';
+  document.getElementById('flag-pt').classList.toggle('flag-active', lang === 'pt');
+  document.getElementById('flag-en').classList.toggle('flag-active', lang === 'en');
 }
 
+function setLang(newLang) { lang = newLang; localStorage.setItem('ga_lang', lang); applyI18n(); }
 function toggleLang() {
   currentLang = currentLang === 'pt' ? 'en' : 'pt';
   localStorage.setItem('ga_lang', currentLang);

@@ -1606,3 +1606,25 @@ tr.row-under-min td {
     background: rgba(255,193,7,.08);
 }
 .archon-diff-btn:hover span { border-color: var(--gold2); color: var(--text); }
+
+/* ── Language flag buttons ── */
+.lang-flags { display: flex; gap: 4px; align-items: center; }
+.flag-btn {
+    background: none; border: 2px solid transparent;
+    border-radius: 6px; padding: 2px 4px;
+    font-size: 1.2rem; cursor: pointer; line-height: 1;
+    opacity: .45; transition: opacity .15s, border-color .15s;
+}
+.flag-btn:hover { opacity: .85; }
+.flag-btn.flag-active { opacity: 1; border-color: var(--gold2); }
+
+/* ── Embellishment badge ── */
+.badge-emb {
+    display: inline-block;
+    font-size: .68rem; font-weight: 700;
+    padding: 1px 4px; border-radius: 3px;
+    background: rgba(231,76,60,.15);
+    color: #e05252;
+    border: 1px solid rgba(231,76,60,.35);
+    vertical-align: middle;
+}
