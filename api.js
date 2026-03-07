@@ -157,10 +157,10 @@ function parseEquipment(equippedItems) {
     if (embCount === 0)      issues.push('embellishment:none');
     else if (embCount === 1) issues.push('embellishment:only_one');
 
-    if (Object.keys(tierSets).length > 0) {
-        var ARMOR_TIER_SLOTS = ['head', 'shoulder', 'chest', 'hands', 'legs'];
-        var equipped = ARMOR_TIER_SLOTS.filter(function (s) { return gear[s] && gear[s].isTierSet; }).length;
-        var missing  = Math.max(0, 4 - equipped);
+    var ARMOR_TIER_SLOTS = ['head', 'shoulder', 'chest', 'hands', 'legs'];
+    var equipped = ARMOR_TIER_SLOTS.filter(function (s) { return gear[s] && gear[s].isTierSet; }).length;
+    if (equipped > 0) {
+        var missing = Math.max(0, 4 - equipped);
         if (missing > 0) issues.push('tierset:' + equipped + ':' + missing);
     }
 
