@@ -279,7 +279,6 @@ function renderOverview() {
   var rTh   = CFG.sr ? ovSth('mythicRating', T('m_rating')) : '';
   var nTh   = CFG.sn ? '<th>' + T('note') + '</th>' : '';
   var stTh  = CFG.st ? '<th title="Head · Shoulder · Chest · Gloves · Legs">' + T('tier_pieces') + '</th>' : '';
-  var rmTh  = hasPerm('officer') ? '<th></th>' : '';
   var minIlvl = CFG.ilvlMin || 0;
   var rows = data.map(function (c, i) {
     var id = cid(c);
@@ -289,10 +288,9 @@ function renderOverview() {
     var rTd   = CFG.sr ? '<td><span style="font-weight:700;color:' + ratingCol(c.mythicRating) + '">' + (c.mythicRating || '—') + '</span></td>' : '';
     var nTd   = CFG.sn ? '<td><span class="note-c" onclick="editNote(\'' + id + '\')">' + (c.note ? esc(c.note) : '<span style="opacity:.3">+</span>') + '</span></td>' : '';
     var stTd  = CFG.st ? '<td>' + tierBadge(c) + '</td>' : '';
-    var rmTd  = hasPerm('officer') ? '<td><button class="btn btn-danger btn-sm" onclick="rmMember(\'' + id + '\')">✕</button></td>' : '';
-    return '<tr' + (isUnder ? ' class="row-under-min"' : '') + '><td style="color:var(--text-dim);width:35px">' + (i + 1) + '</td><td>' + cnCell(c) + '</td><td>' + roleBadge(c.role) + '</td><td><span class="ilvl ' + ilvlC(c.ilvl) + '">' + (c.ilvl || '—') + '</span></td>' + isTd + vTd + rTd + stTd + nTd + rmTd + '</tr>';
+    return '<tr' + (isUnder ? ' class="row-under-min"' : '') + '><td style="color:var(--text-dim);width:35px">' + (i + 1) + '</td><td>' + cnCell(c) + '</td><td>' + roleBadge(c.role) + '</td><td><span class="ilvl ' + ilvlC(c.ilvl) + '">' + (c.ilvl || '—') + '</span></td>' + isTd + vTd + rTd + stTd + nTd + '</tr>';
   }).join('');
-  el.innerHTML = '<table><thead><tr><th>#</th>' + ovSth('name', T('character')) + ovSth('role', T('role')) + ovSth('ilvl', T('ilvl')) + isTh + vTh + rTh + stTh + nTh + rmTh + '</tr></thead><tbody>' + rows + '</tbody></table>';
+  el.innerHTML = '<table><thead><tr><th>#</th>' + ovSth('name', T('character')) + ovSth('role', T('role')) + ovSth('ilvl', T('ilvl')) + isTh + vTh + rTh + stTh + nTh + '</tr></thead><tbody>' + rows + '</tbody></table>';
 }
 
 function renderRoster() {
