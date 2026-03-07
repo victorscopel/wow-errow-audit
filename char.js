@@ -395,6 +395,7 @@ function rerenderChar() {
 }
 
 function saveNote(id) {
+    if (!hasPerm('officer')) { alert(T('no_perm')); return; }
     var c = roster.find(function (x) { return cid(x) === id; });
     if (!c) return;
     c.note = document.getElementById('cp-note')?.value?.trim() || '';
@@ -403,6 +404,7 @@ function saveNote(id) {
 }
 
 function changeRole(id, newRole) {
+    if (!hasPerm('officer')) return;
     var c = roster.find(function (x) { return cid(x) === id; });
     if (!c) return;
     c.role = newRole;
@@ -411,6 +413,7 @@ function changeRole(id, newRole) {
 }
 
 function rmMember(id) {
+    if (!hasPerm('officer')) return;
     roster = roster.filter(function (x) { return cid(x) !== id; });
     localStorage.setItem('ga_data', JSON.stringify(roster));
     if (typeof saveRosterKV === 'function') saveRosterKV();

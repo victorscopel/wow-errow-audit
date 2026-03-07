@@ -1033,8 +1033,9 @@ a.whl {
 /* ── Settings ───────────────────────────────────────────── */
 .settings-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 20px;
+  align-items: start;
 }
 
 .settings-card {

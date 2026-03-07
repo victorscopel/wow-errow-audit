@@ -127,38 +127,38 @@
 
         <!-- ═══ SETTINGS (officer+) ═══════════════════════════════════ -->
         <div class="page" id="page-settings">
-            <div class="settings-grid" style="max-width:480px">
+            <div class="settings-grid">
 
                 <div class="settings-card perm-officer perm-block">
-                    <h3 id="sc-display">Exibição</h3>
+                    <h3 class="t-cfg-display">Exibição</h3>
                     <label><span class="toggle"><input type="checkbox" id="cfg-si" checked onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span class="t-show-issues">Exibir Issues</span></label>
                     <label><span class="toggle"><input type="checkbox" id="cfg-sv" checked onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span class="t-show-vault">Exibir Vault</span></label>
                     <label><span class="toggle"><input type="checkbox" id="cfg-sr" checked onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span class="t-show-rating">Exibir M+ Rating</span></label>
                     <label><span class="toggle"><input type="checkbox" id="cfg-sn" checked onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span class="t-show-notes">Exibir Notas</span></label>
-                    <label><span class="toggle"><input type="checkbox" id="cfg-st" checked onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span class="t-show-tier">Exibir Tier</span></label>
-                    <label><span class="toggle"><input type="checkbox" id="cfg-ar" checked onchange="saveCfg();setupAR()"><span class="toggle-slider"></span></span> <span class="t-auto-refresh">Auto-refresh (15min)</span></label>
+                    <label><span class="toggle"><input type="checkbox" id="cfg-st" checked onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span class="t-show-tier">Exibir Peças de Tier</span></label>
+                    <label><span class="toggle"><input type="checkbox" id="cfg-ar" checked onchange="saveCfg();setupAR()"><span class="toggle-slider"></span></span> <span class="t-auto-refresh">Refresh automático (15min)</span></label>
 
                     <div style="margin-top:14px">
-                        <label style="font-weight:600" id="lbl-ilvl-min">iLvl Mínimo</label>
+                        <label style="font-weight:600" class="t-ilvl-min">iLvl Mínimo</label>
                         <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:4px" class="t-ilvl-min-desc">Destacar jogadores abaixo deste iLvl</div>
                         <input type="number" id="cfg-ilvlMin" class="form-input" placeholder="0" value="0" onchange="saveCfg();renderAll()" style="width:120px">
                     </div>
+                </div>
 
-                    <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
-                        <label style="font-weight:600">Meta Stats (Archon.gg)</label>
-                        <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:10px">Prioridade de atributos por dificuldade de raid</div>
-                        <div style="display:flex;gap:8px">
-                            <label class="archon-diff-btn">
-                                <input type="radio" name="archonDiff" value="heroic" onchange="CFG.archonDiff='heroic';saveCfg();loadArchonStats()">
-                                <span>Heroico</span>
-                            </label>
-                            <label class="archon-diff-btn">
-                                <input type="radio" name="archonDiff" value="mythic" onchange="CFG.archonDiff='mythic';saveCfg();loadArchonStats()">
-                                <span>Mítico</span>
-                            </label>
-                        </div>
-                        <div id="archon-status" style="font-size:.72rem;color:var(--text-dim);margin-top:8px">—</div>
+                <div class="settings-card perm-officer perm-block">
+                    <h3 class="t-cfg-archon">Meta Stats (Archon.gg)</h3>
+                    <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:10px" class="t-cfg-archon-desc">Prioridade de atributos por dificuldade de raid</div>
+                    <div style="display:flex;gap:8px;margin-bottom:12px">
+                        <label class="archon-diff-btn">
+                            <input type="radio" name="archonDiff" value="heroic" onchange="CFG.archonDiff='heroic';saveCfg();loadArchonStats()">
+                            <span class="t-heroic">Heroico</span>
+                        </label>
+                        <label class="archon-diff-btn">
+                            <input type="radio" name="archonDiff" value="mythic" onchange="CFG.archonDiff='mythic';saveCfg();loadArchonStats()">
+                            <span class="t-mythic">Mítico</span>
+                        </label>
                     </div>
+                    <div id="archon-status" style="font-size:.72rem;color:var(--text-dim)">—</div>
                 </div>
 
             </div>

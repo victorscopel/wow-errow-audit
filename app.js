@@ -182,12 +182,14 @@ function changeRole(id, role) {
 }
 
 function rmMember(id) {
+    if (!hasPerm('officer')) { notify(T('no_perm')); return; }
     roster = roster.filter(function (x) { return cid(x) !== id; });
     saveRoster(); renderAll();
     notify('Membro removido.');
 }
 
 function editNote(id) {
+    if (!hasPerm('officer')) { notify(T('no_perm')); return; }
     var c = roster.find(function (x) { return cid(x) === id; });
     if (!c) return;
     var n = prompt('Nota para ' + c.name + ':', c.note || '');
@@ -198,6 +200,7 @@ function editNote(id) {
 
 // ── Manual add ────────────────────────────────────────────
 function addManual() {
+    if (!hasPerm('officer')) { notify(T('no_perm')); return; }
     var name = document.getElementById('m-n').value.trim();
     if (!name) { notify('Digite um nome.'); return; }
     roster.push({
