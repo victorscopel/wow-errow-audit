@@ -131,6 +131,7 @@ function applyI18n() {
     't-back': 'back_btn',
     't-show-issues': 'show_issues', 't-show-vault': 'show_vault', 't-show-rating': 'show_rating',
     't-show-notes': 'show_notes', 't-show-tier': 'show_tier', 't-auto-refresh': 'auto_refresh',
+    't-add-member': 'add_member', 't-search-add': 'search_add', 't-name': 'character', 't-realm-lbl': 'realm_lbl',
     't-cfg-display': 'cfg_display', 't-cfg-archon': 'cfg_archon', 't-cfg-archon-desc': 'cfg_archon_desc',
     't-ilvl-min': 'ilvl_min', 't-ilvl-min-desc': 'ilvl_min_desc',
     't-heroic': 'heroic', 't-mythic': 'mythic_diff',
@@ -150,6 +151,8 @@ function applyI18n() {
   }
   var srch = document.getElementById('srch');
   if (srch) srch.placeholder = T('search');
+  var addr = document.getElementById('add-r');
+  if (addr) addr.placeholder = T('realm_placeholder_short');
 }
 
 function cnCell(c) {
