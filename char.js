@@ -68,9 +68,9 @@ function buildSidebar(c, id) {
         '</div>' +
         '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px">' + roleSel + '<span class="ilvl ' + ilvlC(c.ilvl) + '">' + (c.ilvl || '—') + '</span>' + (c.mythicRating ? '<span style="font-weight:700;color:' + ratingCol(c.mythicRating) + '">M+ ' + c.mythicRating + '</span>' : '') + '</div>' +
         '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
-        '<a href="https://raider.io/characters/us/' + (c.realm || 'azralon') + '/' + c.name.toLowerCase() + '" target="_blank" class="btn btn-secondary btn-sm"><img src="https://raider.io/favicon.ico" style="width:13px;height:13px;vertical-align:middle;margin-right:3px;border-radius:2px">Raider.IO</a>' +
-        '<a href="https://www.warcraftlogs.com/character/us/' + (c.realm || 'azralon') + '/' + c.name.toLowerCase() + '" target="_blank" class="btn btn-secondary btn-sm"><img src="https://assets.rpglogs.com/img/warcraft/favicon.png" style="width:13px;height:13px;vertical-align:middle;margin-right:3px;border-radius:2px">WCL</a>' +
-        '<a href="https://worldofwarcraft.blizzard.com/' + (window._lang === 'pt-BR' ? 'pt-br' : 'en-us') + '/character/us/' + (c.realm || 'azralon') + '/' + c.name.toLowerCase() + '" target="_blank" class="btn btn-secondary btn-sm"><img src="https://bnetcmsus-a.akamaihd.net/cms/gallery/D2TTHKAPW9BH1534981363136.png" style="width:13px;height:13px;vertical-align:middle;margin-right:3px;border-radius:2px">Armory</a>' +
+        '<a href="https://raider.io/characters/' + (getAPICfg().region || 'us') + '/' + (c.realm || 'azralon') + '/' + c.name.toLowerCase() + '" target="_blank" class="btn btn-secondary btn-sm"><img src="https://raider.io/favicon.ico" style="width:13px;height:13px;vertical-align:middle;margin-right:3px;border-radius:2px">Raider.IO</a>' +
+        '<a href="https://www.warcraftlogs.com/character/' + (getAPICfg().region || 'us') + '/' + (c.realm || 'azralon') + '/' + c.name.toLowerCase() + '" target="_blank" class="btn btn-secondary btn-sm"><img src="https://assets.rpglogs.com/img/warcraft/favicon.png" style="width:13px;height:13px;vertical-align:middle;margin-right:3px;border-radius:2px">WCL</a>' +
+        '<a href="https://worldofwarcraft.blizzard.com/' + (window._lang === 'pt-BR' ? 'pt-br' : 'en-us') + '/character/' + (getAPICfg().region || 'us') + '/' + (c.realm || 'azralon') + '/' + c.name.toLowerCase() + '" target="_blank" class="btn btn-secondary btn-sm"><img src="https://bnetcmsus-a.akamaihd.net/cms/gallery/D2TTHKAPW9BH1534981363136.png" style="width:13px;height:13px;vertical-align:middle;margin-right:3px;border-radius:2px">Armory</a>' +
         '</div>' +
         '</div>' + // Close char-info-overlay
         '</div>' + // Close char-header-card
@@ -438,6 +438,13 @@ function rmMember(id) {
     }
 
     var cfg = getAPICfg();
+
+    // Fallback: if no guild in URL, try localStorage (set by app.js when guild page was last visited)
+    if (!cfg.guild || !cfg.realm) {
+        cfg.region = cfg.region || localStorage.getItem('ga_region') || 'us';
+        cfg.realm  = cfg.realm  || localStorage.getItem('ga_realm')  || '';
+        cfg.guild  = cfg.guild  || localStorage.getItem('ga_guild')  || '';
+    }
 
     // Show guild name in header
     var guildTitleEl = document.getElementById('guild-title');

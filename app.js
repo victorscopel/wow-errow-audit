@@ -157,7 +157,10 @@ function openChar(id) {
     var name  = parts[0] || '';
     var realm = parts[1] || getAPICfg().realm || 'azralon';
     if (!name) return;
-    window.location.href = 'char.html?name=' + encodeURIComponent(name) + '&realm=' + encodeURIComponent(realm);
+    var cfg = getAPICfg();
+    window.location.href = 'char.html?name=' + encodeURIComponent(name) +
+        '&realm=' + encodeURIComponent(realm) +
+        '&guild=' + cfg.region + '/' + cfg.realm + '/' + cfg.guild;
 }
 
 // ── Sorting ───────────────────────────────────────────────
