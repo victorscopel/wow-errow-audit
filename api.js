@@ -115,7 +115,8 @@ function parseEquipment(equippedItems) {
         var gemmed        = hasSockets && (socketsFilled === socketsTotal);
         var limitCat      = item.limit_category || null;
         var isEmbellished = !!(limitCat && limitCat.toLowerCase().includes('embellish'));
-        var isTierSet     = !!(item.set && item.set.item_set && item.set.item_set.id);
+        var TIER_ARMOR_SLOTS = ['head', 'shoulder', 'chest', 'hands', 'legs'];
+        var isTierSet     = !!(item.set && item.set.item_set && item.set.item_set.id && TIER_ARMOR_SLOTS.includes(slot));
 
         if (isTierSet && item.set) {
             var setId = item.set.item_set.id;
