@@ -117,41 +117,36 @@ function parseEquipment(equippedItems) {
         var isEmbellished = !!(limitCat && limitCat.toLowerCase().includes('embellish'));
         var isTierSet     = !!(item.set && item.set.item_set && item.set.item_set.id);
 
-        // ── PvP item detection ─────────────────────────────────────────
-        // Method 1: item spells mention war mode / arenas / battlegrounds
-        var spellText = (item.spells || []).map(function(s) {
-            return ((s.description || '') + ' ' + (s.spell && s.spell.name || '')).toLowerCase();
-        }).join(' ');
-        var isPvPSpell = spellText.includes('war mode') || spellText.includes('modo de guerra') ||
-                         spellText.includes('arena') || spellText.includes('battleground') ||
-                         spellText.includes('campo de batalha');
+        // ── PvP tier set detection ────────────────────────────────────
+        // Only applies to set items. Two signals are checked:
+        // 1. The set has an "upgrades item level in Arenas and Battlegrounds" spell (most reliable)
+        // 2. The set name contains known PvP set keywords (fallback)
+        var isPvP = false;
+        if (isTierSet && item.set) {
+            // Signal 1: spells that specifically mention "Arenas e Campos de Batalha" / "Arenas and Battlegrounds"
+            // This is the exact text from the tooltip: "Equipar: aumenta o nível do item para um mínimo de X em Arenas e Campos de Batalha"
+            var spellText = (item.spells || []).map(function(s) {
+                return ((s.description || '')).toLowerCase();
+            }).join(' ');
+            var hasPvPUpgradeSpell = spellText.includes('arenas') && (
+                spellText.includes('campos de batalha') || spellText.includes('battlegrounds') || spellText.includes('battleground')
+            );
 
-        // Method 2: name_description field (present on many PvP items)
-        var nameDesc = (item.name_description || '').toLowerCase();
-        var isPvPDesc = nameDesc.includes('pvp') || nameDesc.includes('war mode') ||
-                        nameDesc.includes('arena') || nameDesc.includes('honor') ||
-                        nameDesc.includes('conquest') || nameDesc.includes('honra') ||
-                        nameDesc.includes('conquista') || nameDesc.includes('modo de guerra');
+            // Signal 2: set name keywords for PvP sets across all regions/languages
+            var setName = (item.set.item_set.name || '').toLowerCase();
+            var hasPvPSetName = (
+                setName.includes('gladiator') || setName.includes('combatant') ||
+                setName.includes('aspirant')  || setName.includes('rival') ||
+                setName.includes('challenger')|| setName.includes('warmonger') ||
+                setName.includes('fomentador')|| setName.includes('gladiador') ||
+                setName.includes('combatente')|| setName.includes('desafiante') ||
+                setName.includes('contendor')
+            );
 
-        // Method 3: bonus_list — known PvP bonus IDs (TWW S1/S2/S3 + Dragonflight + legacy)
-        var PVP_BONUS_IDS = [4040, 4041, 6652, 6653, 6654, 6800, 6801, 6802, 6803, 7000, 7001, 7002, 7003];
-        var bonusList = item.bonus_list || [];
-        var isPvPBonus = bonusList.some(function(b) { return PVP_BONUS_IDS.indexOf(b) !== -1; });
-
-        // Method 4: PvP set name keywords
-        var setName = (item.set && item.set.item_set && item.set.item_set.name || '').toLowerCase();
-        var isPvPSet = isTierSet && (
-            setName.includes('gladiator') || setName.includes('combatant') ||
-            setName.includes('aspirant')  || setName.includes('rival') ||
-            setName.includes('challenger')|| setName.includes('warmonger') ||
-            setName.includes('fomentador')|| setName.includes('gladiador') ||
-            setName.includes('combatente')|| setName.includes('desafiante') ||
-            setName.includes('contendor') || setName.includes('guerra')
-        );
-
-        var isPvP = isPvPSpell || isPvPDesc || isPvPBonus || isPvPSet;
-        // A PvP item with a set is a PvP tier set — not a PvE raid tier set
-        if (isPvP && isTierSet) isTierSet = false;
+            isPvP = hasPvPUpgradeSpell || hasPvPSetName;
+            // PvP sets must NOT count as PvE raid tier sets
+            if (isPvP) isTierSet = false;
+        }
 
         if (isTierSet && item.set) {
             var setId = item.set.item_set.id;
@@ -182,7 +177,7 @@ function parseEquipment(equippedItems) {
             isEmbellished: isEmbellished,
             isTierSet: isTierSet,
             isPvP: isPvP,
-            pvpSetName: isPvP && isTierSet === false && item.set ? (item.set.item_set.name || '') : '',
+            pvpSetName: isPvP && item.set ? (item.set.item_set.name || '') : '',
         };
 
         if (ENCHANTABLE.includes(slot) && !enchanted)

@@ -203,6 +203,19 @@ function updateStats() {
   document.getElementById('st-r').textContent = roster.length - issCount;
   document.getElementById('st-i').textContent = issCount;
   document.getElementById('st-e').textContent = roster.reduce(function (s, c) { return s + (c.issues?.length || 0); }, 0);
+  // Show last sync timestamp
+  var tsEl = document.getElementById('st-sync-ts');
+  if (tsEl) {
+    var raw = localStorage.getItem('ga_sync_ts');
+    var lang = window._lang || 'pt-BR';
+    if (raw) {
+      var d = new Date(raw);
+      var lbl = lang === 'pt-BR' ? 'Atualizado: ' : 'Updated: ';
+      tsEl.textContent = lbl + d.toLocaleTimeString(lang === 'pt-BR' ? 'pt-BR' : 'en-US', { hour: '2-digit', minute: '2-digit' }) + ' · ' + d.toLocaleDateString(lang === 'pt-BR' ? 'pt-BR' : 'en-US', { day: '2-digit', month: '2-digit' });
+    } else {
+      tsEl.textContent = '';
+    }
+  }
 }
 
 function renderComp() {
@@ -275,7 +288,7 @@ function renderOverview() {
     var vTd   = CFG.sv ? '<td style="color:var(--text-dim)">' + fmtVault(c) + '</td>' : '';
     var rTd   = CFG.sr ? '<td><span style="font-weight:700;color:' + ratingCol(c.mythicRating) + '">' + (c.mythicRating || '—') + '</span></td>' : '';
     var nTd   = CFG.sn ? '<td><span class="note-c" onclick="editNote(\'' + id + '\')">' + (c.note ? esc(c.note) : '<span style="opacity:.3">+</span>') + '</span></td>' : '';
-    var stTd  = CFG.st ? '<td>' + tierBadge(c) + pvpTierBadge(c) + embBadge(c) + '</td>' : '';
+    var stTd  = CFG.st ? '<td>' + tierBadge(c) + '</td>' : '';
     var rmTd  = hasPerm('officer') ? '<td><button class="btn btn-danger btn-sm" onclick="rmMember(\'' + id + '\')">✕</button></td>' : '';
     return '<tr' + (isUnder ? ' class="row-under-min"' : '') + '><td style="color:var(--text-dim);width:35px">' + (i + 1) + '</td><td>' + cnCell(c) + '</td><td>' + roleBadge(c.role) + '</td><td><span class="ilvl ' + ilvlC(c.ilvl) + '">' + (c.ilvl || '—') + '</span></td>' + isTd + vTd + rTd + stTd + nTd + rmTd + '</tr>';
   }).join('');
@@ -311,7 +324,7 @@ function renderRoster() {
     var isTd = CFG.si ? '<td><div style="display:flex;flex-wrap:wrap;gap:3px">' + (c.issues?.length ? c.issues.slice(0, 2).map(function (i) { var t = translateIssue(i); var short = (i.includes(':') && !i.startsWith('embellishment:') && !i.startsWith('tierset:')) ? t.replace(/.*: /, '') : t; return '<span class="it it-e">' + short + '</span>'; }).join('') + (c.issues.length > 2 ? '<span class="it" style="color:var(--text-dim);border:1px solid var(--border)">+' + (c.issues.length - 2) + '</span>' : '') : '<span class="it it-ok">✓</span>') + '</div></td>' : '';
     var rTd  = CFG.sr ? '<td><span style="font-weight:700;color:' + ratingCol(c.mythicRating) + '">' + (c.mythicRating || '—') + '</span></td>' : '';
     var nTd  = CFG.sn ? '<td><span class="note-c" onclick="editNote(\'' + id + '\')">' + (c.note ? esc(c.note) : '<span style="opacity:.3">+</span>') + '</span></td>' : '';
-    var stTd = CFG.st ? '<td>' + tierBadge(c) + pvpTierBadge(c) + embBadge(c) + '</td>' : '';
+    var stTd = CFG.st ? '<td>' + tierBadge(c) + '</td>' : '';
     var roleCell = canEditRole
       ? '<select class="rs" onchange="changeRole(\'' + id + '\',this.value)"><option ' + (c.role === ROLE_TANK ? 'selected' : '') + '>Tank</option><option ' + (c.role === ROLE_HEALER ? 'selected' : '') + '>Healer</option><option ' + (c.role === ROLE_DPS_MELEE ? 'selected' : '') + '>DPS Melee</option><option ' + (c.role === ROLE_DPS_RANGE ? 'selected' : '') + '>DPS Ranged</option></select>'
       : roleBadge(c.role);
@@ -340,8 +353,15 @@ function buildWHData(item, charData) {
   if (item.gemIds?.length) parts.push('gems=' + item.gemIds.join(':'));
   if (item.bonusIds?.length) parts.push('bonus=' + item.bonusIds.join(':'));
 
-  // Pass spec so Wowhead resolves correct primary stat (e.g. Intellect not "Agility or Intellect")
-  if (charData && charData.specId) parts.push('ptrank=' + charData.specId);
+  // Pass pstat so Wowhead resolves the correct primary stat (1=Strength, 3=Agility, 4=Intellect)
+  if (charData && charData.stats) {
+    var st = charData.stats;
+    var pstat = 0;
+    if (st.intellect > st.agility && st.intellect > st.strength) pstat = 4;
+    else if (st.agility >= st.strength)                           pstat = 3;
+    else                                                          pstat = 1;
+    if (pstat) parts.push('pstat=' + pstat);
+  }
 
   if (charData && charData.gear) {
     var pcs = [];

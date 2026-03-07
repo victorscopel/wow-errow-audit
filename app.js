@@ -123,6 +123,7 @@ function saveCfg() {
 // ── saveRoster — local + KV ───────────────────────────────
 function saveRoster() {
     lss('ga_data', JSON.stringify(roster));
+    lss('ga_sync_ts', new Date().toISOString());
     if (typeof saveRosterKV === 'function') saveRosterKV();
 }
 
