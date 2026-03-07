@@ -72,7 +72,7 @@ function translateIssue(raw) {
     if (raw.startsWith('tierset:')) {
       var tp = raw.split(':');
       var have = tp[1]; var missing = tp[2] || '0';
-      return T('tierset_missing').replace('{n}', have).replace('{have}', missing);
+      return T('tierset_missing').replace('{n}', missing).replace('{have}', have);
     }
     if (raw.includes(':')) {
       var parts = raw.split(':');
