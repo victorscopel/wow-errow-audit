@@ -603,10 +603,8 @@ function renderGearUpgrades(c) {
             var slotLabel = slotDisp[sg.slot] || sg.slot;
             html += '<div style="margin-bottom:20px">';
             
-            // Título do Slot
             html += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin-bottom:10px">' + slotLabel + '</div>';
 
-            // Abre a Grelha: 3 blocos rigorosamente do mesmo tamanho
             html += '<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; align-items: stretch;">';
 
             sg.upgrades.forEach(function (u) {
@@ -617,6 +615,40 @@ function renderGearUpgrades(c) {
                 var maxStr = u.maxIlvl !== u.baseIlvl
                     ? ' <span style="color:var(--text-dim);font-size:11px">→ ' + u.maxIlvl + '</span>'
                     : '';
+                
+                // --- LÓGICA DO UPGRADE TRACK ---
+                var trackLabel = '';
+                if (isMplus) {
+                    if (u.recKey >= 10) trackLabel = 'Hero 3/6';
+                    else if (u.recKey >= 8) trackLabel = 'Hero 2/6';
+                    else if (u.recKey === 7) trackLabel = 'Hero 1/6';
+                    else if (u.recKey === 6) trackLabel = 'Champ 5/6';
+                    else if (u.recKey === 5) trackLabel = 'Champ 4/6';
+                    else if (u.recKey === 4) trackLabel = 'Champ 3/6';
+                    else if (u.recKey >= 2) trackLabel = 'Champ 2/6';
+                } else {
+                    if (diff === 'mythic') {
+                        if (u.baseIlvl === 272) trackLabel = 'Myth 1/6';
+                        else if (u.baseIlvl === 276) trackLabel = 'Myth 2/6';
+                        else if (u.baseIlvl === 279) trackLabel = 'Myth 3/6';
+                        else if (u.baseIlvl === 282) trackLabel = 'Myth 4/6';
+                        else trackLabel = 'Myth';
+                    } else if (diff === 'heroic') {
+                        if (u.baseIlvl === 259) trackLabel = 'Hero 1/6';
+                        else if (u.baseIlvl === 263) trackLabel = 'Hero 2/6';
+                        else if (u.baseIlvl === 266) trackLabel = 'Hero 3/6';
+                        else if (u.baseIlvl === 269) trackLabel = 'Hero 4/6';
+                        else trackLabel = 'Hero';
+                    } else if (diff === 'normal') {
+                        if (u.baseIlvl === 246) trackLabel = 'Champ 1/6';
+                        else if (u.baseIlvl === 250) trackLabel = 'Champ 2/6';
+                        else if (u.baseIlvl === 253) trackLabel = 'Champ 3/6';
+                        else if (u.baseIlvl === 256) trackLabel = 'Champ 4/6';
+                        else trackLabel = 'Champ';
+                    }
+                }
+                var trackHtml = trackLabel ? '<span style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:700;margin-left:4px;">(' + trackLabel + ')</span>' : '';
+                // ---------------------------------
                     
                 var qc = 'q-e'; 
                 var whData = 'item=' + item.itemId + '&ilvl=' + u.baseIlvl;
@@ -629,7 +661,6 @@ function renderGearUpgrades(c) {
 
                 var sourceName = isMplus ? (item.dungeonName || item.bossName) : item.bossName;
 
-                // Extrai os stats do item para exibir um resumo bonito
                 var statStr = '';
                 if (item.stats) {
                     var sArr = [];
@@ -640,20 +671,14 @@ function renderGearUpgrades(c) {
                     statStr = sArr.join(' <span style="color:var(--border)">·</span> ');
                 }
 
-                // Início do Card / Bloco
-                // Flex direction column + height 100% garantem que o rodapé fica sempre colado no fundo
                 html += '<div style="background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:8px; padding:12px; display:flex; flex-direction:column; height:100%; box-sizing:border-box; transition: border-color 0.1s;" onmouseover="this.style.borderColor=\'var(--gold)\'" onmouseout="this.style.borderColor=\'var(--border)\'">';
                 
-                // Topo: Badge e Score 
                 html += '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">';
                 html += badge;
                 html += '<span style="font-size:13px;color:var(--green);font-weight:800;background:rgba(30,255,0,0.1);padding:2px 6px;border-radius:4px;" title="Score increase">' + deltaStr + '</span>';
                 html += '</div>';
 
-                // Meio: O Wowhead Injecta o Icone Aqui + Nome do Item + Atributos
-                // flex-grow: 1 empurra a base do card sempre para o fundo
                 html += '<div style="flex-grow:1; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; gap:8px;">';
-                
                 html += '<a href="' + wowheadUrl + '" target="_blank" class="' + qc + '" ' +
                     'style="text-decoration:none;font-weight:600;font-size:13px;line-height:1.4;" ' +
                     'data-wowhead="' + whData + '" ' +
@@ -664,17 +689,19 @@ function renderGearUpgrades(c) {
                 }
                 html += '</div>';
 
-                // Base: iLvl do Drop e Nome do Chefe/Dungeon
                 html += '<div style="margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.05); display:flex; flex-direction:column; align-items:center; gap:4px;">';
-                html += '<span style="font-size:14px;color:var(--text);font-weight:700;">' + u.baseIlvl + maxStr + '</span>';
+                
+                // Exibe o Track Label Injetado Aqui (ex: 259 (Hero 1/6) → 276)
+                html += '<div style="display:flex; align-items:baseline; justify-content:center; gap:2px;"><span style="font-size:14px;color:var(--text);font-weight:700;">' + u.baseIlvl + '</span>' + trackHtml + maxStr + '</div>';
+                
                 html += '<span style="font-size:11px;color:var(--text-dim);text-align:center;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;" title="' + sourceName + '">' + sourceName + '</span>';
                 html += '</div>';
 
-                html += '</div>'; // Fim do Card
+                html += '</div>'; 
             });
 
-            html += '</div>'; // Fim da Grelha
-            html += '</div>'; // Fim da secção do Slot
+            html += '</div>'; 
+            html += '</div>'; 
         });
 
         if (weights) {
@@ -688,7 +715,6 @@ function renderGearUpgrades(c) {
         if (typeof WH !== 'undefined' && WH.getLocale) refreshWowheadTooltips();
     });
 }
-
 function renderChar(c) {
     if (!c) return;
     var id = cid(c);

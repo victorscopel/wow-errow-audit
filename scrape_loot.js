@@ -32,48 +32,59 @@ const DUNGEON_NAMES = [
 
 const BOSS_ILVL = {
     normal: {
-        'Imperador Averzian': 246,
-        'Vorasius': 249,
-        'Salhadaar, o Rei Caído': 249,
-        'Quimerus, a Divindade Insonhada': 249,
-        'Vaelgor e Ezzorak': 252,
-        'Vanguarda Cegada pela Luz': 252,
-        "Belo'ren, Filho de Al'ar": 252,
-        'Coroa do Cosmos': 255,
-        'Queda da Meia-noite': 255,
+        'Imperador Averzian': 246,                 // Champion 1/6
+        'Vorasius': 250,                           // Champion 2/6
+        'Salhadaar, o Rei Caído': 250,
+        'Quimerus, a Divindade Insonhada': 250,    // (The Dreamrift)
+        'Vaelgor e Ezzorak': 253,                  // Champion 3/6
+        'Vanguarda Cegada pela Luz': 253,
+        "Belo'ren, Filho de Al'ar": 253,           // (March on Quel'Danas)
+        'Coroa do Cosmos': 256,                    // Champion 4/6
+        'Queda da Meia-noite': 256,                // (March on Quel'Danas)
     },
     heroic: {
-        'Imperador Averzian': 259,
-        'Vorasius': 263,
+        'Imperador Averzian': 259,                 // Hero 1/6
+        'Vorasius': 263,                           // Hero 2/6
         'Salhadaar, o Rei Caído': 263,
         'Quimerus, a Divindade Insonhada': 263,
-        'Vaelgor e Ezzorak': 266,
+        'Vaelgor e Ezzorak': 266,                  // Hero 3/6
         'Vanguarda Cegada pela Luz': 266,
         "Belo'ren, Filho de Al'ar": 266,
-        'Coroa do Cosmos': 269,
+        'Coroa do Cosmos': 269,                    // Hero 4/6
         'Queda da Meia-noite': 269,
     },
     mythic: {
-        'Imperador Averzian': 272,
-        'Vorasius': 276,
+        'Imperador Averzian': 272,                 // Myth 1/6
+        'Vorasius': 276,                           // Myth 2/6
         'Salhadaar, o Rei Caído': 276,
         'Quimerus, a Divindade Insonhada': 276,
-        'Vaelgor e Ezzorak': 279,
+        'Vaelgor e Ezzorak': 279,                  // Myth 3/6
         'Vanguarda Cegada pela Luz': 279,
         "Belo'ren, Filho de Al'ar": 279,
-        'Coroa do Cosmos': 282,
+        'Coroa do Cosmos': 282,                    // Myth 4/6
         'Queda da Meia-noite': 282,
     },
 };
 
+// Loot M+ no Fim da Masmorra de acordo com Midnight S1
 const MYTHICPLUS_ILVL = {
-    2: 250, 3: 250, 4: 253, 5: 253, 6: 256, 7: 259, 8: 263, 9: 263, 10: 266,
+    2: 250, 
+    3: 250, 
+    4: 253, 
+    5: 256, 
+    6: 259, 
+    7: 259, 
+    8: 263, 
+    9: 263, 
+    10: 266,
 };
-const MYTHICPLUS_ILVL_MAX_DELTA = 20;
+
+// Em Midnight S1 as Tracks completas (do 1 ao 6) representam um salto de exatos 17 de ilvl
+const MYTHICPLUS_ILVL_MAX_DELTA = 17; 
 
 const UPGRADE_TRACKS = {
-    hero: { perStep: [3, 3, 4, 4, 3, 3], total: 20 },
-    myth: { perStep: [3, 3, 3, 3, 3, 2], total: 17 },
+    hero: { total: 17 }, // Hero 1 (259) vai até Hero 6 (276)
+    myth: { total: 17 }, // Myth 1 (272) vai até Myth 6 (289)
 };
 
 function maxIlvl(base, diff) {
