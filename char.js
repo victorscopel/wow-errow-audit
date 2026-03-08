@@ -615,7 +615,7 @@ function renderGearUpgrades(c) {
                 html += badge;
                 html += '<a href="' + wowheadUrl + '" target="_blank" ' +
                     'style="color:var(--text);text-decoration:none;flex:1;font-weight:500" ' +
-                    'onmouseover="WH.showTooltip(this,event)" ' +
+                    'data-wowhead="item=' + item.itemId + '" ' +
                     'data-wh-icon-size="small">' + item.name + '</a>';
                 html += '<span style="font-size:12px;color:var(--text-dim);white-space:nowrap">' + u.baseIlvl + maxStr + '</span>';
                 html += '<span style="font-size:12px;color:var(--green);font-weight:600;min-width:38px;text-align:right">' + deltaStr + '</span>';
