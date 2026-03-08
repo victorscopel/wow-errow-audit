@@ -69,7 +69,7 @@ const DUNGEON_NAMES = [
     "Academia Algeth'ar",     // Algeth'ar Academy (Dragonflight)
     'Fosso de Saron',         // Pit of Saron (WotLK)
     'Sede do Triunvirato',    // Seat of the Triumvirate (Legion)
-    'Beiracéu',               // Skyreach (WoD)
+    'Beira-céu',               // Skyreach (WoD)
 ];
 
 // ── Raid ilvl per boss per difficulty ─────────────────────
