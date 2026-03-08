@@ -237,7 +237,6 @@ function buildSuggestionsSection(c) {
     if (!c.mythicRating) {
         readyItems.push('<div class="suggestion-item"><span class="s-icon">—</span>' + T('no_mythic_score') + '</div>');
     }
-    // Talent missing check removed
     if (readyItems.length) {
         html += '<div class="suggestion-card suggestion-card--ready">';
         html += '<div class="suggestion-card-title">ℹ ' + T('readiness') + '</div>';
@@ -253,10 +252,11 @@ function buildSuggestionsSection(c) {
     html += '<div id="gear-upgrade-card" class="suggestion-card suggestion-card--meta">';
     html += '<div style="font-size:14px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px">';
     html += '⬆ ' + T('gear_upgrades');
-    html += '<div id="gear-upgrade-diff-toggle" style="margin-left:auto;display:flex;gap:4px">';
-    html += '<button id="btn-diff-normal" class="btn btn-sm" onclick="setUpgradeDiff(\'normal\')" style="font-size:11px;padding:2px 8px">Normal</button>';
-    html += '<button id="btn-diff-heroic" class="btn btn-sm" onclick="setUpgradeDiff(\'heroic\')" style="font-size:11px;padding:2px 8px">Heroic</button>';
-    html += '<button id="btn-diff-mythic" class="btn btn-sm" onclick="setUpgradeDiff(\'mythic\')" style="font-size:11px;padding:2px 8px">Mythic</button>';
+    // Botões maiores (font-size:12px, padding:5px 12px) e com mais espaçamento
+    html += '<div id="gear-upgrade-diff-toggle" style="margin-left:auto;display:flex;gap:6px">';
+    html += '<button id="btn-diff-normal" class="btn btn-sm" onclick="setUpgradeDiff(\'normal\')" style="font-size:12px;padding:5px 12px;border-radius:4px;cursor:pointer;transition:all 0.2s">Normal</button>';
+    html += '<button id="btn-diff-heroic" class="btn btn-sm" onclick="setUpgradeDiff(\'heroic\')" style="font-size:12px;padding:5px 12px;border-radius:4px;cursor:pointer;transition:all 0.2s">Heroic</button>';
+    html += '<button id="btn-diff-mythic" class="btn btn-sm" onclick="setUpgradeDiff(\'mythic\')" style="font-size:12px;padding:5px 12px;border-radius:4px;cursor:pointer;transition:all 0.2s">Mythic</button>';
     html += '</div></div>';
     html += '<div id="gear-upgrade-body"><div style="color:var(--text-dim);font-size:13px">' + T('meta_loading') + '</div></div>';
     html += '</div>';
@@ -264,7 +264,6 @@ function buildSuggestionsSection(c) {
     html += '</div>';
     return html;
 }
-
 function loadStatSuggestions(c) {
     var el = document.getElementById('meta-build-card');
     if (!el || !c.class || !c.spec) return;
@@ -398,13 +397,20 @@ function updateDiffButtons() {
     var btnH = document.getElementById('btn-diff-heroic');
     var btnM = document.getElementById('btn-diff-mythic');
     if (!btnH || !btnM) return;
-    var gold = 'var(--gold)';
-    var dim = 'var(--border)';
-    if (btnN) { btnN.style.borderColor = _upgradeDiff === 'normal' ? gold : dim; btnN.style.color = _upgradeDiff === 'normal' ? gold : 'var(--text-dim)'; }
-    btnH.style.borderColor = _upgradeDiff === 'heroic' ? gold : dim;
-    btnH.style.color = _upgradeDiff === 'heroic' ? gold : 'var(--text-dim)';
-    btnM.style.borderColor = _upgradeDiff === 'mythic' ? gold : dim;
-    btnM.style.color = _upgradeDiff === 'mythic' ? gold : 'var(--text-dim)';
+    
+    function setBtn(btn, diff) {
+        if (!btn) return;
+        var isActive = _upgradeDiff === diff;
+        // Aplica um fundo translúcido para o botão ativo e melhora o contraste do texto
+        btn.style.borderColor = isActive ? 'var(--gold)' : 'var(--border)';
+        btn.style.color = isActive ? 'var(--gold)' : 'var(--text)';
+        btn.style.backgroundColor = isActive ? 'rgba(212, 175, 55, 0.15)' : 'rgba(0, 0, 0, 0.2)';
+        btn.style.fontWeight = isActive ? '700' : '500';
+    }
+    
+    setBtn(btnN, 'normal');
+    setBtn(btnH, 'heroic');
+    setBtn(btnM, 'mythic');
 }
 
 function getLootData(cb) {
@@ -600,6 +606,7 @@ function renderGearUpgrades(c) {
         var diffColor = DIFF_COLOR[diff] || 'var(--text-dim)';
         var diffLabel = diff === 'normal' ? 'N' : diff === 'heroic' ? 'H' : 'M';
 
+
         var html = '';
         upgradeSlots.forEach(function (sg) {
             var slotLabel = slotDisp[sg.slot] || sg.slot;
@@ -611,16 +618,13 @@ function renderGearUpgrades(c) {
                 var item = u.item;
                 var isMplus = item.source === 'mythicplus';
                 
-                // Formatação mais clara do Track
                 var deltaStr = '+' + (u.baseSc - sg.equippedSc).toFixed(1);
                 var maxStr = u.maxIlvl !== u.baseIlvl
                     ? ' <span style="color:var(--text-dim);font-size:10px">→ ' + u.maxIlvl + '</span>'
                     : '';
                     
-                // Calcula a raridade baseada no iLvl (usando a sua função ilvlC de render.js)
-                var qc = ilvlC(u.baseIlvl); 
+                var qc = 'q-e'; 
                 
-                // Monta a string do Wowhead para carregar os stats/ilvl exatos
                 var whData = 'item=' + item.itemId + '&ilvl=' + u.baseIlvl;
                 if (c.specId) whData += '&spec=' + c.specId;
                 
@@ -635,7 +639,7 @@ function renderGearUpgrades(c) {
                 html += '<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px">';
                 html += badge;
                 html += '<a href="' + wowheadUrl + '" target="_blank" ' +
-                    'class="' + qc + '" ' +
+                    'class="' + qc + '" ' +  // Aplica a cor roxa (Epic) aqui
                     'style="text-decoration:none;flex:1;font-weight:600" ' +
                     'data-wowhead="' + whData + '" ' +
                     'data-wh-icon-size="small">' + item.name + '</a>';
@@ -645,7 +649,7 @@ function renderGearUpgrades(c) {
                 html += '</div>';
             });
             html += '</div>';
-        });
+        });        
 
         if (weights) {
             var topStats = Object.keys(weights).sort(function (a, b) { return weights[b] - weights[a]; }).slice(0, 2);
