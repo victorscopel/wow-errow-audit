@@ -213,11 +213,11 @@ function buildGearGrid(c) {
         html += '<div class="gs">' +
             '<img class="gs-img" src="' + imgSrc + '" onerror="this.src=\'https://wow.zamimg.com/images/wow/icons/medium/inv_misc_questionmark.jpg\'" alt="">' +
             '<div class="gs-info">' +
-            '<div class="gs-label">' + label + '</div>' +
-            
-            // Removemos a div extra e aplicamos o limite de largura direto no link
-            '<a href="' + whHref + '" target="_blank" class="gs-name ' + qc + '"' + whAttr + ' style="display:block; width:fit-content; max-width:100%; font-weight:600;">' + esc(item.name || '?') + '</a>' +
-            
+            '<div class="gs-label">' + label + '</div>' +            
+            '<div style="width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' +
+            '<a href="' + whHref + '" target="_blank" class="gs-name ' + qc + '"' + whAttr + ' style="display:inline; text-decoration:none; font-weight:600;">' + esc(item.name || '?') + '</a>' +
+            '</div>' +
+
             '<div class="gs-ilvl ' + qc + '" style="display:flex;align-items:center;gap:6px"><span>iLvl ' + (item.ilvl || '?') + '</span>' + statusBits + '</div>' +
             (issRows.length ? '<div class="gs-issues">' + issRows.join('') + '</div>' : '') +
             '</div></div>';
