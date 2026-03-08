@@ -591,102 +591,61 @@ function renderGearUpgrades(c) {
             return;
         }
 
-        var DIFF_COLOR = { normal: '#aaaaaa', heroic: '#1eff00', mythic: '#ff8000' };
-        var diffColor = DIFF_COLOR[diff] || 'var(--text-dim)';
-        var diffLabel = diff === 'normal' ? 'N' : diff === 'heroic' ? 'H' : 'M';
-
         var html = '';
         upgradeSlots.forEach(function (sg) {
             var slotLabel = slotDisp[sg.slot] || sg.slot;
             html += '<div style="margin-bottom:20px">';
             
             html += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin-bottom:10px">' + slotLabel + '</div>';
-            html += '<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; align-items: stretch;">';
+            
+            // Removido o align-items: stretch para os cards ficarem naturalmente mais curtos
+            html += '<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; align-items: start;">';
 
             sg.upgrades.forEach(function (u) {
                 var item = u.item;
                 var isMplus = item.source === 'mythicplus';
                 
-                var deltaStr = '+' + (u.baseSc - sg.equippedSc).toFixed(1);
+                // Formatação: "+9 iLvL" (remove o .0 se for número redondo para ficar mais limpo)
+                var deltaVal = (u.baseSc - sg.equippedSc).toFixed(1).replace(/\.0$/, '');
+                var deltaStr = '+' + deltaVal + ' iLvL';
                 
-                var trackLabel = '';
+                // Texto Extenso da Fonte (ex: "Raid normal" ou "Mythic+ 7")
+                var sourceLabel = '';
                 if (isMplus) {
-                    if (u.recKey >= 10) trackLabel = 'Hero 3/6';
-                    else if (u.recKey >= 8) trackLabel = 'Hero 2/6';
-                    else if (u.recKey === 7) trackLabel = 'Hero 1/6';
-                    else if (u.recKey === 6) trackLabel = 'Champ 5/6';
-                    else if (u.recKey === 5) trackLabel = 'Champ 4/6';
-                    else if (u.recKey === 4) trackLabel = 'Champ 3/6';
-                    else if (u.recKey >= 2) trackLabel = 'Champ 2/6';
+                    sourceLabel = 'Mythic+ ' + u.recKey;
                 } else {
-                    if (diff === 'mythic') {
-                        if (u.baseIlvl === 272) trackLabel = 'Myth 1/6';
-                        else if (u.baseIlvl === 276) trackLabel = 'Myth 2/6';
-                        else if (u.baseIlvl === 279) trackLabel = 'Myth 3/6';
-                        else if (u.baseIlvl === 282) trackLabel = 'Myth 4/6';
-                        else trackLabel = 'Myth';
-                    } else if (diff === 'heroic') {
-                        if (u.baseIlvl === 259) trackLabel = 'Hero 1/6';
-                        else if (u.baseIlvl === 263) trackLabel = 'Hero 2/6';
-                        else if (u.baseIlvl === 266) trackLabel = 'Hero 3/6';
-                        else if (u.baseIlvl === 269) trackLabel = 'Hero 4/6';
-                        else trackLabel = 'Hero';
-                    } else if (diff === 'normal') {
-                        if (u.baseIlvl === 246) trackLabel = 'Champ 1/6';
-                        else if (u.baseIlvl === 250) trackLabel = 'Champ 2/6';
-                        else if (u.baseIlvl === 253) trackLabel = 'Champ 3/6';
-                        else if (u.baseIlvl === 256) trackLabel = 'Champ 4/6';
-                        else trackLabel = 'Champ';
-                    }
+                    if (diff === 'mythic') sourceLabel = isPT ? 'Raid Mítica' : 'Mythic Raid';
+                    else if (diff === 'heroic') sourceLabel = isPT ? 'Raid Heroica' : 'Heroic Raid';
+                    else sourceLabel = isPT ? 'Raid Normal' : 'Normal Raid';
                 }
-                var trackHtml = trackLabel ? '<span style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:700;margin-left:4px;">(' + trackLabel + ')</span>' : '';
                     
                 var qc = 'q-e'; 
                 var whData = 'item=' + item.itemId + '&ilvl=' + u.baseIlvl;
                 if (c.specId) whData += '&spec=' + c.specId;
                 var wowheadUrl = 'https://' + whDomain() + '/item=' + item.itemId;
 
-                var badge = isMplus
-                    ? '<span style="font-size:11px;font-weight:700;background:#0d1f33;color:#4fc3f7;border:1px solid #4fc3f7;border-radius:4px;padding:2px 6px;">M+' + u.recKey + '</span>'
-                    : '<span style="font-size:11px;font-weight:700;background:rgba(0,0,0,0.3);color:' + diffColor + ';border:1px solid ' + diffColor + ';border-radius:4px;padding:2px 6px;">' + diffLabel + '</span>';
-
                 var sourceName = isMplus ? (item.dungeonName || item.bossName) : item.bossName;
 
-                var statStr = '';
-                if (item.stats) {
-                    var sArr = [];
-                    if (item.stats.crit) sArr.push('<span style="color:#e05252">Crit</span>');
-                    if (item.stats.haste) sArr.push('<span style="color:#f4a623">Haste</span>');
-                    if (item.stats.mastery) sArr.push('<span style="color:#5ba0f0">Mast</span>');
-                    if (item.stats.versatility) sArr.push('<span style="color:#8bc48b">Vers</span>');
-                    statStr = sArr.join(' <span style="color:var(--border)">·</span> ');
-                }
-
-                html += '<div style="background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:8px; padding:12px; display:flex; flex-direction:column; height:100%; box-sizing:border-box; transition: border-color 0.1s;" onmouseover="this.style.borderColor=\'var(--gold)\'" onmouseout="this.style.borderColor=\'var(--border)\'">';
+                // Card Reduzido em altura (padding menor, sem flex-grow)
+                html += '<div style="background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:8px; padding:10px; display:flex; flex-direction:column; box-sizing:border-box; transition: border-color 0.1s;" onmouseover="this.style.borderColor=\'var(--gold)\'" onmouseout="this.style.borderColor=\'var(--border)\'">';
                 
-                html += '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">';
-                html += badge;
-                html += '<span style="font-size:13px;color:var(--green);font-weight:800;background:rgba(30,255,0,0.1);padding:2px 6px;border-radius:4px;" title="Score increase">' + deltaStr + '</span>';
+                html += '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">';
+                html += '<span style="font-size:11px;font-weight:700;color:var(--text-dim);">' + sourceLabel + '</span>';
+                html += '<span style="font-size:11px;color:var(--green);font-weight:800;background:rgba(30,255,0,0.1);padding:2px 6px;border-radius:4px;" title="Score increase">' + deltaStr + '</span>';
                 html += '</div>';
 
-                html += '<div style="flex-grow:1; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; gap:8px;">';
-                
-                // SOLUÇÃO DO TOOLTIP: Wrapper div com display block limitando o espaço, e a tag <a> como inline puro
+                html += '<div style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; margin-bottom:8px;">';
                 html += '<div style="width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">';
                 html += '<a href="' + wowheadUrl + '" target="_blank" class="' + qc + '" ' +
-                    'style="display:inline; text-decoration:none;font-weight:600;font-size:13px;line-height:1.4;" ' +
+                    'style="display:inline; text-decoration:none;font-weight:600;font-size:13px;" ' +
                     'data-wowhead="' + whData + '" ' +
                     'data-wh-iconize="true" data-wh-icon-size="medium">' + item.name + '</a>';
                 html += '</div>';
-                
-                if (statStr) {
-                    html += '<div style="font-size:10px; font-weight:700; background:rgba(255,255,255,0.05); padding:2px 6px; border-radius:4px; margin-top:2px;">' + statStr + '</div>';
-                }
                 html += '</div>';
 
-                html += '<div style="margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.05); display:flex; flex-direction:column; align-items:center; gap:4px;">';
-                html += '<div style="display:flex; align-items:baseline; justify-content:center; gap:2px;"><span style="font-size:14px;color:var(--text);font-weight:700;">' + u.baseIlvl + '</span>' + trackHtml + '</div>';
-                html += '<span style="font-size:11px;color:var(--text-dim);text-align:center;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;" title="' + sourceName + '">' + sourceName + '</span>';
+                html += '<div style="padding-top:8px; border-top:1px solid rgba(255,255,255,0.05); display:flex; flex-direction:column; align-items:center; gap:2px;">';
+                html += '<span style="font-size:14px;color:var(--text);font-weight:700;">' + u.baseIlvl + '</span>';
+                html += '<span style="font-size:11px;color:var(--text-dim);text-align:center;line-height:1.2;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;" title="' + sourceName + '">' + sourceName + '</span>';
                 html += '</div>';
 
                 html += '</div>'; 
@@ -699,7 +658,7 @@ function renderGearUpgrades(c) {
         if (weights) {
             var topStats = Object.keys(weights).sort(function (a, b) { return weights[b] - weights[a]; }).slice(0, 2);
             html += '<div style="font-size:11px;color:var(--text-dim);margin-top:4px">' +
-                (isPT ? 'Score = iLvl Base Drop + atributos (Archon.gg: ' : 'Score = Base Drop iLvl + stats (Archon.gg: ') +
+                (isPT ? 'Score = iLvl Drop + atributos (Archon.gg: ' : 'Score = Drop iLvl + stats (Archon.gg: ') +
                 topStats.join(', ') + ').</div>';
         }
 
