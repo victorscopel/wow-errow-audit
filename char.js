@@ -591,6 +591,18 @@ function renderGearUpgrades(c) {
             return;
         }
 
+        // Dicionário de tradução de Dungeons/Raids
+        var instTrans = {
+            'A Fenda Onírica': 'The Dreamrift',
+            "Marcha em Quel'Danas": "March on Quel'Danas",
+            'Terraço dos Magísteres': "Magister's Terrace",
+            "Academia Algeth'ar": "Algeth'ar Academy",
+            'Fosso de Saron': 'Pit of Saron',
+            'Sede do Triunvirato': 'Seat of the Triumvirate',
+            'Beira-céu': 'Skyreach'
+            // Adicione as outras traduções de Midnight S1 aqui conforme a Blizzard confirmar os nomes em EN
+        };
+
         var html = '';
         upgradeSlots.forEach(function (sg) {
             var slotLabel = slotDisp[sg.slot] || sg.slot;
@@ -598,25 +610,39 @@ function renderGearUpgrades(c) {
             
             html += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin-bottom:10px">' + slotLabel + '</div>';
             
-            // Removido o align-items: stretch para os cards ficarem naturalmente mais curtos
-            html += '<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; align-items: start;">';
+            // Grelha forçando largura e altura idênticas
+            html += '<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; align-items: stretch;">';
 
             sg.upgrades.forEach(function (u) {
                 var item = u.item;
                 var isMplus = item.source === 'mythicplus';
                 
-                // Formatação: "+9 iLvL" (remove o .0 se for número redondo para ficar mais limpo)
                 var deltaVal = (u.baseSc - sg.equippedSc).toFixed(1).replace(/\.0$/, '');
                 var deltaStr = '+' + deltaVal + ' iLvL';
                 
-                // Texto Extenso da Fonte (ex: "Raid normal" ou "Mythic+ 7")
                 var sourceLabel = '';
+                var badgeBg = '';
+                var badgeColor = '';
+
+                // Textos, cores e fundos consoante a dificuldade e idioma
                 if (isMplus) {
-                    sourceLabel = 'Mythic+ ' + u.recKey;
+                    sourceLabel = isPT ? 'Mítica+ ' + u.recKey : 'Mythic+ ' + u.recKey;
+                    badgeBg = 'rgba(79, 195, 247, 0.15)';
+                    badgeColor = '#4fc3f7';
                 } else {
-                    if (diff === 'mythic') sourceLabel = isPT ? 'Raid Mítica' : 'Mythic Raid';
-                    else if (diff === 'heroic') sourceLabel = isPT ? 'Raid Heroica' : 'Heroic Raid';
-                    else sourceLabel = isPT ? 'Raid Normal' : 'Normal Raid';
+                    if (diff === 'mythic') {
+                        sourceLabel = isPT ? 'Raid Mítica' : 'Mythic Raid';
+                        badgeBg = 'rgba(255, 128, 0, 0.15)';
+                        badgeColor = '#ff8000';
+                    } else if (diff === 'heroic') {
+                        sourceLabel = isPT ? 'Raid Heroica' : 'Heroic Raid';
+                        badgeBg = 'rgba(30, 255, 0, 0.15)';
+                        badgeColor = '#1eff00';
+                    } else {
+                        sourceLabel = isPT ? 'Raid Normal' : 'Normal Raid';
+                        badgeBg = 'rgba(170, 170, 170, 0.15)';
+                        badgeColor = '#aaaaaa';
+                    }
                 }
                     
                 var qc = 'q-e'; 
@@ -624,22 +650,28 @@ function renderGearUpgrades(c) {
                 if (c.specId) whData += '&spec=' + c.specId;
                 var wowheadUrl = 'https://' + whDomain() + '/item=' + item.itemId;
 
+                // Traduz o nome da Instância se não for PT
                 var sourceName = isMplus ? (item.dungeonName || item.bossName) : item.bossName;
+                if (!isPT && instTrans[sourceName]) {
+                    sourceName = instTrans[sourceName];
+                }
 
-                // Card Reduzido em altura (padding menor, sem flex-grow)
-                html += '<div style="background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:8px; padding:10px; display:flex; flex-direction:column; box-sizing:border-box; transition: border-color 0.1s;" onmouseover="this.style.borderColor=\'var(--gold)\'" onmouseout="this.style.borderColor=\'var(--border)\'">';
+                // Se o scraper começar a guardar item.nameEn, usamos ele; senão cai pro nome em PT
+                var itemNameDisp = isPT ? item.name : (item.nameEn || item.name);
+
+                html += '<div style="background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:8px; padding:10px; display:flex; flex-direction:column; height:100%; box-sizing:border-box; transition: border-color 0.1s;" onmouseover="this.style.borderColor=\'var(--gold)\'" onmouseout="this.style.borderColor=\'var(--border)\'">';
                 
                 html += '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">';
-                html += '<span style="font-size:11px;font-weight:700;color:var(--text-dim);">' + sourceLabel + '</span>';
+                html += '<span style="font-size:11px;font-weight:700;color:' + badgeColor + ';background:' + badgeBg + ';padding:2px 6px;border-radius:4px;">' + sourceLabel + '</span>';
                 html += '<span style="font-size:11px;color:var(--green);font-weight:800;background:rgba(30,255,0,0.1);padding:2px 6px;border-radius:4px;" title="Score increase">' + deltaStr + '</span>';
                 html += '</div>';
 
-                html += '<div style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; margin-bottom:8px;">';
+                html += '<div style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; flex-grow:1; margin-bottom:8px;">';
                 html += '<div style="width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">';
                 html += '<a href="' + wowheadUrl + '" target="_blank" class="' + qc + '" ' +
                     'style="display:inline; text-decoration:none;font-weight:600;font-size:13px;" ' +
                     'data-wowhead="' + whData + '" ' +
-                    'data-wh-iconize="true" data-wh-icon-size="medium">' + item.name + '</a>';
+                    'data-wh-iconize="true" data-wh-icon-size="medium">' + itemNameDisp + '</a>';
                 html += '</div>';
                 html += '</div>';
 
