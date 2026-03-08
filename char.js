@@ -505,18 +505,13 @@ function renderGearUpgrades(c) {
         }
 
         var weights = parseStatWeights(c);
-        var diff = _upgradeDiff; // 'normal'|'heroic'|'mythic' — applies to raid only
+        var diff = _upgradeDiff; // 'normal'|'heroic'|'mythic'
         var isPT = (window._lang === 'pt-BR');
         var slotDisp = isPT ? SLOT_DISPLAY : SLOT_DISPLAY_EN;
-
-        // M+ reference key — lowest "relevant" key (Hero 1/6 = +7)
-        var MP_REF_KEY = 7;
 
         var GEAR_SLOTS = ['head', 'neck', 'shoulder', 'back', 'chest', 'wrist', 'hands',
             'waist', 'legs', 'feet', 'finger', 'trinket', 'mainhand', 'offhand', 'twohand'];
 
-        // Build per-slot candidate list
-        // Raid: filter to selected diff | M+: always included from MP_REF_KEY
         var bySlot = {};
         var charArmor = getArmorType(c.class);
         var armorSlots = ['head', 'shoulder', 'chest', 'wrist', 'hands', 'waist', 'legs', 'feet'];
@@ -524,7 +519,7 @@ function renderGearUpgrades(c) {
         lootData.items.forEach(function (item) {
             var s = item.slot;
 
-            // Armor type filtering
+            // Filtro de armadura
             if (armorSlots.includes(s)) {
                 var itemArmor = item.armorCat || '';
                 var isMatch = false;
@@ -537,43 +532,61 @@ function renderGearUpgrades(c) {
                 if (!isMatch) return;
             }
 
-            var baseIlvl = null;
-            var maxIlvl = null;
-
-            if (item.source === 'mythicplus') {
-                baseIlvl = item.ilvlByKey && item.ilvlByKey[MP_REF_KEY];
-                if (!baseIlvl) return;
-                maxIlvl = baseIlvl + (item.ilvlMaxDelta || 20);
-            } else {
-                baseIlvl = item.ilvl && item.ilvl[diff];
-                if (!baseIlvl) return;
-                maxIlvl = item.ilvlMax ? item.ilvlMax[diff] : baseIlvl + 20;
-            }
-
-            var s = item.slot;
             if (!bySlot[s]) bySlot[s] = [];
-            bySlot[s].push({ item: item, baseIlvl: baseIlvl, maxIlvl: maxIlvl });
+            bySlot[s].push(item);
         });
 
         var upgradeSlots = [];
 
         GEAR_SLOTS.forEach(function (slot) {
-            var candidates = bySlot[slot];
-            if (!candidates || !candidates.length) return;
+            var itemsInSlot = bySlot[slot];
+            if (!itemsInSlot || !itemsInSlot.length) return;
 
             var equippedSc = equippedScore(c, slot, weights);
+            var candidates = [];
 
-            var scored = candidates.map(function (u) {
-                var baseSc = itemScore(u.baseIlvl, u.item.stats, weights);
-                var maxSc = itemScore(u.maxIlvl, u.item.stats, weights);
-                return { item: u.item, baseIlvl: u.baseIlvl, maxIlvl: u.maxIlvl, baseSc: baseSc, maxSc: maxSc };
+            itemsInSlot.forEach(function (item) {
+                var baseIlvl = null;
+                var maxIlvl = null;
+                var recKey = null;
+
+                if (item.source === 'mythicplus') {
+                    // Descobre a chave mais baixa (+2 a +10) que já é upgrade
+                    for (var k = 2; k <= 10; k++) {
+                        var possibleIlvl = item.ilvlByKey[k];
+                        if (!possibleIlvl) continue;
+                        
+                        var possibleSc = itemScore(possibleIlvl, item.stats, weights);
+                        if (possibleSc > equippedSc) {
+                            baseIlvl = possibleIlvl;
+                            recKey = k;
+                            maxIlvl = baseIlvl + (item.ilvlMaxDelta || 20);
+                            break; // Achou a menor chave útil
+                        }
+                    }
+                    if (!baseIlvl) return; // Mesmo +10 não é upgrade
+                } else {
+                    baseIlvl = item.ilvl && item.ilvl[diff];
+                    if (!baseIlvl) return;
+                    maxIlvl = item.ilvlMax ? item.ilvlMax[diff] : baseIlvl + 20;
+                    var baseSc = itemScore(baseIlvl, item.stats, weights);
+                    if (baseSc <= equippedSc) return; // Raide não é upgrade
+                }
+
+                candidates.push({
+                    item: item,
+                    baseIlvl: baseIlvl,
+                    maxIlvl: maxIlvl,
+                    recKey: recKey,
+                    baseSc: itemScore(baseIlvl, item.stats, weights)
+                });
             });
 
-            scored.sort(function (a, b) { return b.baseSc - a.baseSc; });
-            var upgrades = scored.filter(function (x) { return x.baseSc > equippedSc; }).slice(0, 3);
+            if (!candidates.length) return;
 
-            if (!upgrades.length) return;
-            upgradeSlots.push({ slot: slot, upgrades: upgrades, equippedSc: equippedSc });
+            // Ordena os melhores upgrades para o topo
+            candidates.sort(function (a, b) { return b.baseSc - a.baseSc; });
+            upgradeSlots.push({ slot: slot, upgrades: candidates.slice(0, 3), equippedSc: equippedSc });
         });
 
         if (!upgradeSlots.length) {
@@ -583,7 +596,6 @@ function renderGearUpgrades(c) {
             return;
         }
 
-        // Raid diff badge colors (WoW convention)
         var DIFF_COLOR = { normal: '#aaaaaa', heroic: '#1eff00', mythic: '#ff8000' };
         var diffColor = DIFF_COLOR[diff] || 'var(--text-dim)';
         var diffLabel = diff === 'normal' ? 'N' : diff === 'heroic' ? 'H' : 'M';
@@ -598,15 +610,24 @@ function renderGearUpgrades(c) {
             sg.upgrades.forEach(function (u) {
                 var item = u.item;
                 var isMplus = item.source === 'mythicplus';
+                
+                // Formatação mais clara do Track
                 var deltaStr = '+' + (u.baseSc - sg.equippedSc).toFixed(1);
                 var maxStr = u.maxIlvl !== u.baseIlvl
-                    ? ' \u2192 <span style="color:var(--gold)">' + u.maxIlvl + '</span>'
+                    ? ' <span style="color:var(--text-dim);font-size:10px">→ ' + u.maxIlvl + '</span>'
                     : '';
-                var wowheadUrl = 'https://www.wowhead.com/item=' + item.itemId;
+                    
+                // Calcula a raridade baseada no iLvl (usando a sua função ilvlC de render.js)
+                var qc = ilvlC(u.baseIlvl); 
+                
+                // Monta a string do Wowhead para carregar os stats/ilvl exatos
+                var whData = 'item=' + item.itemId + '&ilvl=' + u.baseIlvl;
+                if (c.specId) whData += '&spec=' + c.specId;
+                
+                var wowheadUrl = 'https://' + whDomain() + '/item=' + item.itemId;
 
-                // Source badge
                 var badge = isMplus
-                    ? '<span style="font-size:10px;background:#0d1f33;color:#4fc3f7;border:1px solid #4fc3f7;border-radius:3px;padding:1px 5px;white-space:nowrap">M+' + MP_REF_KEY + '</span>'
+                    ? '<span style="font-size:10px;background:#0d1f33;color:#4fc3f7;border:1px solid #4fc3f7;border-radius:3px;padding:1px 5px;white-space:nowrap">M+' + u.recKey + '</span>'
                     : '<span style="font-size:10px;color:' + diffColor + ';border:1px solid ' + diffColor + ';border-radius:3px;padding:1px 5px">' + diffLabel + '</span>';
 
                 var sourceName = isMplus ? (item.dungeonName || item.bossName) : item.bossName;
@@ -614,11 +635,12 @@ function renderGearUpgrades(c) {
                 html += '<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px">';
                 html += badge;
                 html += '<a href="' + wowheadUrl + '" target="_blank" ' +
-                    'style="color:var(--text);text-decoration:none;flex:1;font-weight:500" ' +
-                    'data-wowhead="item=' + item.itemId + '" ' +
+                    'class="' + qc + '" ' +
+                    'style="text-decoration:none;flex:1;font-weight:600" ' +
+                    'data-wowhead="' + whData + '" ' +
                     'data-wh-icon-size="small">' + item.name + '</a>';
-                html += '<span style="font-size:12px;color:var(--text-dim);white-space:nowrap">' + u.baseIlvl + maxStr + '</span>';
-                html += '<span style="font-size:12px;color:var(--green);font-weight:600;min-width:38px;text-align:right">' + deltaStr + '</span>';
+                html += '<span style="font-size:12px;color:var(--text);white-space:nowrap;font-weight:500">' + u.baseIlvl + maxStr + '</span>';
+                html += '<span style="font-size:12px;color:var(--green);font-weight:600;min-width:38px;text-align:right" title="Score increase">' + deltaStr + '</span>';
                 html += '<span style="font-size:11px;color:var(--text-dim);max-width:110px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + sourceName + '">' + sourceName + '</span>';
                 html += '</div>';
             });
@@ -628,12 +650,8 @@ function renderGearUpgrades(c) {
         if (weights) {
             var topStats = Object.keys(weights).sort(function (a, b) { return weights[b] - weights[a]; }).slice(0, 2);
             html += '<div style="font-size:11px;color:var(--text-dim);margin-top:4px">' +
-                (isPT ? 'Score = ilvl + stats ponderados (Archon.gg: ' : 'Score = ilvl + weighted stats (Archon.gg: ') +
-                topStats.join(', ') + '). M+ a partir de +' + MP_REF_KEY + '.</div>';
-        } else {
-            html += '<div style="font-size:11px;color:var(--text-dim);margin-top:4px">' +
-                (isPT ? 'Score baseado em ilvl. M+ a partir de +' + MP_REF_KEY + '.'
-                    : 'Score based on ilvl. M+ from +' + MP_REF_KEY + '.') + '</div>';
+                (isPT ? 'Score = iLvl Base Drop + atributos (Archon.gg: ' : 'Score = Base Drop iLvl + stats (Archon.gg: ') +
+                topStats.join(', ') + ').</div>';
         }
 
         body.innerHTML = html;
