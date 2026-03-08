@@ -605,6 +605,7 @@ function renderGearUpgrades(c) {
             return;
         }
 
+// ... código anterior da função continua igual ...
 
         var DIFF_COLOR = { normal: '#aaaaaa', heroic: '#1eff00', mythic: '#ff8000' };
         var diffColor = DIFF_COLOR[diff] || 'var(--text-dim)';
@@ -670,18 +671,6 @@ function renderGearUpgrades(c) {
             html += '</div>'; // Fecha a Grelha
             html += '</div>'; // Fecha a secção do Slot
         });
-
-        if (weights) {
-            var topStats = Object.keys(weights).sort(function (a, b) { return weights[b] - weights[a]; }).slice(0, 2);
-            html += '<div style="font-size:11px;color:var(--text-dim);margin-top:4px">' +
-                (isPT ? 'Score = iLvl Base Drop + atributos (Archon.gg: ' : 'Score = Base Drop iLvl + stats (Archon.gg: ') +
-                topStats.join(', ') + ').</div>';
-        }
-
-        body.innerHTML = html;
-        if (typeof WH !== 'undefined' && WH.getLocale) refreshWowheadTooltips();
-    });
-}       
 
         if (weights) {
             var topStats = Object.keys(weights).sort(function (a, b) { return weights[b] - weights[a]; }).slice(0, 2);
