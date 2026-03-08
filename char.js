@@ -653,7 +653,7 @@ function renderGearUpgrades(c) {
                 html += '</div>';
 
                 html += '<div style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; flex-grow:1; margin-bottom:8px;">';
-                html += '<div style="width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">';
+                html += '<div style="width:100%; overflow:hidden; text-overflow:ellipsis;">';
                 html += '<a href="' + wowheadUrl + '" target="_blank" class="' + qc + '" ' +
                     'style="display:inline; text-decoration:none;font-weight:600;font-size:13px;" ' +
                     'data-wowhead="' + whData + '" ' +
