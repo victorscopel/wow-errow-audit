@@ -591,18 +591,6 @@ function renderGearUpgrades(c) {
             return;
         }
 
-        // Dicionário de tradução de Dungeons/Raids
-        var instTrans = {
-            'A Fenda Onírica': 'The Dreamrift',
-            "Marcha em Quel'Danas": "March on Quel'Danas",
-            'Terraço dos Magísteres': "Magister's Terrace",
-            "Academia Algeth'ar": "Algeth'ar Academy",
-            'Fosso de Saron': 'Pit of Saron',
-            'Sede do Triunvirato': 'Seat of the Triumvirate',
-            'Beira-céu': 'Skyreach'
-            // Adicione as outras traduções de Midnight S1 aqui conforme a Blizzard confirmar os nomes em EN
-        };
-
         var html = '';
         upgradeSlots.forEach(function (sg) {
             var slotLabel = slotDisp[sg.slot] || sg.slot;
@@ -650,13 +638,11 @@ function renderGearUpgrades(c) {
                 if (c.specId) whData += '&spec=' + c.specId;
                 var wowheadUrl = 'https://' + whDomain() + '/item=' + item.itemId;
 
-                // Traduz o nome da Instância se não for PT
-                var sourceName = isMplus ? (item.dungeonName || item.bossName) : item.bossName;
-                if (!isPT && instTrans[sourceName]) {
-                    sourceName = instTrans[sourceName];
-                }
-
-                // Se o scraper começar a guardar item.nameEn, usamos ele; senão cai pro nome em PT
+                // ─── A LÓGICA CORRIGIDA ESTÁ AGORA AQUI DENTRO DO LOOP ───
+                var sourceNamePT = isMplus ? (item.dungeonName || item.bossName) : item.bossName;
+                var sourceNameEN = isMplus ? (item.dungeonNameEn || item.bossNameEn) : item.bossNameEn;
+                
+                var sourceName = isPT ? sourceNamePT : (sourceNameEN || sourceNamePT);
                 var itemNameDisp = isPT ? item.name : (item.nameEn || item.name);
 
                 html += '<div style="background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:8px; padding:10px; display:flex; flex-direction:column; height:100%; box-sizing:border-box; transition: border-color 0.1s;" onmouseover="this.style.borderColor=\'var(--gold)\'" onmouseout="this.style.borderColor=\'var(--border)\'">';

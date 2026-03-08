@@ -190,7 +190,11 @@ function extractStats(itemData) {
 
 async function scrapeInstance(instance, source) {
     console.log(`\n  → [${instance.id}] ${instance.name}  (${source})`);
+    
+    // Busca os dados da instância em PT e EN
     const instData = await bnetGet(`/data/wow/journal-instance/${instance.id}`);
+    const instDataEn = await bnetGet(`/data/wow/journal-instance/${instance.id}`, { locale: 'en_US' });
+
     if (!instData?.encounters) {
         console.log(`     ⚠️  No encounters data`);
         return [];
@@ -199,7 +203,12 @@ async function scrapeInstance(instance, source) {
     const items = [];
 
     for (const enc of instData.encounters) {
-        console.log(`     Boss: "${enc.name}" (enc ${enc.id})`);
+        const bossName = enc.name;
+        // Procura o mesmo chefe na versão em inglês
+        const encEn = instDataEn?.encounters?.find(e => e.id === enc.id);
+        const bossNameEn = encEn ? encEn.name : bossName;
+
+        console.log(`     Boss: "${bossName}" (enc ${enc.id})`);
         await sleep(120);
 
         const encData = await bnetGet(`/data/wow/journal-encounter/${enc.id}`);
@@ -214,50 +223,46 @@ async function scrapeInstance(instance, source) {
             seenIds.add(itemId);
 
             await sleep(80);
-            
-            // 1. Busca os dados do item em PT (para bater com a tua lógica atual)
             const itemDataPT = await bnetGet(`/data/wow/item/${itemId}`, { locale: 'pt_BR' });
-            if (!itemDataPT) continue;
-
             await sleep(80);
-            
-            // 2. Busca os dados do item em EN (Inglês)
             const itemDataEN = await bnetGet(`/data/wow/item/${itemId}`, { locale: 'en_US' });
-            const nameEn = itemDataEN ? itemDataEN.name : itemDataPT.name;
+
+            if (!itemDataPT || !itemDataEN) continue;
 
             const slot = normalizeSlot(itemDataPT.inventory_type?.type);
             if (!EQUIPPABLE_SLOTS.has(slot)) continue;
 
             const stats = extractStats(itemDataPT);
             const armorCat = itemDataPT.item_subclass?.name || '';
-            const name = itemDataPT.name || `Item ${itemId}`; // Nome em PT
-            const bossName = enc.name;
+
+            const itemObj = {
+                itemId,
+                name: itemDataPT.name,
+                nameEn: itemDataEN.name, // NOME DO ITEM EM INGLÊS
+                slot,
+                source: source === 'raid' ? 'raid' : 'mythicplus',
+                bossName: bossName,
+                bossNameEn: bossNameEn,  // NOME DO CHEFE EM INGLÊS
+                armorCat,
+                stats
+            };
 
             if (source === 'raid') {
-                items.push({
-                    itemId, name, nameEn, slot, // <--- Adicionado o nameEn aqui
-                    source: 'raid', bossName, raidName: instance.name,
-                    armorCat, stats,
-                    ilvl: {
-                        normal: BOSS_ILVL.normal[bossName] || null,
-                        heroic: BOSS_ILVL.heroic[bossName] || null,
-                        mythic: BOSS_ILVL.mythic[bossName] || null,
-                    },
-                    ilvlMax: {
-                        normal: BOSS_ILVL.normal[bossName] ? maxIlvl(BOSS_ILVL.normal[bossName], 'normal') : null,
-                        heroic: BOSS_ILVL.heroic[bossName] ? maxIlvl(BOSS_ILVL.heroic[bossName], 'heroic') : null,
-                        mythic: BOSS_ILVL.mythic[bossName] ? maxIlvl(BOSS_ILVL.mythic[bossName], 'mythic') : null,
-                    },
-                });
+                itemObj.raidName = instance.name;
+                itemObj.raidNameEn = instDataEn?.name || instance.name; // RAIDE EM INGLÊS
+                itemObj.ilvl = {
+                    normal: BOSS_ILVL.normal[bossName] || null,
+                    heroic: BOSS_ILVL.heroic[bossName] || null,
+                    mythic: BOSS_ILVL.mythic[bossName] || null,
+                };
             } else {
-                items.push({
-                    itemId, name, slot,
-                    source: 'mythicplus', bossName, dungeonName: instance.name,
-                    armorCat, stats,
-                    ilvlByKey: { ...MYTHICPLUS_ILVL },
-                    ilvlMaxDelta: MYTHICPLUS_ILVL_MAX_DELTA,
-                });
+                itemObj.dungeonName = instance.name;
+                itemObj.dungeonNameEn = instDataEn?.name || instance.name; // DUNGEON EM INGLÊS
+                itemObj.ilvlByKey = { ...MYTHICPLUS_ILVL };
+                itemObj.ilvlMaxDelta = MYTHICPLUS_ILVL_MAX_DELTA;
             }
+
+            items.push(itemObj);
             count++;
         }
         console.log(`       ${count} items collected`);
