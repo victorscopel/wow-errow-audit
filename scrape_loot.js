@@ -214,20 +214,28 @@ async function scrapeInstance(instance, source) {
             seenIds.add(itemId);
 
             await sleep(80);
-            const itemData = await bnetGet(`/data/wow/item/${itemId}`);
-            if (!itemData) continue;
+            
+            // 1. Busca os dados do item em PT (para bater com a tua lógica atual)
+            const itemDataPT = await bnetGet(`/data/wow/item/${itemId}`, { locale: 'pt_BR' });
+            if (!itemDataPT) continue;
 
-            const slot = normalizeSlot(itemData.inventory_type?.type);
+            await sleep(80);
+            
+            // 2. Busca os dados do item em EN (Inglês)
+            const itemDataEN = await bnetGet(`/data/wow/item/${itemId}`, { locale: 'en_US' });
+            const nameEn = itemDataEN ? itemDataEN.name : itemDataPT.name;
+
+            const slot = normalizeSlot(itemDataPT.inventory_type?.type);
             if (!EQUIPPABLE_SLOTS.has(slot)) continue;
 
-            const stats = extractStats(itemData);
-            const armorCat = itemData.item_subclass?.name || '';
-            const name = itemData.name || `Item ${itemId}`;
+            const stats = extractStats(itemDataPT);
+            const armorCat = itemDataPT.item_subclass?.name || '';
+            const name = itemDataPT.name || `Item ${itemId}`; // Nome em PT
             const bossName = enc.name;
 
             if (source === 'raid') {
                 items.push({
-                    itemId, name, slot,
+                    itemId, name, nameEn, slot, // <--- Adicionado o nameEn aqui
                     source: 'raid', bossName, raidName: instance.name,
                     armorCat, stats,
                     ilvl: {
