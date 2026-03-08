@@ -514,7 +514,7 @@ function renderGearUpgrades(c) {
         }
 
         var weights = parseStatWeights(c);
-        var diff = _upgradeDiff; // 'normal'|'heroic'|'mythic'
+        var diff = _upgradeDiff;
         var isPT = (window._lang === 'pt-BR');
         var slotDisp = isPT ? SLOT_DISPLAY : SLOT_DISPLAY_EN;
 
@@ -527,8 +527,6 @@ function renderGearUpgrades(c) {
 
         lootData.items.forEach(function (item) {
             var s = item.slot;
-
-            // Filtro de armadura
             if (armorSlots.includes(s)) {
                 var itemArmor = item.armorCat || '';
                 var isMatch = false;
@@ -537,10 +535,8 @@ function renderGearUpgrades(c) {
                 else if (charArmor === 'Leather' && (itemArmor === 'Couro' || itemArmor === 'Leather')) isMatch = true;
                 else if (charArmor === 'Cloth' && (itemArmor === 'Tecido' || itemArmor === 'Cloth')) isMatch = true;
                 else if (itemArmor === 'Diversos' || itemArmor === 'Miscellaneous' || !itemArmor) isMatch = true;
-
                 if (!isMatch) return;
             }
-
             if (!bySlot[s]) bySlot[s] = [];
             bySlot[s].push(item);
         });
@@ -560,40 +556,33 @@ function renderGearUpgrades(c) {
                 var recKey = null;
 
                 if (item.source === 'mythicplus') {
-                    // Descobre a chave mais baixa (+2 a +10) que já é upgrade
                     for (var k = 2; k <= 10; k++) {
                         var possibleIlvl = item.ilvlByKey[k];
                         if (!possibleIlvl) continue;
-                        
                         var possibleSc = itemScore(possibleIlvl, item.stats, weights);
                         if (possibleSc > equippedSc) {
                             baseIlvl = possibleIlvl;
                             recKey = k;
                             maxIlvl = baseIlvl + (item.ilvlMaxDelta || 20);
-                            break; // Achou a menor chave útil
+                            break;
                         }
                     }
-                    if (!baseIlvl) return; // Mesmo +10 não é upgrade
+                    if (!baseIlvl) return;
                 } else {
                     baseIlvl = item.ilvl && item.ilvl[diff];
                     if (!baseIlvl) return;
                     maxIlvl = item.ilvlMax ? item.ilvlMax[diff] : baseIlvl + 20;
                     var baseSc = itemScore(baseIlvl, item.stats, weights);
-                    if (baseSc <= equippedSc) return; // Raide não é upgrade
+                    if (baseSc <= equippedSc) return;
                 }
 
                 candidates.push({
-                    item: item,
-                    baseIlvl: baseIlvl,
-                    maxIlvl: maxIlvl,
-                    recKey: recKey,
+                    item: item, baseIlvl: baseIlvl, maxIlvl: maxIlvl, recKey: recKey,
                     baseSc: itemScore(baseIlvl, item.stats, weights)
                 });
             });
 
             if (!candidates.length) return;
-
-            // Ordena os melhores upgrades para o topo
             candidates.sort(function (a, b) { return b.baseSc - a.baseSc; });
             upgradeSlots.push({ slot: slot, upgrades: candidates.slice(0, 3), equippedSc: equippedSc });
         });
@@ -605,8 +594,6 @@ function renderGearUpgrades(c) {
             return;
         }
 
-// ... código anterior da função continua igual ...
-
         var DIFF_COLOR = { normal: '#aaaaaa', heroic: '#1eff00', mythic: '#ff8000' };
         var diffColor = DIFF_COLOR[diff] || 'var(--text-dim)';
         var diffLabel = diff === 'normal' ? 'N' : diff === 'heroic' ? 'H' : 'M';
@@ -614,12 +601,13 @@ function renderGearUpgrades(c) {
         var html = '';
         upgradeSlots.forEach(function (sg) {
             var slotLabel = slotDisp[sg.slot] || sg.slot;
-            html += '<div style="margin-bottom:18px">';
-            html += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;' +
-                'letter-spacing:0.06em;color:var(--text-dim);margin-bottom:8px">' + slotLabel + '</div>';
+            html += '<div style="margin-bottom:20px">';
+            
+            // Título do Slot
+            html += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin-bottom:10px">' + slotLabel + '</div>';
 
-            // Abre a Grelha (Grid) com 3 colunas iguais
-            html += '<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px;">';
+            // Abre a Grelha: 3 blocos rigorosamente do mesmo tamanho
+            html += '<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; align-items: stretch;">';
 
             sg.upgrades.forEach(function (u) {
                 var item = u.item;
@@ -627,49 +615,66 @@ function renderGearUpgrades(c) {
                 
                 var deltaStr = '+' + (u.baseSc - sg.equippedSc).toFixed(1);
                 var maxStr = u.maxIlvl !== u.baseIlvl
-                    ? ' <span style="color:var(--text-dim);font-size:10px">→ ' + u.maxIlvl + '</span>'
+                    ? ' <span style="color:var(--text-dim);font-size:11px">→ ' + u.maxIlvl + '</span>'
                     : '';
                     
                 var qc = 'q-e'; 
-                
                 var whData = 'item=' + item.itemId + '&ilvl=' + u.baseIlvl;
                 if (c.specId) whData += '&spec=' + c.specId;
-                
                 var wowheadUrl = 'https://' + whDomain() + '/item=' + item.itemId;
 
                 var badge = isMplus
-                    ? '<span style="font-size:10px;background:#0d1f33;color:#4fc3f7;border:1px solid #4fc3f7;border-radius:3px;padding:2px 5px;white-space:nowrap;display:inline-block">M+' + u.recKey + '</span>'
-                    : '<span style="font-size:10px;color:' + diffColor + ';border:1px solid ' + diffColor + ';border-radius:3px;padding:2px 5px;display:inline-block">' + diffLabel + '</span>';
+                    ? '<span style="font-size:11px;font-weight:700;background:#0d1f33;color:#4fc3f7;border:1px solid #4fc3f7;border-radius:4px;padding:2px 6px;">M+' + u.recKey + '</span>'
+                    : '<span style="font-size:11px;font-weight:700;background:rgba(0,0,0,0.3);color:' + diffColor + ';border:1px solid ' + diffColor + ';border-radius:4px;padding:2px 6px;">' + diffLabel + '</span>';
 
                 var sourceName = isMplus ? (item.dungeonName || item.bossName) : item.bossName;
 
-                // O Card / Quadrado
-                html += '<div style="background:rgba(0,0,0,0.15); border:1px solid var(--border); border-radius:6px; padding:10px; display:flex; flex-direction:column; gap:8px;">';
+                // Extrai os stats do item para exibir um resumo bonito
+                var statStr = '';
+                if (item.stats) {
+                    var sArr = [];
+                    if (item.stats.crit) sArr.push('<span style="color:#e05252">Crit</span>');
+                    if (item.stats.haste) sArr.push('<span style="color:#f4a623">Haste</span>');
+                    if (item.stats.mastery) sArr.push('<span style="color:#5ba0f0">Mast</span>');
+                    if (item.stats.versatility) sArr.push('<span style="color:#8bc48b">Vers</span>');
+                    statStr = sArr.join(' <span style="color:var(--border)">·</span> ');
+                }
+
+                // Início do Card / Bloco
+                // Flex direction column + height 100% garantem que o rodapé fica sempre colado no fundo
+                html += '<div style="background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:8px; padding:12px; display:flex; flex-direction:column; height:100%; box-sizing:border-box; transition: border-color 0.1s;" onmouseover="this.style.borderColor=\'var(--gold)\'" onmouseout="this.style.borderColor=\'var(--border)\'">';
                 
-                // Topo: Badge e Score Delta
-                html += '<div style="display:flex; justify-content:space-between; align-items:center;">';
+                // Topo: Badge e Score 
+                html += '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">';
                 html += badge;
-                html += '<span style="font-size:12px;color:var(--green);font-weight:700;" title="Score increase">' + deltaStr + '</span>';
+                html += '<span style="font-size:13px;color:var(--green);font-weight:800;background:rgba(30,255,0,0.1);padding:2px 6px;border-radius:4px;" title="Score increase">' + deltaStr + '</span>';
                 html += '</div>';
 
-                // Meio: Link do item com ícone do Wowhead (Tamanho medium)
-                html += '<div style="width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:4px 0;">';
+                // Meio: O Wowhead Injecta o Icone Aqui + Nome do Item + Atributos
+                // flex-grow: 1 empurra a base do card sempre para o fundo
+                html += '<div style="flex-grow:1; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; gap:8px;">';
+                
                 html += '<a href="' + wowheadUrl + '" target="_blank" class="' + qc + '" ' +
-                    'style="text-decoration:none;font-weight:600;font-size:13px;" ' +
+                    'style="text-decoration:none;font-weight:600;font-size:13px;line-height:1.4;" ' +
                     'data-wowhead="' + whData + '" ' +
-                    'data-wh-icon-size="medium">' + item.name + '</a>';
+                    'data-wh-iconize="true" data-wh-icon-size="medium">' + item.name + '</a>';
+                
+                if (statStr) {
+                    html += '<div style="font-size:10px; font-weight:700; background:rgba(255,255,255,0.05); padding:2px 6px; border-radius:4px; margin-top:2px;">' + statStr + '</div>';
+                }
                 html += '</div>';
 
-                // Base: iLvl Base e Fonte
-                html += '<div style="display:flex; flex-direction:column; gap:2px; margin-top:auto;">';
-                html += '<span style="font-size:13px;color:var(--text);font-weight:500">' + u.baseIlvl + maxStr + '</span>';
-                html += '<span style="font-size:11px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + sourceName + '">' + sourceName + '</span>';
+                // Base: iLvl do Drop e Nome do Chefe/Dungeon
+                html += '<div style="margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.05); display:flex; flex-direction:column; align-items:center; gap:4px;">';
+                html += '<span style="font-size:14px;color:var(--text);font-weight:700;">' + u.baseIlvl + maxStr + '</span>';
+                html += '<span style="font-size:11px;color:var(--text-dim);text-align:center;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;" title="' + sourceName + '">' + sourceName + '</span>';
                 html += '</div>';
 
-                html += '</div>'; // Fecha o Card
+                html += '</div>'; // Fim do Card
             });
-            html += '</div>'; // Fecha a Grelha
-            html += '</div>'; // Fecha a secção do Slot
+
+            html += '</div>'; // Fim da Grelha
+            html += '</div>'; // Fim da secção do Slot
         });
 
         if (weights) {
