@@ -638,11 +638,13 @@ function renderGearUpgrades(c) {
 
                 html += '<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px">';
                 html += badge;
-                html += '<a href="' + wowheadUrl + '" target="_blank" ' +
-                    'class="' + qc + '" ' +  // Aplica a cor roxa (Epic) aqui
-                    'style="text-decoration:none;flex:1;font-weight:600" ' +
+                html += '<div style="flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' +
+                    '<a href="' + wowheadUrl + '" target="_blank" ' +
+                    'class="' + qc + '" ' +
+                    'style="text-decoration:none;font-weight:600" ' +
                     'data-wowhead="' + whData + '" ' +
-                    'data-wh-icon-size="small">' + item.name + '</a>';
+                    'data-wh-icon-size="small">' + item.name + '</a>' +
+                    '</div>';
                 html += '<span style="font-size:12px;color:var(--text);white-space:nowrap;font-weight:500">' + u.baseIlvl + maxStr + '</span>';
                 html += '<span style="font-size:12px;color:var(--green);font-weight:600;min-width:38px;text-align:right" title="Score increase">' + deltaStr + '</span>';
                 html += '<span style="font-size:11px;color:var(--text-dim);max-width:110px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + sourceName + '">' + sourceName + '</span>';
