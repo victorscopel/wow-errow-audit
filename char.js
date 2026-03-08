@@ -518,7 +518,25 @@ function renderGearUpgrades(c) {
         // Build per-slot candidate list
         // Raid: filter to selected diff | M+: always included from MP_REF_KEY
         var bySlot = {};
+        var charArmor = getArmorType(c.class);
+        var armorSlots = ['head', 'shoulder', 'chest', 'wrist', 'hands', 'waist', 'legs', 'feet'];
+
         lootData.items.forEach(function (item) {
+            var s = item.slot;
+
+            // Armor type filtering
+            if (armorSlots.includes(s)) {
+                var itemArmor = item.armorCat || '';
+                var isMatch = false;
+                if (charArmor === 'Plate' && (itemArmor === 'Placa' || itemArmor === 'Plate')) isMatch = true;
+                else if (charArmor === 'Mail' && (itemArmor === 'Malha' || itemArmor === 'Mail')) isMatch = true;
+                else if (charArmor === 'Leather' && (itemArmor === 'Couro' || itemArmor === 'Leather')) isMatch = true;
+                else if (charArmor === 'Cloth' && (itemArmor === 'Tecido' || itemArmor === 'Cloth')) isMatch = true;
+                else if (itemArmor === 'Diversos' || itemArmor === 'Miscellaneous' || !itemArmor) isMatch = true;
+
+                if (!isMatch) return;
+            }
+
             var baseIlvl = null;
             var maxIlvl = null;
 

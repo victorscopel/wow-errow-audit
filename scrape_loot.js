@@ -19,14 +19,14 @@
 //    node scrape_loot.js
 // ══════════════════════════════════════════════════════════
 
-const BNET_CLIENT_ID     = process.env.BNET_CLIENT_ID     || '';
+const BNET_CLIENT_ID = process.env.BNET_CLIENT_ID || '';
 const BNET_CLIENT_SECRET = process.env.BNET_CLIENT_SECRET || '';
-const WORKER_URL         = process.env.WORKER_URL         || '';
-const ADMIN_TOKEN        = process.env.ADMIN_TOKEN        || '';
-const DISCOVER_ONLY      = process.env.DISCOVER === '1';
-const REGION             = 'us';
-const LOCALE             = 'pt_BR';
-const NAMESPACE_STATIC   = `static-${REGION}`;
+const WORKER_URL = process.env.WORKER_URL || '';
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || '';
+const DISCOVER_ONLY = process.env.DISCOVER === '1';
+const REGION = 'us';
+const LOCALE = 'pt_BR';
+const NAMESPACE_STATIC = `static-${REGION}`;
 
 // ── Target raid names ─────────────────────────────────────
 // Names exactly as returned by the Blizzard API in pt_BR locale.
@@ -64,7 +64,7 @@ const DUNGEON_NAMES = [
     'Cavernas Maisara',       // Maisara Caverns
     'Ponto-Nexo Xenas',       // Nexus-Point Xenas
     'Pináculo Correventos',   // Windrunner Spire
-    
+
     // Dungeons Antigas Retornando
     "Academia Algeth'ar",     // Algeth'ar Academy (Dragonflight)
     'Fosso de Saron',         // Pit of Saron (WotLK)
@@ -90,61 +90,61 @@ const DUNGEON_NAMES = [
 const BOSS_ILVL = {
     normal: {
         // ── The Voidspire (Midnight) ──
-        'Imperator Averzian':          246,
-        'Imperador Averzian':          246,
-        'Vorasius':                    249,
-        'Salhadaar, o Rei Caído':      249,
-        'Fallen-King Salhadaar':       249,
+        'Imperator Averzian': 246,
+        'Imperador Averzian': 246,
+        'Vorasius': 249,
+        'Salhadaar, o Rei Caído': 249,
+        'Fallen-King Salhadaar': 249,
         'Quimaerus, o Deus Insonhado': 249,
-        'Chimaerus the Undreamt God':  249,
-        'Vaelgor e Ezzorak':           252,
-        'Vaelgor & Ezzorak':           252,
-        'Vanguarda Cegada pela Luz':   252,
-        'Lightblinded Vanguard':       252,
-        "Belo'ren, Filho de Al'ar":    252,
-        "Belo'ren, Child of Al'ar":    252,
-        'Coroa do Cosmos':             255,
-        'Crown of the Cosmos':         255,
-        'A Meia-noite Chega':          255,
-        'Midnight Falls':              255,
+        'Chimaerus the Undreamt God': 249,
+        'Vaelgor e Ezzorak': 252,
+        'Vaelgor & Ezzorak': 252,
+        'Vanguarda Cegada pela Luz': 252,
+        'Lightblinded Vanguard': 252,
+        "Belo'ren, Filho de Al'ar": 252,
+        "Belo'ren, Child of Al'ar": 252,
+        'Coroa do Cosmos': 255,
+        'Crown of the Cosmos': 255,
+        'A Meia-noite Chega': 255,
+        'Midnight Falls': 255,
     },
     heroic: {
-        'Imperator Averzian':          259,
-        'Imperador Averzian':          259,
-        'Vorasius':                    263,
-        'Salhadaar, o Rei Caído':      263,
-        'Fallen-King Salhadaar':       263,
+        'Imperator Averzian': 259,
+        'Imperador Averzian': 259,
+        'Vorasius': 263,
+        'Salhadaar, o Rei Caído': 263,
+        'Fallen-King Salhadaar': 263,
         'Quimaerus, o Deus Insonhado': 263,
-        'Chimaerus the Undreamt God':  263,
-        'Vaelgor e Ezzorak':           266,
-        'Vaelgor & Ezzorak':           266,
-        'Vanguarda Cegada pela Luz':   266,
-        'Lightblinded Vanguard':       266,
-        "Belo'ren, Filho de Al'ar":    266,
-        "Belo'ren, Child of Al'ar":    266,
-        'Coroa do Cosmos':             269,
-        'Crown of the Cosmos':         269,
-        'A Meia-noite Chega':          269,
-        'Midnight Falls':              269,
+        'Chimaerus the Undreamt God': 263,
+        'Vaelgor e Ezzorak': 266,
+        'Vaelgor & Ezzorak': 266,
+        'Vanguarda Cegada pela Luz': 266,
+        'Lightblinded Vanguard': 266,
+        "Belo'ren, Filho de Al'ar": 266,
+        "Belo'ren, Child of Al'ar": 266,
+        'Coroa do Cosmos': 269,
+        'Crown of the Cosmos': 269,
+        'A Meia-noite Chega': 269,
+        'Midnight Falls': 269,
     },
     mythic: {
-        'Imperator Averzian':          272,
-        'Imperador Averzian':          272,
-        'Vorasius':                    276,
-        'Salhadaar, o Rei Caído':      276,
-        'Fallen-King Salhadaar':       276,
+        'Imperator Averzian': 272,
+        'Imperador Averzian': 272,
+        'Vorasius': 276,
+        'Salhadaar, o Rei Caído': 276,
+        'Fallen-King Salhadaar': 276,
         'Quimaerus, o Deus Insonhado': 276,
-        'Chimaerus the Undreamt God':  276,
-        'Vaelgor e Ezzorak':           279,
-        'Vaelgor & Ezzorak':           279,
-        'Vanguarda Cegada pela Luz':   279,
-        'Lightblinded Vanguard':       279,
-        "Belo'ren, Filho de Al'ar":    279,
-        "Belo'ren, Child of Al'ar":    279,
-        'Coroa do Cosmos':             282,
-        'Crown of the Cosmos':         282,
-        'A Meia-noite Chega':          282,
-        'Midnight Falls':              282,
+        'Chimaerus the Undreamt God': 276,
+        'Vaelgor e Ezzorak': 279,
+        'Vaelgor & Ezzorak': 279,
+        'Vanguarda Cegada pela Luz': 279,
+        'Lightblinded Vanguard': 279,
+        "Belo'ren, Filho de Al'ar": 279,
+        "Belo'ren, Child of Al'ar": 279,
+        'Coroa do Cosmos': 282,
+        'Crown of the Cosmos': 282,
+        'A Meia-noite Chega': 282,
+        'Midnight Falls': 282,
     },
 };
 
@@ -153,14 +153,14 @@ const BOSS_ILVL = {
 // Format: { keyLevel: ilvl }
 // Track: Champion 1/6 at +2, scales up to Hero 3/6 at +10.
 const MYTHICPLUS_ILVL = {
-    2:  250,   // Champion 1/6
-    3:  250,
-    4:  253,   // Champion 2/6
-    5:  253,
-    6:  256,   // Champion 3/6
-    7:  259,   // Hero 1/6
-    8:  263,   // Hero 2/6
-    9:  263,
+    2: 250,   // Champion 1/6
+    3: 250,
+    4: 253,   // Champion 2/6
+    5: 253,
+    6: 256,   // Champion 3/6
+    7: 259,   // Hero 1/6
+    8: 263,   // Hero 2/6
+    9: 263,
     10: 266,   // Hero 3/6
 };
 // Max upgrade for M+ end-of-dungeon items: Hero track (+20 with Myth crests)
@@ -220,12 +220,15 @@ async function discoverInstances(targetNames, label) {
     const all = index.instances;
     console.log(`   ${all.length} total instances in journal.`);
 
+    // Sort by ID descending so we pick the newest version if names collide (e.g. legacy DGs)
+    const allSorted = [...all].sort((a, b) => b.id - a.id);
+
     const found = [];
     const notFound = [];
 
     for (const target of targetNames) {
         const tl = target.toLowerCase().trim();
-        const match = all.find(inst => inst.name?.toLowerCase().trim() === tl);
+        const match = allSorted.find(inst => inst.name?.toLowerCase().trim() === tl);
         if (match) {
             found.push({ id: match.id, name: match.name });
             console.log(`   ✓  id=${match.id}  "${match.name}"`);
@@ -270,14 +273,14 @@ function extractStats(itemData) {
     if (!itemData?.preview_item?.stats) return stats;
     for (const s of itemData.preview_item.stats) {
         const type = s.type?.type?.toLowerCase();
-        const val  = s.value || 0;
+        const val = s.value || 0;
         if (!type) continue;
-        if (type === 'stamina')       stats.stamina      = val;
-        if (['agility','intellect','strength'].includes(type)) stats.primary = val;
-        if (type === 'crit_rating')   stats.crit         = val;
-        if (type === 'haste_rating')  stats.haste        = val;
-        if (type === 'mastery')       stats.mastery      = val;
-        if (type === 'versatility')   stats.versatility  = val;
+        if (type === 'stamina') stats.stamina = val;
+        if (['agility', 'intellect', 'strength'].includes(type)) stats.primary = val;
+        if (type === 'crit_rating') stats.crit = val;
+        if (type === 'haste_rating') stats.haste = val;
+        if (type === 'mastery') stats.mastery = val;
+        if (type === 'versatility') stats.versatility = val;
     }
     return stats;
 }
@@ -287,12 +290,12 @@ function extractStats(itemData) {
 // Items from wrong eras have very low secondary stats.
 function isCurrentEraStat(stats) {
     const totalSec = (stats.crit || 0) + (stats.haste || 0) + (stats.mastery || 0) + (stats.versatility || 0);
-    // Allow 0 secondaries (trinkets/rings with only primary/stamina)
-    // but reject low but non-zero (< 20 = level 10-30 item)
-    if (totalSec > 0 && totalSec < 20) return false;
-    // Also check primary — current gear should have primary > 10 (or 0 for some trinkets)
+    // Increased thresholds for Midnight era: 
+    // Legacy items have very low numbers (1-5), current gear should be significantly higher.
+    if (totalSec > 0 && totalSec < 80) return false;
+    // Also check primary — current gear should have primary > 30 (or 0 for some trinkets)
     const primary = stats.primary || 0;
-    if (primary > 0 && primary < 8) return false;
+    if (primary > 0 && primary < 30) return false;
     return true;
 }
 
@@ -329,9 +332,9 @@ async function scrapeInstance(instance, source) {
             const slot = normalizeSlot(itemData.inventory_type?.type);
             if (!EQUIPPABLE_SLOTS.has(slot)) continue;
 
-            const stats    = extractStats(itemData);
+            const stats = extractStats(itemData);
             const armorCat = itemData.item_subclass?.name || '';
-            const name     = itemData.name || `Item ${itemId}`;
+            const name = itemData.name || `Item ${itemId}`;
 
             if (!isCurrentEraStat(stats)) {
                 console.log(`       ⚠️  Skip "${name}" (id=${itemId}) — stats look wrong-era`);
@@ -343,7 +346,7 @@ async function scrapeInstance(instance, source) {
             if (source === 'raid') {
                 items.push({
                     itemId, name, slot,
-                    source:   'raid',
+                    source: 'raid',
                     bossName,
                     raidName: instance.name,
                     armorCat,
@@ -363,13 +366,13 @@ async function scrapeInstance(instance, source) {
                 // M+ dungeon — ilvl by key level, not by boss
                 items.push({
                     itemId, name, slot,
-                    source:      'mythicplus',
+                    source: 'mythicplus',
                     bossName,                       // e.g. "Rixxa Fluxflame"
                     dungeonName: instance.name,     // e.g. "The MOTHERLODE!!"
                     armorCat,
                     stats,
                     // ilvl at end-of-dungeon chest per key level
-                    ilvlByKey:   { ...MYTHICPLUS_ILVL },
+                    ilvlByKey: { ...MYTHICPLUS_ILVL },
                     // max upgrade (Hero track, Myth crests)
                     ilvlMaxDelta: MYTHICPLUS_ILVL_MAX_DELTA,
                 });
@@ -387,7 +390,7 @@ async function scrapeAll() {
     if (!BNET_CLIENT_ID || !BNET_CLIENT_SECRET) throw new Error('Missing BNET_CLIENT_ID or BNET_CLIENT_SECRET');
 
     // Discover both raids and dungeons (shares the same journal index)
-    const raids    = await discoverInstances(RAID_NAMES,    'raids');
+    const raids = await discoverInstances(RAID_NAMES, 'raids');
     const dungeons = await discoverInstances(DUNGEON_NAMES, 'dungeons');
 
     if (raids.length === 0 && dungeons.length === 0) {
@@ -432,12 +435,12 @@ async function scrapeAll() {
     console.log(`\n✅ Total: ${allItems.length} items (${raidCount} raid, ${mplusCount} M+)`);
 
     const payload = {
-        season:        'midnight-s1',
-        generated:     new Date().toISOString(),
-        bossIlvl:      BOSS_ILVL,
+        season: 'midnight-s1',
+        generated: new Date().toISOString(),
+        bossIlvl: BOSS_ILVL,
         mythicplusIlvl: MYTHICPLUS_ILVL,
         upgradeTracks: UPGRADE_TRACKS,
-        items:         allItems,
+        items: allItems,
     };
 
     const fs = require('fs');
