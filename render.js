@@ -197,7 +197,7 @@ function updateStats() {
   if (!roster.length) return;
   var ilvls = roster.map(function (c) { return c.ilvl || 0; }).filter(Boolean);
   document.getElementById('st-t').textContent = roster.length;
-  document.getElementById('st-a').textContent = ilvls.length ? (ilvls.reduce(function (a, b) { return a + b; }, 0) / ilvls.length).toFixed(1) : '—';
+  document.getElementById('st-a').textContent = ilvls.length ? (ilvls.reduce(function (a, b) { return a + b; }, 0) / ilvls.length).toFixed(2) : '—';
   document.getElementById('st-m').textContent = ilvls.length ? Math.max.apply(null, ilvls) : '—';
   var issCount = roster.filter(function (c) { return c.issues?.length > 0; }).length;
   document.getElementById('st-r').textContent = roster.length - issCount;
