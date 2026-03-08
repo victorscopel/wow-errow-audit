@@ -605,17 +605,20 @@ function renderGearUpgrades(c) {
             return;
         }
 
+
         var DIFF_COLOR = { normal: '#aaaaaa', heroic: '#1eff00', mythic: '#ff8000' };
         var diffColor = DIFF_COLOR[diff] || 'var(--text-dim)';
         var diffLabel = diff === 'normal' ? 'N' : diff === 'heroic' ? 'H' : 'M';
 
-
         var html = '';
         upgradeSlots.forEach(function (sg) {
             var slotLabel = slotDisp[sg.slot] || sg.slot;
-            html += '<div style="margin-bottom:14px">';
+            html += '<div style="margin-bottom:18px">';
             html += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;' +
-                'letter-spacing:0.06em;color:var(--text-dim);margin-bottom:6px">' + slotLabel + '</div>';
+                'letter-spacing:0.06em;color:var(--text-dim);margin-bottom:8px">' + slotLabel + '</div>';
+
+            // Abre a Grelha (Grid) com 3 colunas iguais
+            html += '<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px;">';
 
             sg.upgrades.forEach(function (u) {
                 var item = u.item;
@@ -634,27 +637,51 @@ function renderGearUpgrades(c) {
                 var wowheadUrl = 'https://' + whDomain() + '/item=' + item.itemId;
 
                 var badge = isMplus
-                    ? '<span style="font-size:10px;background:#0d1f33;color:#4fc3f7;border:1px solid #4fc3f7;border-radius:3px;padding:1px 5px;white-space:nowrap">M+' + u.recKey + '</span>'
-                    : '<span style="font-size:10px;color:' + diffColor + ';border:1px solid ' + diffColor + ';border-radius:3px;padding:1px 5px">' + diffLabel + '</span>';
+                    ? '<span style="font-size:10px;background:#0d1f33;color:#4fc3f7;border:1px solid #4fc3f7;border-radius:3px;padding:2px 5px;white-space:nowrap;display:inline-block">M+' + u.recKey + '</span>'
+                    : '<span style="font-size:10px;color:' + diffColor + ';border:1px solid ' + diffColor + ';border-radius:3px;padding:2px 5px;display:inline-block">' + diffLabel + '</span>';
 
                 var sourceName = isMplus ? (item.dungeonName || item.bossName) : item.bossName;
 
-                html += '<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px">';
+                // O Card / Quadrado
+                html += '<div style="background:rgba(0,0,0,0.15); border:1px solid var(--border); border-radius:6px; padding:10px; display:flex; flex-direction:column; gap:8px;">';
+                
+                // Topo: Badge e Score Delta
+                html += '<div style="display:flex; justify-content:space-between; align-items:center;">';
                 html += badge;
-                html += '<div style="flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' +
-                    '<a href="' + wowheadUrl + '" target="_blank" ' +
-                    'class="' + qc + '" ' +
-                    'style="text-decoration:none;font-weight:600" ' +
-                    'data-wowhead="' + whData + '" ' +
-                    'data-wh-icon-size="small">' + item.name + '</a>' +
-                    '</div>';
-                html += '<span style="font-size:12px;color:var(--text);white-space:nowrap;font-weight:500">' + u.baseIlvl + maxStr + '</span>';
-                html += '<span style="font-size:12px;color:var(--green);font-weight:600;min-width:38px;text-align:right" title="Score increase">' + deltaStr + '</span>';
-                html += '<span style="font-size:11px;color:var(--text-dim);max-width:110px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + sourceName + '">' + sourceName + '</span>';
+                html += '<span style="font-size:12px;color:var(--green);font-weight:700;" title="Score increase">' + deltaStr + '</span>';
                 html += '</div>';
+
+                // Meio: Link do item com ícone do Wowhead (Tamanho medium)
+                html += '<div style="width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:4px 0;">';
+                html += '<a href="' + wowheadUrl + '" target="_blank" class="' + qc + '" ' +
+                    'style="text-decoration:none;font-weight:600;font-size:13px;" ' +
+                    'data-wowhead="' + whData + '" ' +
+                    'data-wh-icon-size="medium">' + item.name + '</a>';
+                html += '</div>';
+
+                // Base: iLvl Base e Fonte
+                html += '<div style="display:flex; flex-direction:column; gap:2px; margin-top:auto;">';
+                html += '<span style="font-size:13px;color:var(--text);font-weight:500">' + u.baseIlvl + maxStr + '</span>';
+                html += '<span style="font-size:11px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + sourceName + '">' + sourceName + '</span>';
+                html += '</div>';
+
+                html += '</div>'; // Fecha o Card
             });
-            html += '</div>';
-        });        
+            html += '</div>'; // Fecha a Grelha
+            html += '</div>'; // Fecha a secção do Slot
+        });
+
+        if (weights) {
+            var topStats = Object.keys(weights).sort(function (a, b) { return weights[b] - weights[a]; }).slice(0, 2);
+            html += '<div style="font-size:11px;color:var(--text-dim);margin-top:4px">' +
+                (isPT ? 'Score = iLvl Base Drop + atributos (Archon.gg: ' : 'Score = Base Drop iLvl + stats (Archon.gg: ') +
+                topStats.join(', ') + ').</div>';
+        }
+
+        body.innerHTML = html;
+        if (typeof WH !== 'undefined' && WH.getLocale) refreshWowheadTooltips();
+    });
+}       
 
         if (weights) {
             var topStats = Object.keys(weights).sort(function (a, b) { return weights[b] - weights[a]; }).slice(0, 2);
