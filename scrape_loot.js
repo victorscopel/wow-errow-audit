@@ -35,9 +35,9 @@ const NAMESPACE_STATIC   = `static-${REGION}`;
 // "A Fenda Onírica" (1314) = The Dreamrift
 // "Marcha em Quel'Danas" (1308) = March on Quel'Danas
 const RAID_NAMES = [
-    'Midnight',
-    'A Fenda Onírica',
-    "Marcha em Quel'Danas",
+    'O Pináculo do Vazio', // The Voidspire (Pode estar como 'Voidspire' ou 'Midnight' na API ainda)
+    'A Fenda Onírica',     // The Dreamrift
+    "Marcha em Quel'Danas", // March on Quel'Danas
 ];
 
 // ── Target M+ dungeon names ───────────────────────────────
@@ -59,20 +59,17 @@ const RAID_NAMES = [
 //   1304 = Travessa do Assassino
 //   1307 = A Torre do Caos
 const DUNGEON_NAMES = [
-    // TWW dungeons in rotation
-    'Ara-Kara, a Cidade dos Ecos',
-    'Hidromelaria Cinzagris',
-    'Priorado da Chama Sagrada',
-    'Alvorada',
-    // New Midnight dungeons
-    'Operação: Comporta',
-    'Pico dos Correventos',
-    'Terraço dos Magísteres',
-    'Abismo Rocha Negra',
-    'Manaforja Ômega',
-    'Ecodomo Al\'dani',
-    'Travessa do Assassino',
-    'A Torre do Caos',
+    // Novas Dungeons (Midnight)
+    'Terraço dos Magísteres', // Magister's Terrace
+    'Cavernas Maisara',       // Maisara Caverns
+    'Ponto-Nexo Xenas',       // Nexus-Point Xenas
+    'Pináculo Correventos',   // Windrunner Spire
+    
+    // Dungeons Antigas Retornando
+    "Academia Algeth'ar",     // Algeth'ar Academy (Dragonflight)
+    'Fosso de Saron',         // Pit of Saron (WotLK)
+    'Sede do Triunvirato',    // Seat of the Triumvirate (Legion)
+    'Beiracéu',               // Skyreach (WoD)
 ];
 
 // ── Raid ilvl per boss per difficulty ─────────────────────
@@ -258,6 +255,8 @@ const SLOT_MAP = {
     TRINKET_1: 'trinket', TRINKET_2: 'trinket',
     MAIN_HAND: 'mainhand', OFF_HAND: 'offhand', TWO_HAND: 'twohand',
     RANGED: 'ranged',
+    SHIELD: 'offhand',
+    HOLDABLE: 'offhand',
 };
 const EQUIPPABLE_SLOTS = new Set(Object.values(SLOT_MAP));
 
@@ -323,12 +322,12 @@ async function scrapeInstance(instance, source) {
             if (!itemId || seenIds.has(itemId)) continue;
             seenIds.add(itemId);
 
-            const slot = normalizeSlot(encItem.item_slot?.type);
-            if (!EQUIPPABLE_SLOTS.has(slot)) continue;
-
             await sleep(80);
             const itemData = await bnetGet(`/data/wow/item/${itemId}`);
             if (!itemData) continue;
+
+            const slot = normalizeSlot(itemData.inventory_type?.type);
+            if (!EQUIPPABLE_SLOTS.has(slot)) continue;
 
             const stats    = extractStats(itemData);
             const armorCat = itemData.item_subclass?.name || '';
