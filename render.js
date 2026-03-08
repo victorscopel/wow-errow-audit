@@ -390,24 +390,6 @@ function refreshWowheadTooltips() {
   if (typeof $WowheadPower !== 'undefined' && $WowheadPower.refreshLinks) {
     $WowheadPower.refreshLinks();
   }
-  if (!window._whMouseBound) {
-    window._whMouseBound = true;
-    document.addEventListener('mousemove', function (e) {
-      var tts = document.querySelectorAll('.wowhead-tooltip');
-      tts.forEach(function (tt) {
-        if (!tt || tt.style.display === 'none' || tt.style.visibility === 'hidden') return;
-        var x = e.clientX + 18, y = e.clientY + 18;
-        var w = tt.offsetWidth, h = tt.offsetHeight;
-        if (x + w > window.innerWidth) x = e.clientX - w - 10;
-        if (y + h > window.innerHeight) y = e.clientY - h - 10;
-        if (x < 0) x = 5;
-        if (y < 0) y = 5;
-        tt.style.position = 'fixed';
-        tt.style.left = x + 'px';
-        tt.style.top = y + 'px';
-      });
-    });
-  }
 }
 
 function preloadImages(urls) {
