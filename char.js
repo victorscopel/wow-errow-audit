@@ -552,7 +552,6 @@ function renderGearUpgrades(c) {
 
             itemsInSlot.forEach(function (item) {
                 var baseIlvl = null;
-                var maxIlvl = null;
                 var recKey = null;
 
                 if (item.source === 'mythicplus') {
@@ -563,7 +562,6 @@ function renderGearUpgrades(c) {
                         if (possibleSc > equippedSc) {
                             baseIlvl = possibleIlvl;
                             recKey = k;
-                            maxIlvl = baseIlvl + (item.ilvlMaxDelta || 20);
                             break;
                         }
                     }
@@ -571,13 +569,12 @@ function renderGearUpgrades(c) {
                 } else {
                     baseIlvl = item.ilvl && item.ilvl[diff];
                     if (!baseIlvl) return;
-                    maxIlvl = item.ilvlMax ? item.ilvlMax[diff] : baseIlvl + 20;
                     var baseSc = itemScore(baseIlvl, item.stats, weights);
                     if (baseSc <= equippedSc) return;
                 }
 
                 candidates.push({
-                    item: item, baseIlvl: baseIlvl, maxIlvl: maxIlvl, recKey: recKey,
+                    item: item, baseIlvl: baseIlvl, recKey: recKey,
                     baseSc: itemScore(baseIlvl, item.stats, weights)
                 });
             });
@@ -604,7 +601,6 @@ function renderGearUpgrades(c) {
             html += '<div style="margin-bottom:20px">';
             
             html += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin-bottom:10px">' + slotLabel + '</div>';
-
             html += '<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; align-items: stretch;">';
 
             sg.upgrades.forEach(function (u) {
@@ -612,11 +608,7 @@ function renderGearUpgrades(c) {
                 var isMplus = item.source === 'mythicplus';
                 
                 var deltaStr = '+' + (u.baseSc - sg.equippedSc).toFixed(1);
-                var maxStr = u.maxIlvl !== u.baseIlvl
-                    ? ' <span style="color:var(--text-dim);font-size:11px">→ ' + u.maxIlvl + '</span>'
-                    : '';
                 
-                // --- LÓGICA DO UPGRADE TRACK ---
                 var trackLabel = '';
                 if (isMplus) {
                     if (u.recKey >= 10) trackLabel = 'Hero 3/6';
@@ -648,7 +640,6 @@ function renderGearUpgrades(c) {
                     }
                 }
                 var trackHtml = trackLabel ? '<span style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:700;margin-left:4px;">(' + trackLabel + ')</span>' : '';
-                // ---------------------------------
                     
                 var qc = 'q-e'; 
                 var whData = 'item=' + item.itemId + '&ilvl=' + u.baseIlvl;
@@ -679,10 +670,14 @@ function renderGearUpgrades(c) {
                 html += '</div>';
 
                 html += '<div style="flex-grow:1; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; gap:8px;">';
+                
+                // SOLUÇÃO DO TOOLTIP: Wrapper div com display block limitando o espaço, e a tag <a> como inline puro
+                html += '<div style="width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">';
                 html += '<a href="' + wowheadUrl + '" target="_blank" class="' + qc + '" ' +
-                    'style="text-decoration:none;font-weight:600;font-size:13px;line-height:1.4;" ' +
+                    'style="display:inline; text-decoration:none;font-weight:600;font-size:13px;line-height:1.4;" ' +
                     'data-wowhead="' + whData + '" ' +
                     'data-wh-iconize="true" data-wh-icon-size="medium">' + item.name + '</a>';
+                html += '</div>';
                 
                 if (statStr) {
                     html += '<div style="font-size:10px; font-weight:700; background:rgba(255,255,255,0.05); padding:2px 6px; border-radius:4px; margin-top:2px;">' + statStr + '</div>';
@@ -690,10 +685,7 @@ function renderGearUpgrades(c) {
                 html += '</div>';
 
                 html += '<div style="margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.05); display:flex; flex-direction:column; align-items:center; gap:4px;">';
-                
-                // Exibe o Track Label Injetado Aqui (ex: 259 (Hero 1/6) → 276)
-                html += '<div style="display:flex; align-items:baseline; justify-content:center; gap:2px;"><span style="font-size:14px;color:var(--text);font-weight:700;">' + u.baseIlvl + '</span>' + trackHtml + maxStr + '</div>';
-                
+                html += '<div style="display:flex; align-items:baseline; justify-content:center; gap:2px;"><span style="font-size:14px;color:var(--text);font-weight:700;">' + u.baseIlvl + '</span>' + trackHtml + '</div>';
                 html += '<span style="font-size:11px;color:var(--text-dim);text-align:center;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;" title="' + sourceName + '">' + sourceName + '</span>';
                 html += '</div>';
 
