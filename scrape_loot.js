@@ -29,64 +29,124 @@ const LOCALE             = 'pt_BR';
 const NAMESPACE_STATIC   = `static-${REGION}`;
 
 // ── Target raid names ─────────────────────────────────────
-// Must match the Blizzard API exactly (pt_BR locale).
-// Run DISCOVER=1 to list all instance names if these don't match.
+// Names exactly as returned by the Blizzard API in pt_BR locale.
+// Discovered via DISCOVER=1 run on 2026-03-07.
+// "Midnight" (1312) = The Voidspire (main raid hub)
+// "A Fenda Onírica" (1314) = The Dreamrift
+// "Marcha em Quel'Danas" (1308) = March on Quel'Danas
 const RAID_NAMES = [
-    'The Voidspire',
-    'The Dreamrift',
-    "March on Quel'Danas",
+    'Midnight',
+    'A Fenda Onírica',
+    "Marcha em Quel'Danas",
 ];
 
 // ── Target M+ dungeon names ───────────────────────────────
-// Midnight Season 1 dungeon pool (8 dungeons).
-// These are the names as they appear in the Blizzard journal.
-// Run DISCOVER=1 and look for dungeon entries if names don't match.
+// Midnight Season 1 dungeon pool in pt_BR locale.
+// Only dungeons already in the Blizzard journal are listed.
+// Some may not be available yet — the scraper skips missing ones gracefully.
+// TWW dungeons returning to the pool:
+//   1271 = Ara-Kara, a Cidade dos Ecos
+//   1272 = Hidromelaria Cinzagris
+//   1267 = Priorado da Chama Sagrada
+//   1270 = Alvorada
+// New Midnight dungeons (IDs 1299–1307, exact names TBD):
+//   1298 = Operação: Comporta  (Operation: Floodgate)
+//   1299 = Pico dos Correventos
+//   1300 = Terraço dos Magísteres
+//   1301 = Abismo Rocha Negra
+//   1302 = Manaforja Ômega
+//   1303 = Ecodomo Al'dani
+//   1304 = Travessa do Assassino
+//   1307 = A Torre do Caos
 const DUNGEON_NAMES = [
-    'Darkshire Council',
-    'Priory of the Sacred Flame',
-    'The Rookery',
-    'The MOTHERLODE!!',
-    'Operation: Floodgate',
-    'Cinderbrew Meadery',
-    'Mechagon Workshop',
-    'Ara-Kara, City of Echoes',
+    // TWW dungeons in rotation
+    'Ara-Kara, a Cidade dos Ecos',
+    'Hidromelaria Cinzagris',
+    'Priorado da Chama Sagrada',
+    'Alvorada',
+    // New Midnight dungeons
+    'Operação: Comporta',
+    'Pico dos Correventos',
+    'Terraço dos Magísteres',
+    'Abismo Rocha Negra',
+    'Manaforja Ômega',
+    'Ecodomo Al\'dani',
+    'Travessa do Assassino',
+    'A Torre do Caos',
 ];
 
 // ── Raid ilvl per boss per difficulty ─────────────────────
-// If boss names don't match, run once and check the
-// "Bosses with null ilvl" warning for exact API names.
+// Boss names must match the Blizzard API in pt_BR locale.
+// Run once and check the "Bosses with null ilvl" warning for exact names.
+// EN reference → PT name (from API)
+//   Imperator Averzian       → (likely same or "Imperador Averzian")
+//   Vorasius                 → "Vorasius"
+//   Fallen-King Salhadaar    → "Salhadaar, o Rei Caído" (?)
+//   Chimaerus the Undreamt   → (?)
+//   Vaelgor & Ezzorak        → (?)
+//   Lightblinded Vanguard    → (?)
+//   Belo'ren, Child of Al'ar → (?)
+//   Crown of the Cosmos      → (?)
+//   Midnight Falls           → (?)
+// These will be corrected after first successful scrape.
+// ilvl values are correct regardless of name — just update the keys.
 const BOSS_ILVL = {
     normal: {
+        // ── The Voidspire (Midnight) ──
         'Imperator Averzian':          246,
+        'Imperador Averzian':          246,
         'Vorasius':                    249,
+        'Salhadaar, o Rei Caído':      249,
         'Fallen-King Salhadaar':       249,
+        'Quimaerus, o Deus Insonhado': 249,
         'Chimaerus the Undreamt God':  249,
+        'Vaelgor e Ezzorak':           252,
         'Vaelgor & Ezzorak':           252,
+        'Vanguarda Cegada pela Luz':   252,
         'Lightblinded Vanguard':       252,
+        "Belo'ren, Filho de Al'ar":    252,
         "Belo'ren, Child of Al'ar":    252,
+        'Coroa do Cosmos':             255,
         'Crown of the Cosmos':         255,
+        'A Meia-noite Chega':          255,
         'Midnight Falls':              255,
     },
     heroic: {
         'Imperator Averzian':          259,
+        'Imperador Averzian':          259,
         'Vorasius':                    263,
+        'Salhadaar, o Rei Caído':      263,
         'Fallen-King Salhadaar':       263,
+        'Quimaerus, o Deus Insonhado': 263,
         'Chimaerus the Undreamt God':  263,
+        'Vaelgor e Ezzorak':           266,
         'Vaelgor & Ezzorak':           266,
+        'Vanguarda Cegada pela Luz':   266,
         'Lightblinded Vanguard':       266,
+        "Belo'ren, Filho de Al'ar":    266,
         "Belo'ren, Child of Al'ar":    266,
+        'Coroa do Cosmos':             269,
         'Crown of the Cosmos':         269,
+        'A Meia-noite Chega':          269,
         'Midnight Falls':              269,
     },
     mythic: {
         'Imperator Averzian':          272,
+        'Imperador Averzian':          272,
         'Vorasius':                    276,
+        'Salhadaar, o Rei Caído':      276,
         'Fallen-King Salhadaar':       276,
+        'Quimaerus, o Deus Insonhado': 276,
         'Chimaerus the Undreamt God':  276,
+        'Vaelgor e Ezzorak':           279,
         'Vaelgor & Ezzorak':           279,
+        'Vanguarda Cegada pela Luz':   279,
         'Lightblinded Vanguard':       279,
+        "Belo'ren, Filho de Al'ar":    279,
         "Belo'ren, Child of Al'ar":    279,
+        'Coroa do Cosmos':             282,
         'Crown of the Cosmos':         282,
+        'A Meia-noite Chega':          282,
         'Midnight Falls':              282,
     },
 };
@@ -333,6 +393,11 @@ async function scrapeAll() {
 
     if (raids.length === 0 && dungeons.length === 0) {
         console.log('\n❌ Nothing found. Update RAID_NAMES / DUNGEON_NAMES and try again.');
+        process.exit(1);
+    }
+
+    if (raids.length === 0) {
+        console.log('\n❌ No raids found. Update RAID_NAMES and try again.');
         process.exit(1);
     }
 
