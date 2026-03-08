@@ -22,14 +22,14 @@ function getGuildCfg() {
     var cfg = getAPICfg();
     if (!cfg.guild || !cfg.realm) {
         cfg.region = cfg.region || localStorage.getItem('ga_region') || 'us';
-        cfg.realm  = cfg.realm  || localStorage.getItem('ga_realm')  || '';
-        cfg.guild  = cfg.guild  || localStorage.getItem('ga_guild')  || '';
+        cfg.realm = cfg.realm || localStorage.getItem('ga_realm') || '';
+        cfg.guild = cfg.guild || localStorage.getItem('ga_guild') || '';
     }
     return cfg;
 }
 
 function goBack() {
-    var cfg  = getGuildCfg();
+    var cfg = getGuildCfg();
     var base = getHomeUrl().replace(/\/+$/, '');
     if (cfg.guild && cfg.realm) {
         window.location.href = base + '/guild.html?guild=' + cfg.region + '/' + cfg.realm + '/' + cfg.guild;
@@ -39,9 +39,9 @@ function goBack() {
 }
 
 function goToGuild(tab) {
-    var cfg  = getGuildCfg();
+    var cfg = getGuildCfg();
     var base = getHomeUrl().replace(/\/+$/, '');
-    var url  = base + '/guild.html?guild=' + cfg.region + '/' + cfg.realm + '/' + cfg.guild;
+    var url = base + '/guild.html?guild=' + cfg.region + '/' + cfg.realm + '/' + cfg.guild;
     if (tab) url += '#' + tab;
     window.location.href = url;
 }
@@ -77,7 +77,7 @@ function buildSidebar(c, id) {
         '<div style="font-size:.9rem;color:var(--text-dim);margin-top:2px">' + locSpec(c.spec || '') + ' ' + locClass(c.class || '') + '</div>' +
         '<div style="font-size:.85rem;color:var(--text-dim);margin-top:1px">' + esc(c.realm || '') + ' · ' + armor + '</div></div>' +
         '</div>' +
-        '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px">' + roleSel + '<span class="ilvl ' + ilvlC(c.ilvl) + '">' + (c.ilvl || '—') + '</span>' + (c.mythicRating ? '<span style="font-weight:700;color:' + ratingCol(c.mythicRating) + '">M+ ' + c.mythicRating + '</span>' : '') + '</div>' +
+        '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px">' + roleSel + '<span class="ilvl ' + ilvlC(c.ilvl) + '">' + fmtIlvl(c.ilvl) + '</span>' + (c.mythicRating ? '<span style="font-weight:700;color:' + ratingCol(c.mythicRating) + '">M+ ' + c.mythicRating + '</span>' : '') + '</div>' +
         '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
         '<a href="https://raider.io/characters/' + (getAPICfg().region || 'us') + '/' + (c.realm || 'azralon') + '/' + c.name.toLowerCase() + '" target="_blank" class="btn btn-secondary btn-sm"><img src="https://raider.io/favicon.ico" style="width:13px;height:13px;vertical-align:middle;margin-right:3px;border-radius:2px">Raider.IO</a>' +
         '<a href="https://www.warcraftlogs.com/character/' + (getAPICfg().region || 'us') + '/' + (c.realm || 'azralon') + '/' + c.name.toLowerCase() + '" target="_blank" class="btn btn-secondary btn-sm"><img src="https://assets.rpglogs.com/img/warcraft/favicon.png" style="width:13px;height:13px;vertical-align:middle;margin-right:3px;border-radius:2px">WCL</a>' +
@@ -206,10 +206,10 @@ function buildGearGrid(c) {
         var whAttr = whData ? ' data-wowhead="' + whData + '"' : '';
         var statusBits = '';
         if (item.enchanted) statusBits += '<span style="color:var(--green);font-size:.75rem">✦ ' + T('enchant') + '</span>';
-        if (item.gemmed)    statusBits += '<span style="color:var(--blue);font-size:.75rem">◆ ' + T('gem') + '</span>';
-        if (item.isTierSet)      statusBits += '<span class="badge-tier" style="font-size:.7rem">' + T('tier_set') + '</span>';
-        if (item.isPvP)          statusBits += '<span class="badge-pvp" style="font-size:.7rem">⚔ PvP</span>';
-        if (item.isEmbellished)  statusBits += '<span class="badge-emb" style="font-size:.7rem">✦ ' + T('embellished') + '</span>';
+        if (item.gemmed) statusBits += '<span style="color:var(--blue);font-size:.75rem">◆ ' + T('gem') + '</span>';
+        if (item.isTierSet) statusBits += '<span class="badge-tier" style="font-size:.7rem">' + T('tier_set') + '</span>';
+        if (item.isPvP) statusBits += '<span class="badge-pvp" style="font-size:.7rem">⚔ PvP</span>';
+        if (item.isEmbellished) statusBits += '<span class="badge-emb" style="font-size:.7rem">✦ ' + T('embellished') + '</span>';
         html += '<div class="gs">' +
             '<img class="gs-img" src="' + imgSrc + '" onerror="this.src=\'https://wow.zamimg.com/images/wow/icons/medium/inv_misc_questionmark.jpg\'" alt="">' +
             '<div class="gs-info">' +
@@ -383,8 +383,8 @@ var SLOT_DISPLAY_EN = {
 var _lootCache = null;
 var _lootFetching = false;
 var _lootCallbacks = [];
-var _currentChar  = null;
-var _upgradeDiff  = localStorage.getItem('ga_upgrade_diff') || 'heroic';
+var _currentChar = null;
+var _upgradeDiff = localStorage.getItem('ga_upgrade_diff') || 'heroic';
 
 function setUpgradeDiff(diff) {
     _upgradeDiff = diff;
@@ -399,12 +399,12 @@ function updateDiffButtons() {
     var btnM = document.getElementById('btn-diff-mythic');
     if (!btnH || !btnM) return;
     var gold = 'var(--gold)';
-    var dim  = 'var(--border)';
+    var dim = 'var(--border)';
     if (btnN) { btnN.style.borderColor = _upgradeDiff === 'normal' ? gold : dim; btnN.style.color = _upgradeDiff === 'normal' ? gold : 'var(--text-dim)'; }
     btnH.style.borderColor = _upgradeDiff === 'heroic' ? gold : dim;
-    btnH.style.color       = _upgradeDiff === 'heroic' ? gold : 'var(--text-dim)';
+    btnH.style.color = _upgradeDiff === 'heroic' ? gold : 'var(--text-dim)';
     btnM.style.borderColor = _upgradeDiff === 'mythic' ? gold : dim;
-    btnM.style.color       = _upgradeDiff === 'mythic' ? gold : 'var(--text-dim)';
+    btnM.style.color = _upgradeDiff === 'mythic' ? gold : 'var(--text-dim)';
 }
 
 function getLootData(cb) {
@@ -414,14 +414,14 @@ function getLootData(cb) {
     _lootFetching = true;
     var cfg = getAPICfg();
     fetch(cfg.workerBase + '/api/loot/midnight-s1?t=' + Date.now())
-        .then(function(r) { return r.ok ? r.json() : null; })
-        .then(function(data) {
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (data) {
             _lootCache = data;
-            _lootCallbacks.forEach(function(fn) { fn(data); });
+            _lootCallbacks.forEach(function (fn) { fn(data); });
             _lootCallbacks = [];
         })
-        .catch(function() {
-            _lootCallbacks.forEach(function(fn) { fn(null); });
+        .catch(function () {
+            _lootCallbacks.forEach(function (fn) { fn(null); });
             _lootCallbacks = [];
         });
 }
@@ -429,13 +429,13 @@ function getLootData(cb) {
 // Parse archon stat weights for a given char into normalized weights 0..1
 function parseStatWeights(c) {
     var cfgData = {};
-    try { cfgData = JSON.parse(localStorage.getItem('ga_cfg') || '{}'); } catch(e) {}
+    try { cfgData = JSON.parse(localStorage.getItem('ga_cfg') || '{}'); } catch (e) { }
     var archonText = cfgData.archon || '';
     if (!archonText || !c.class || !c.spec) return null;
 
     var classSlug = c.class.toLowerCase().replace(/\s+/g, '-');
-    var specSlug  = c.spec.toLowerCase().replace(/\s+/g, '-');
-    var prefix    = classSlug + '-' + specSlug + ':';
+    var specSlug = c.spec.toLowerCase().replace(/\s+/g, '-');
+    var prefix = classSlug + '-' + specSlug + ':';
 
     var lines = archonText.split('\n');
     for (var i = 0; i < lines.length; i++) {
@@ -443,19 +443,19 @@ function parseStatWeights(c) {
         if (!l.startsWith(prefix)) continue;
         var parts = l.substring(prefix.length).trim().split('>');
         var raw = {};
-        parts.forEach(function(p) {
-            var stat  = p.split('(')[0].trim().toLowerCase();
+        parts.forEach(function (p) {
+            var stat = p.split('(')[0].trim().toLowerCase();
             var match = p.match(/\((\d+)\)/);
-            var val   = match ? parseInt(match[1], 10) : 0;
+            var val = match ? parseInt(match[1], 10) : 0;
             if (stat === 'vers') stat = 'versatility';
-            if (['crit','haste','mastery','versatility'].includes(stat) && val > 0)
+            if (['crit', 'haste', 'mastery', 'versatility'].includes(stat) && val > 0)
                 raw[stat] = val;
         });
         // Normalize: highest stat = 1.0
         var maxW = Math.max.apply(null, Object.values(raw));
         if (maxW <= 0) return null;
         var normalized = {};
-        Object.keys(raw).forEach(function(k) { normalized[k] = raw[k] / maxW; });
+        Object.keys(raw).forEach(function (k) { normalized[k] = raw[k] / maxW; });
         return normalized;
     }
     return null;
@@ -469,7 +469,7 @@ function itemScore(ilvl, stats, weights) {
     // Scale factor: secondaries on gear are typically 100-500 range, ilvl is 250-290
     // We divide stat contributions by 100 so they add ±1-5 to ilvl score
     var scale = 100;
-    ['crit','haste','mastery','versatility'].forEach(function(s) {
+    ['crit', 'haste', 'mastery', 'versatility'].forEach(function (s) {
         if (stats[s] && weights[s]) bonus += (stats[s] * weights[s]) / scale;
     });
     return ilvl + bonus;
@@ -479,10 +479,10 @@ function itemScore(ilvl, stats, weights) {
 function equippedScore(c, slot, weights) {
     var gear = c.gear || {};
     // finger and trinket can have 1 and 2
-    var slots = slot === 'finger'  ? ['finger1','finger2'] :
-                slot === 'trinket' ? ['trinket1','trinket2'] : [slot];
+    var slots = slot === 'finger' ? ['finger1', 'finger2'] :
+        slot === 'trinket' ? ['trinket1', 'trinket2'] : [slot];
     var best = 0;
-    slots.forEach(function(s) {
+    slots.forEach(function (s) {
         var item = gear[s];
         if (!item) return;
         var sc = itemScore(item.ilvl || 0, item.stats || {}, weights);
@@ -498,29 +498,29 @@ function renderGearUpgrades(c) {
     if (!body) return;
     body.innerHTML = '<div style="color:var(--text-dim);font-size:13px">' + T('meta_loading') + '</div>';
 
-    getLootData(function(lootData) {
+    getLootData(function (lootData) {
         if (!lootData || !lootData.items || !lootData.items.length) {
             body.innerHTML = '<div style="color:var(--text-dim);font-size:13px">' + T('loot_no_data') + '</div>';
             return;
         }
 
-        var weights  = parseStatWeights(c);
-        var diff     = _upgradeDiff; // 'normal'|'heroic'|'mythic' — applies to raid only
-        var isPT     = (window._lang === 'pt-BR');
+        var weights = parseStatWeights(c);
+        var diff = _upgradeDiff; // 'normal'|'heroic'|'mythic' — applies to raid only
+        var isPT = (window._lang === 'pt-BR');
         var slotDisp = isPT ? SLOT_DISPLAY : SLOT_DISPLAY_EN;
 
         // M+ reference key — lowest "relevant" key (Hero 1/6 = +7)
         var MP_REF_KEY = 7;
 
-        var GEAR_SLOTS = ['head','neck','shoulder','back','chest','wrist','hands',
-                          'waist','legs','feet','finger','trinket','mainhand','offhand','twohand'];
+        var GEAR_SLOTS = ['head', 'neck', 'shoulder', 'back', 'chest', 'wrist', 'hands',
+            'waist', 'legs', 'feet', 'finger', 'trinket', 'mainhand', 'offhand', 'twohand'];
 
         // Build per-slot candidate list
         // Raid: filter to selected diff | M+: always included from MP_REF_KEY
         var bySlot = {};
-        lootData.items.forEach(function(item) {
+        lootData.items.forEach(function (item) {
             var baseIlvl = null;
-            var maxIlvl  = null;
+            var maxIlvl = null;
 
             if (item.source === 'mythicplus') {
                 baseIlvl = item.ilvlByKey && item.ilvlByKey[MP_REF_KEY];
@@ -529,7 +529,7 @@ function renderGearUpgrades(c) {
             } else {
                 baseIlvl = item.ilvl && item.ilvl[diff];
                 if (!baseIlvl) return;
-                maxIlvl  = item.ilvlMax ? item.ilvlMax[diff] : baseIlvl + 20;
+                maxIlvl = item.ilvlMax ? item.ilvlMax[diff] : baseIlvl + 20;
             }
 
             var s = item.slot;
@@ -539,20 +539,20 @@ function renderGearUpgrades(c) {
 
         var upgradeSlots = [];
 
-        GEAR_SLOTS.forEach(function(slot) {
+        GEAR_SLOTS.forEach(function (slot) {
             var candidates = bySlot[slot];
             if (!candidates || !candidates.length) return;
 
             var equippedSc = equippedScore(c, slot, weights);
 
-            var scored = candidates.map(function(u) {
+            var scored = candidates.map(function (u) {
                 var baseSc = itemScore(u.baseIlvl, u.item.stats, weights);
-                var maxSc  = itemScore(u.maxIlvl,  u.item.stats, weights);
+                var maxSc = itemScore(u.maxIlvl, u.item.stats, weights);
                 return { item: u.item, baseIlvl: u.baseIlvl, maxIlvl: u.maxIlvl, baseSc: baseSc, maxSc: maxSc };
             });
 
-            scored.sort(function(a, b) { return b.baseSc - a.baseSc; });
-            var upgrades = scored.filter(function(x) { return x.baseSc > equippedSc; }).slice(0, 3);
+            scored.sort(function (a, b) { return b.baseSc - a.baseSc; });
+            var upgrades = scored.filter(function (x) { return x.baseSc > equippedSc; }).slice(0, 3);
 
             if (!upgrades.length) return;
             upgradeSlots.push({ slot: slot, upgrades: upgrades, equippedSc: equippedSc });
@@ -567,21 +567,21 @@ function renderGearUpgrades(c) {
 
         // Raid diff badge colors (WoW convention)
         var DIFF_COLOR = { normal: '#aaaaaa', heroic: '#1eff00', mythic: '#ff8000' };
-        var diffColor  = DIFF_COLOR[diff] || 'var(--text-dim)';
-        var diffLabel  = diff === 'normal' ? 'N' : diff === 'heroic' ? 'H' : 'M';
+        var diffColor = DIFF_COLOR[diff] || 'var(--text-dim)';
+        var diffLabel = diff === 'normal' ? 'N' : diff === 'heroic' ? 'H' : 'M';
 
         var html = '';
-        upgradeSlots.forEach(function(sg) {
+        upgradeSlots.forEach(function (sg) {
             var slotLabel = slotDisp[sg.slot] || sg.slot;
             html += '<div style="margin-bottom:14px">';
             html += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;' +
-                    'letter-spacing:0.06em;color:var(--text-dim);margin-bottom:6px">' + slotLabel + '</div>';
+                'letter-spacing:0.06em;color:var(--text-dim);margin-bottom:6px">' + slotLabel + '</div>';
 
-            sg.upgrades.forEach(function(u) {
-                var item     = u.item;
-                var isMplus  = item.source === 'mythicplus';
+            sg.upgrades.forEach(function (u) {
+                var item = u.item;
+                var isMplus = item.source === 'mythicplus';
                 var deltaStr = '+' + (u.baseSc - sg.equippedSc).toFixed(1);
-                var maxStr   = u.maxIlvl !== u.baseIlvl
+                var maxStr = u.maxIlvl !== u.baseIlvl
                     ? ' \u2192 <span style="color:var(--gold)">' + u.maxIlvl + '</span>'
                     : '';
                 var wowheadUrl = 'https://www.wowhead.com/item=' + item.itemId;
@@ -596,9 +596,9 @@ function renderGearUpgrades(c) {
                 html += '<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px">';
                 html += badge;
                 html += '<a href="' + wowheadUrl + '" target="_blank" ' +
-                        'style="color:var(--text);text-decoration:none;flex:1;font-weight:500" ' +
-                        'onmouseover="WH.showTooltip(this,event)" ' +
-                        'data-wh-icon-size="small">' + item.name + '</a>';
+                    'style="color:var(--text);text-decoration:none;flex:1;font-weight:500" ' +
+                    'onmouseover="WH.showTooltip(this,event)" ' +
+                    'data-wh-icon-size="small">' + item.name + '</a>';
                 html += '<span style="font-size:12px;color:var(--text-dim);white-space:nowrap">' + u.baseIlvl + maxStr + '</span>';
                 html += '<span style="font-size:12px;color:var(--green);font-weight:600;min-width:38px;text-align:right">' + deltaStr + '</span>';
                 html += '<span style="font-size:11px;color:var(--text-dim);max-width:110px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + sourceName + '">' + sourceName + '</span>';
@@ -608,14 +608,14 @@ function renderGearUpgrades(c) {
         });
 
         if (weights) {
-            var topStats = Object.keys(weights).sort(function(a,b){return weights[b]-weights[a];}).slice(0,2);
+            var topStats = Object.keys(weights).sort(function (a, b) { return weights[b] - weights[a]; }).slice(0, 2);
             html += '<div style="font-size:11px;color:var(--text-dim);margin-top:4px">' +
                 (isPT ? 'Score = ilvl + stats ponderados (Archon.gg: ' : 'Score = ilvl + weighted stats (Archon.gg: ') +
                 topStats.join(', ') + '). M+ a partir de +' + MP_REF_KEY + '.</div>';
         } else {
             html += '<div style="font-size:11px;color:var(--text-dim);margin-top:4px">' +
                 (isPT ? 'Score baseado em ilvl. M+ a partir de +' + MP_REF_KEY + '.'
-                      : 'Score based on ilvl. M+ from +' + MP_REF_KEY + '.') + '</div>';
+                    : 'Score based on ilvl. M+ from +' + MP_REF_KEY + '.') + '</div>';
         }
 
         body.innerHTML = html;
@@ -732,37 +732,37 @@ function rmMember(id) {
     // Header — guild title + realm subtitle (same as guild.html)
     var guildTitleEl = document.getElementById('guild-title');
     if (guildTitleEl && cfg.guild) {
-        guildTitleEl.textContent = cfg.guild.replace(/-/g, ' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+        guildTitleEl.textContent = cfg.guild.replace(/-/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
     }
     var realmTitleEl = document.getElementById('realm-title');
     if (realmTitleEl && cfg.realm) {
-        realmTitleEl.textContent = cfg.realm.replace(/-/g, ' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); }) + ' — ' + cfg.region.toUpperCase();
+        realmTitleEl.textContent = cfg.realm.replace(/-/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); }) + ' — ' + cfg.region.toUpperCase();
     }
 
     if (cfg.workerBase && cfg.realm && cfg.guild) {
         var gBase = cfg.workerBase + '/api/' + cfg.region + '/' + cfg.realm + '/' + cfg.guild;
-        var diff  = (JSON.parse(localStorage.getItem('ga_cfg') || '{}').archonDiff) || 'heroic';
+        var diff = (JSON.parse(localStorage.getItem('ga_cfg') || '{}').archonDiff) || 'heroic';
 
-        var fetchRoster   = fetch(gBase + '/roster?t=' + Date.now()).then(function(r){ return r.json(); }).catch(function(){ return null; });
-        var fetchCfgData  = fetch(gBase + '/cfg?t='    + Date.now()).then(function(r){ return r.json(); }).catch(function(){ return null; });
-        var fetchArchon   = fetch(cfg.workerBase + '/api/archon/' + diff + '?t=' + Date.now()).then(function(r){ return r.text(); }).catch(function(){ return null; });
+        var fetchRoster = fetch(gBase + '/roster?t=' + Date.now()).then(function (r) { return r.json(); }).catch(function () { return null; });
+        var fetchCfgData = fetch(gBase + '/cfg?t=' + Date.now()).then(function (r) { return r.json(); }).catch(function () { return null; });
+        var fetchArchon = fetch(cfg.workerBase + '/api/archon/' + diff + '?t=' + Date.now()).then(function (r) { return r.text(); }).catch(function () { return null; });
 
-        Promise.all([fetchRoster, fetchCfgData, fetchArchon]).then(function(results) {
+        Promise.all([fetchRoster, fetchCfgData, fetchArchon]).then(function (results) {
             var rosterData = results[0];
-            var cfgData    = results[1];
+            var cfgData = results[1];
             var archonText = results[2];
 
             if (Array.isArray(rosterData) && rosterData.length) {
                 roster = rosterData;
                 localStorage.setItem('ga_data', JSON.stringify(roster));
-                getToken(cfg).then(function(tok) {
+                getToken(cfg).then(function (tok) {
                     fetchItemIcons(cfg, tok);
                     fetchAllCharMedia(cfg, tok);
-                }).catch(function(){ });
+                }).catch(function () { });
             }
 
             if (cfgData && typeof cfgData === 'object') {
-                var cur    = JSON.parse(localStorage.getItem('ga_cfg') || '{}');
+                var cur = JSON.parse(localStorage.getItem('ga_cfg') || '{}');
                 var merged = Object.assign({}, cur, cfgData);
                 localStorage.setItem('ga_cfg', JSON.stringify(merged));
             }

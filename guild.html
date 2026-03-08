@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GuildAudit</title>
-    <meta name="description" content="WoW Guild Audit — track gear, enchants, gems and M+ ratings for your raid roster.">
+    <meta name="description"
+        content="WoW Guild Audit — track gear, enchants, gems and M+ ratings for your raid roster.">
     <link rel="icon" type="image/x-icon" href="https://wow.zamimg.com/images/wow/icons/medium/inv_scroll_11.jpg">
     <link rel="stylesheet" href="styles.css?v=8">
 </head>
@@ -16,7 +17,8 @@
 
         <header class="hdr">
             <div class="hdr-left">
-                <a href="#" class="hdr-home-link" title="Página inicial" onclick="window.location.href=getHomeUrl();return false;">⬡</a>
+                <a href="#" class="hdr-home-link" title="Página inicial"
+                    onclick="window.location.href=getHomeUrl();return false;">⬡</a>
                 <div>
                     <div class="hdr-title" id="guild-title">GuildAudit</div>
                     <div class="hdr-meta">
@@ -28,8 +30,10 @@
             </div>
             <div class="hdr-right">
                 <span id="hmeta" style="font-size:.85rem;color:var(--text-dim)"></span>
-                <button class="btn btn-secondary btn-sm perm-officer perm-inline" onclick="forceRefresh()" id="btnRefresh">↻ <span class="t-refresh">Atualizar</span></button>
-                <button class="btn btn-primary btn-sm perm-officer perm-inline" onclick="openImport()">⬆ <span class="t-import">Importar</span></button>
+                <button class="btn btn-secondary btn-sm perm-officer perm-inline" onclick="forceRefresh()"
+                    id="btnRefresh">↻ <span class="t-refresh">Atualizar</span></button>
+                <button class="btn btn-primary btn-sm perm-officer perm-inline" onclick="openImport()">⬆ <span
+                        class="t-import">Importar</span></button>
                 <div id="user-info" style="display:none;align-items:center;gap:8px">
                     <span id="user-battletag" style="font-size:.85rem;color:var(--text)"></span>
                     <span id="user-perm" class="perm-badge"></span>
@@ -40,10 +44,14 @@
         </header>
 
         <div class="nav" id="navTabs">
-            <button class="nav-tab active" data-page="overview" onclick="showPage('overview',this)"><span class="t-overview">Overview</span></button>
-            <button class="nav-tab perm-officer" data-page="roster" onclick="showPage('roster',this)"><span class="t-roster">Roster</span></button>
-            <button class="nav-tab" data-page="vault" onclick="showPage('vault',this)"><span class="t-vault">Great Vault</span></button>
-            <button class="nav-tab perm-officer" data-page="settings" onclick="showPage('settings',this)"><span class="t-settings">Configurações</span></button>
+            <button class="nav-tab active" data-page="overview" onclick="showPage('overview',this)"><span
+                    class="t-overview">Overview</span></button>
+            <button class="nav-tab perm-officer" data-page="roster" onclick="showPage('roster',this)"><span
+                    class="t-roster">Roster</span></button>
+            <button class="nav-tab" data-page="vault" onclick="showPage('vault',this)"><span class="t-vault">Great
+                    Vault</span></button>
+            <button class="nav-tab perm-officer" data-page="settings" onclick="showPage('settings',this)"><span
+                    class="t-settings">Configurações</span></button>
 
             <div style="margin-left:auto;display:flex;align-items:center;padding-right:12px">
                 <select id="cfg-dispLang" class="lang-select" onchange="saveLang();applyI18n();renderAll()">
@@ -88,7 +96,8 @@
                 </div>
             </div>
             <div class="comp-grid" id="compGrid"></div>
-            <div id="st-sync-ts" style="font-size:.72rem;color:var(--text-dim);text-align:right;margin:-8px 0 8px;padding:0 4px"></div>
+            <div id="st-sync-ts"
+                style="font-size:.72rem;color:var(--text-dim);text-align:right;margin:-8px 0 8px;padding:0 4px"></div>
             <div class="section-title" id="st-ranking">Ranking por iLvl</div>
             <div id="ovTable"></div>
         </div>
@@ -102,7 +111,8 @@
 
             <div style="margin-bottom:16px">
                 <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px">
-                    <div style="font-weight:700;font-size:.85rem;color:var(--gold-light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px" class="t-add-member">Adicionar Membro</div>
+                    <div style="font-weight:700;font-size:.85rem;color:var(--gold-light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px"
+                        class="t-add-member">Adicionar Membro</div>
                     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
                         <div style="flex:1;min-width:140px">
                             <label style="font-size:.75rem;color:var(--text-dim)" class="t-name">Nome</label>
@@ -112,7 +122,8 @@
                             <label style="font-size:.75rem;color:var(--text-dim)" class="t-realm-lbl">Realm</label>
                             <input type="text" id="add-r" placeholder="azralon" class="form-input t-placeholder-realm">
                         </div>
-                        <button class="btn btn-primary btn-sm t-search-add" onclick="trackChar()">🔍 Buscar e Adicionar</button>
+                        <button class="btn btn-primary btn-sm t-search-add" onclick="trackChar()">🔍 Buscar e
+                            Adicionar</button>
                     </div>
                 </div>
             </div>
@@ -132,30 +143,50 @@
 
                 <div class="settings-card perm-officer perm-block">
                     <h3 class="t-cfg-display">Exibição</h3>
-                    <label><span class="toggle"><input type="checkbox" id="cfg-si" checked onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span class="t-show-issues">Exibir Issues</span></label>
-                    <label><span class="toggle"><input type="checkbox" id="cfg-sv" checked onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span class="t-show-vault">Exibir Vault</span></label>
-                    <label><span class="toggle"><input type="checkbox" id="cfg-sr" checked onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span class="t-show-rating">Exibir M+ Rating</span></label>
-                    <label><span class="toggle"><input type="checkbox" id="cfg-sn" checked onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span class="t-show-notes">Exibir Notas</span></label>
-                    <label><span class="toggle"><input type="checkbox" id="cfg-st" checked onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span class="t-show-tier">Exibir Peças de Tier</span></label>
-                    <label><span class="toggle"><input type="checkbox" id="cfg-ar" checked onchange="saveCfg();setupAR()"><span class="toggle-slider"></span></span> <span class="t-auto-refresh">Refresh automático (15min)</span></label>
+                    <label><span class="toggle"><input type="checkbox" id="cfg-si" checked
+                                onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span
+                            class="t-show-issues">Exibir Issues</span></label>
+                    <label><span class="toggle"><input type="checkbox" id="cfg-sv" checked
+                                onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span
+                            class="t-show-vault">Exibir Vault</span></label>
+                    <label><span class="toggle"><input type="checkbox" id="cfg-sr" checked
+                                onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span
+                            class="t-show-rating">Exibir M+ Rating</span></label>
+                    <label><span class="toggle"><input type="checkbox" id="cfg-sn" checked
+                                onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span
+                            class="t-show-notes">Exibir Notas</span></label>
+                    <label><span class="toggle"><input type="checkbox" id="cfg-st" checked
+                                onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span
+                            class="t-show-tier">Exibir Peças de Tier</span></label>
+                    <label><span class="toggle"><input type="checkbox" id="cfg-ar" checked
+                                onchange="saveCfg();setupAR()"><span class="toggle-slider"></span></span> <span
+                            class="t-auto-refresh">Refresh automático (15min)</span></label>
+                    <label><span class="toggle"><input type="checkbox" id="cfg-sid"
+                                onchange="saveCfg();renderAll()"><span class="toggle-slider"></span></span> <span
+                            class="t-show-ilvl-decimal">Exibir iLvl com decimais</span></label>
 
                     <div style="margin-top:14px">
                         <label style="font-weight:600" class="t-ilvl-min">iLvl Mínimo</label>
-                        <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:4px" class="t-ilvl-min-desc">Destacar jogadores abaixo deste iLvl</div>
-                        <input type="number" id="cfg-ilvlMin" class="form-input" placeholder="0" value="0" onchange="saveCfg();renderAll()" style="width:120px">
+                        <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:4px" class="t-ilvl-min-desc">
+                            Destacar jogadores abaixo deste iLvl</div>
+                        <input type="number" id="cfg-ilvlMin" class="form-input" placeholder="0" value="0"
+                            onchange="saveCfg();renderAll()" style="width:120px">
                     </div>
                 </div>
 
                 <div class="settings-card perm-officer perm-block">
                     <h3 class="t-cfg-archon">Meta Stats (Archon.gg)</h3>
-                    <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:10px" class="t-cfg-archon-desc">Prioridade de atributos por dificuldade de raid</div>
+                    <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:10px" class="t-cfg-archon-desc">
+                        Prioridade de atributos por dificuldade de raid</div>
                     <div style="display:flex;gap:8px;margin-bottom:12px">
                         <label class="archon-diff-btn">
-                            <input type="radio" name="archonDiff" value="heroic" onchange="CFG.archonDiff='heroic';saveCfg();loadArchonStats()">
+                            <input type="radio" name="archonDiff" value="heroic"
+                                onchange="CFG.archonDiff='heroic';saveCfg();loadArchonStats()">
                             <span class="t-heroic">Heroico</span>
                         </label>
                         <label class="archon-diff-btn">
-                            <input type="radio" name="archonDiff" value="mythic" onchange="CFG.archonDiff='mythic';saveCfg();loadArchonStats()">
+                            <input type="radio" name="archonDiff" value="mythic"
+                                onchange="CFG.archonDiff='mythic';saveCfg();loadArchonStats()">
                             <span class="t-mythic">Mítico</span>
                         </label>
                     </div>
@@ -214,13 +245,13 @@
             if (!el) return;
             var lang = localStorage.getItem('ga_lang') || 'pt-BR';
             var lblUpdated = lang === 'pt-BR' ? 'Atualizado em' : 'Last Updated';
-            var lblLoaded  = lang === 'pt-BR' ? 'Dados carregados ✓' : 'Data loaded ✓';
-            var lblNoData  = lang === 'pt-BR' ? 'Sem dados do Archon' : 'No Archon data';
-            var locale     = lang === 'pt-BR' ? 'pt-BR' : 'en-US';
+            var lblLoaded = lang === 'pt-BR' ? 'Dados carregados ✓' : 'Data loaded ✓';
+            var lblNoData = lang === 'pt-BR' ? 'Sem dados do Archon' : 'No Archon data';
+            var locale = lang === 'pt-BR' ? 'pt-BR' : 'en-US';
             var match = text && text.match(/last_updated:([^\s}]+)/);
             if (match) {
                 var d = new Date(match[1]);
-                el.textContent = lblUpdated + ': ' + (isNaN(d) ? match[1] : d.toLocaleDateString(locale, { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }));
+                el.textContent = lblUpdated + ': ' + (isNaN(d) ? match[1] : d.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }));
             } else if (text && text.length > 10) {
                 el.textContent = lblLoaded;
             } else {

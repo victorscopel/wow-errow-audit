@@ -5,7 +5,7 @@
 
 // ── State ─────────────────────────────────────────────────
 var roster = [];
-var CFG = { si: true, sv: true, sr: true, sn: true, st: true, ar: true, ilvlMin: 0, archon: '', archonDiff: 'heroic' };
+var CFG = { si: true, sv: true, sr: true, sn: true, st: true, ar: true, sid: false, ilvlMin: 0, archon: '', archonDiff: 'heroic' };
 window._lang = localStorage.getItem('ga_lang') || 'pt-BR';
 var sortC = 'ilvl', sortD = -1;
 var ovSortC = 'ilvl', ovSortD = -1;
@@ -50,8 +50,8 @@ function init() {
     }
 
     // Persist for char.html
-    localStorage.setItem('ga_realm',  cfg.realm);
-    localStorage.setItem('ga_guild',  cfg.guild);
+    localStorage.setItem('ga_realm', cfg.realm);
+    localStorage.setItem('ga_guild', cfg.guild);
     localStorage.setItem('ga_region', cfg.region);
 
     // Load local roster cache
@@ -61,7 +61,7 @@ function init() {
     // Load config
     var sc = ls('ga_cfg');
     if (sc) try { CFG = Object.assign({}, CFG, JSON.parse(sc)); } catch (e) { }
-    ['si', 'sv', 'sr', 'sn', 'st', 'ar'].forEach(function (k) {
+    ['si', 'sv', 'sr', 'sn', 'st', 'ar', 'sid'].forEach(function (k) {
         var el = document.getElementById('cfg-' + k);
         if (el) el.checked = CFG[k];
     });
@@ -75,13 +75,13 @@ function init() {
     // Show guild name in header
     var guildTitle = document.getElementById('guild-title');
     if (guildTitle && cfg.guild) {
-        var guildName = cfg.guild.replace(/-/g, ' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+        var guildName = cfg.guild.replace(/-/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
         guildTitle.textContent = guildName;
         document.title = 'GuildAudit — ' + guildName;
     }
     var realmTitle = document.getElementById('realm-title');
     if (realmTitle && cfg.realm) {
-        realmTitle.textContent = cfg.realm.replace(/-/g, ' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); }) + ' — ' + cfg.region.toUpperCase();
+        realmTitle.textContent = cfg.realm.replace(/-/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); }) + ' — ' + cfg.region.toUpperCase();
     }
 
     applyI18n();
@@ -91,8 +91,8 @@ function init() {
 
     if (hasAPICfg()) {
         if (typeof loadBackendRoster !== 'undefined') loadBackendRoster();
-        if (typeof loadBackendCfg    !== 'undefined') loadBackendCfg();
-        if (typeof loadArchonStats   !== 'undefined') loadArchonStats();
+        if (typeof loadBackendCfg !== 'undefined') loadBackendCfg();
+        if (typeof loadArchonStats !== 'undefined') loadArchonStats();
     }
 
     if (CFG.ar && hasAPICfg() && roster.length && hasPerm('officer')) {
@@ -110,7 +110,7 @@ function init() {
 // ── Save config ───────────────────────────────────────────
 function saveCfg() {
     var oc = JSON.stringify(CFG);
-    ['si', 'sv', 'sr', 'sn', 'st', 'ar'].forEach(function (k) { CFG[k] = document.getElementById('cfg-' + k)?.checked || false; });
+    ['si', 'sv', 'sr', 'sn', 'st', 'ar', 'sid'].forEach(function (k) { CFG[k] = document.getElementById('cfg-' + k)?.checked || false; });
     CFG.ilvlMin = parseInt(document.getElementById('cfg-ilvlMin')?.value) || 0;
     var archonEl = document.getElementById('cfg-archon');
     if (archonEl) CFG.archon = archonEl.value.trim();
@@ -157,7 +157,7 @@ function showPage(id, btn) {
 
 function openChar(id) {
     var parts = id.split('|');
-    var name  = parts[0] || '';
+    var name = parts[0] || '';
     var realm = parts[1] || getAPICfg().realm || 'azralon';
     if (!name) return;
     var cfg = getAPICfg();
@@ -261,17 +261,17 @@ function notify(msg) {
 // ── Demo data ─────────────────────────────────────────────
 function loadDemo() {
     roster = [
-        { name:'Redtalon',   realm:'azralon',   guild:'Errow', class:'Death Knight', spec:'Blood',          role:ROLE_TANK,       specId:250, ilvl:648, mythicRating:2840, issues:[], note:'Main tank',   gear:{}, vault:{mythic:8,raid:7,world:3}, renderUrl:null, lastUpdated:new Date().toISOString() },
-        { name:'Solarheal',  realm:'azralon',   guild:'Errow', class:'Druid',        spec:'Restoration',    role:ROLE_HEALER,     specId:105, ilvl:645, mythicRating:2210, issues:[], note:'',             gear:{}, vault:{mythic:6,raid:10,world:1}, renderUrl:null, lastUpdated:new Date().toISOString() },
-        { name:'Aeerys',     realm:'azralon',   guild:'Errow', class:'Mage',         spec:'Frost',          role:ROLE_DPS_RANGE,  specId:64,  ilvl:641, mythicRating:1980, issues:[], note:'',             gear:{}, vault:{mythic:4,raid:7,world:2},  renderUrl:null, lastUpdated:new Date().toISOString() },
-        { name:'Doppel',     realm:'illidan',   guild:'Errow', class:'Rogue',        spec:'Assassination',  role:ROLE_DPS_MELEE,  specId:259, ilvl:638, mythicRating:1750, issues:[], note:'Cross-realm',  gear:{}, vault:{mythic:3,raid:5,world:0},  renderUrl:null, lastUpdated:new Date().toISOString() },
-        { name:'Zaag',       realm:'azralon',   guild:'Errow', class:'Warrior',      spec:'Arms',           role:ROLE_DPS_MELEE,  specId:71,  ilvl:635, mythicRating:1600, issues:[], note:'',             gear:{}, vault:{mythic:2,raid:3,world:1},  renderUrl:null, lastUpdated:new Date().toISOString() },
-        { name:'Ironshield', realm:'azralon',   guild:'Errow', class:'Paladin',      spec:'Protection',     role:ROLE_TANK,       specId:66,  ilvl:633, mythicRating:1500, issues:[], note:'Off tank',     gear:{}, vault:{mythic:5,raid:6,world:2},  renderUrl:null, lastUpdated:new Date().toISOString() },
-        { name:'Windrunner', realm:'azralon',   guild:'Errow', class:'Hunter',       spec:'Marksmanship',   role:ROLE_DPS_RANGE,  specId:254, ilvl:628, mythicRating:1200, issues:[], note:'',             gear:{}, vault:{mythic:1,raid:2,world:0},  renderUrl:null, lastUpdated:new Date().toISOString() },
-        { name:'Saturno',    realm:'azralon',   guild:'Errow', class:'Shaman',       spec:'Restoration',    role:ROLE_HEALER,     specId:264, ilvl:624, mythicRating:980,  issues:[], note:'',             gear:{}, vault:{mythic:2,raid:4,world:1},  renderUrl:null, lastUpdated:new Date().toISOString() },
-        { name:'Darkbrew',   realm:'silvermoon',guild:'Errow', class:'Monk',         spec:'Windwalker',     role:ROLE_DPS_MELEE,  specId:269, ilvl:631, mythicRating:1100, issues:[], note:'Cross-realm',  gear:{}, vault:{mythic:3,raid:4,world:1},  renderUrl:null, lastUpdated:new Date().toISOString() },
-        { name:'Níghtwólf',  realm:'azralon',   guild:'Errow', class:'Demon Hunter', spec:'Havoc',          role:ROLE_DPS_MELEE,  specId:577, ilvl:615, mythicRating:620,  issues:[], note:'Trial',        gear:{}, vault:{mythic:0,raid:1,world:0},  renderUrl:null, lastUpdated:new Date().toISOString() },
-        { name:'Archontus',  realm:'nemesis',   guild:'Errow', class:'Paladin',      spec:'Holy',           role:ROLE_HEALER,     specId:65,  ilvl:619, mythicRating:890,  issues:[], note:'Cross-realm',  gear:{}, vault:{mythic:1,raid:3,world:0},  renderUrl:null, lastUpdated:new Date().toISOString() },
+        { name: 'Redtalon', realm: 'azralon', guild: 'Errow', class: 'Death Knight', spec: 'Blood', role: ROLE_TANK, specId: 250, ilvl: 648, mythicRating: 2840, issues: [], note: 'Main tank', gear: {}, vault: { mythic: 8, raid: 7, world: 3 }, renderUrl: null, lastUpdated: new Date().toISOString() },
+        { name: 'Solarheal', realm: 'azralon', guild: 'Errow', class: 'Druid', spec: 'Restoration', role: ROLE_HEALER, specId: 105, ilvl: 645, mythicRating: 2210, issues: [], note: '', gear: {}, vault: { mythic: 6, raid: 10, world: 1 }, renderUrl: null, lastUpdated: new Date().toISOString() },
+        { name: 'Aeerys', realm: 'azralon', guild: 'Errow', class: 'Mage', spec: 'Frost', role: ROLE_DPS_RANGE, specId: 64, ilvl: 641, mythicRating: 1980, issues: [], note: '', gear: {}, vault: { mythic: 4, raid: 7, world: 2 }, renderUrl: null, lastUpdated: new Date().toISOString() },
+        { name: 'Doppel', realm: 'illidan', guild: 'Errow', class: 'Rogue', spec: 'Assassination', role: ROLE_DPS_MELEE, specId: 259, ilvl: 638, mythicRating: 1750, issues: [], note: 'Cross-realm', gear: {}, vault: { mythic: 3, raid: 5, world: 0 }, renderUrl: null, lastUpdated: new Date().toISOString() },
+        { name: 'Zaag', realm: 'azralon', guild: 'Errow', class: 'Warrior', spec: 'Arms', role: ROLE_DPS_MELEE, specId: 71, ilvl: 635, mythicRating: 1600, issues: [], note: '', gear: {}, vault: { mythic: 2, raid: 3, world: 1 }, renderUrl: null, lastUpdated: new Date().toISOString() },
+        { name: 'Ironshield', realm: 'azralon', guild: 'Errow', class: 'Paladin', spec: 'Protection', role: ROLE_TANK, specId: 66, ilvl: 633, mythicRating: 1500, issues: [], note: 'Off tank', gear: {}, vault: { mythic: 5, raid: 6, world: 2 }, renderUrl: null, lastUpdated: new Date().toISOString() },
+        { name: 'Windrunner', realm: 'azralon', guild: 'Errow', class: 'Hunter', spec: 'Marksmanship', role: ROLE_DPS_RANGE, specId: 254, ilvl: 628, mythicRating: 1200, issues: [], note: '', gear: {}, vault: { mythic: 1, raid: 2, world: 0 }, renderUrl: null, lastUpdated: new Date().toISOString() },
+        { name: 'Saturno', realm: 'azralon', guild: 'Errow', class: 'Shaman', spec: 'Restoration', role: ROLE_HEALER, specId: 264, ilvl: 624, mythicRating: 980, issues: [], note: '', gear: {}, vault: { mythic: 2, raid: 4, world: 1 }, renderUrl: null, lastUpdated: new Date().toISOString() },
+        { name: 'Darkbrew', realm: 'silvermoon', guild: 'Errow', class: 'Monk', spec: 'Windwalker', role: ROLE_DPS_MELEE, specId: 269, ilvl: 631, mythicRating: 1100, issues: [], note: 'Cross-realm', gear: {}, vault: { mythic: 3, raid: 4, world: 1 }, renderUrl: null, lastUpdated: new Date().toISOString() },
+        { name: 'Níghtwólf', realm: 'azralon', guild: 'Errow', class: 'Demon Hunter', spec: 'Havoc', role: ROLE_DPS_MELEE, specId: 577, ilvl: 615, mythicRating: 620, issues: [], note: 'Trial', gear: {}, vault: { mythic: 0, raid: 1, world: 0 }, renderUrl: null, lastUpdated: new Date().toISOString() },
+        { name: 'Archontus', realm: 'nemesis', guild: 'Errow', class: 'Paladin', spec: 'Holy', role: ROLE_HEALER, specId: 65, ilvl: 619, mythicRating: 890, issues: [], note: 'Cross-realm', gear: {}, vault: { mythic: 1, raid: 3, world: 0 }, renderUrl: null, lastUpdated: new Date().toISOString() },
     ];
     saveRoster(); renderAll(); notify(T('demo_loaded'));
 }

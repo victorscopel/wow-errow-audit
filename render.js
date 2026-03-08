@@ -14,6 +14,24 @@ function ilvlC(v) {
   return 'ib';
 }
 
+function fmtIlvl(v) {
+  if (!v) return '—';
+  var sid = false;
+  if (typeof CFG !== 'undefined' && CFG.sid !== undefined) {
+    sid = CFG.sid;
+  } else {
+    try {
+      var sc = localStorage.getItem('ga_cfg');
+      if (sc) {
+        var c = JSON.parse(sc);
+        sid = !!c.sid;
+      }
+    } catch (e) { }
+  }
+  if (sid) return v.toFixed(1);
+  return Math.floor(v);
+}
+
 function qClass(q) { return { common: 'q-c', uncommon: 'q-u', rare: 'q-r', epic: 'q-e', legendary: 'q-l' }[q] || 'q-c'; }
 function whDomain() { return window._lang === 'pt-BR' ? 'pt.wowhead.com' : 'www.wowhead.com'; }
 
@@ -102,7 +120,7 @@ function tierBadge(c) {
   var initials = isPT ? INITIALS_PT : INITIALS_EN;
   var slots = ['head', 'shoulder', 'chest', 'hands', 'legs'];
   var html = '<span style="display:inline-flex;gap:2px">';
-  slots.forEach(function(slot) {
+  slots.forEach(function (slot) {
     var item = gear[slot];
     if (item && item.isTierSet) {
       var col = QUALITY_COLOR[item.quality] || QUALITY_COLOR.epic;
@@ -118,7 +136,7 @@ function tierBadge(c) {
 }
 
 function embBadge(c) {
-  var embCount = Object.values(c.gear || {}).filter(function(g){ return g && g.isEmbellished; }).length;
+  var embCount = Object.values(c.gear || {}).filter(function (g) { return g && g.isEmbellished; }).length;
   if (embCount >= 2) return '';
   if (embCount === 0) return '<span class="badge-emb" style="margin-left:3px" title="Sem embellishments">0✦</span>';
   return '<span class="badge-emb" style="margin-left:3px;opacity:.7" title="Apenas 1 embellishment">1✦</span>';
@@ -128,19 +146,19 @@ function embBadge(c) {
 // If player has any PvP set pieces, shows a ⚔ PvP badge with piece count.
 function pvpTierBadge(c) {
   var gear = c.gear || {};
-  var pvpItems = Object.values(gear).filter(function(g) { return g && g.isPvP && g.pvpSetName; });
+  var pvpItems = Object.values(gear).filter(function (g) { return g && g.isPvP && g.pvpSetName; });
   if (!pvpItems.length) return '';
   // group by pvpSetName
   var sets = {};
-  pvpItems.forEach(function(g) {
+  pvpItems.forEach(function (g) {
     var k = g.pvpSetName || 'PvP';
     sets[k] = (sets[k] || 0) + 1;
   });
   var isPT = (window._lang === 'pt-BR');
   var html = '';
-  Object.keys(sets).forEach(function(name) {
+  Object.keys(sets).forEach(function (name) {
     var count = sets[name];
-    var shortName = name.replace(/armadura do |armor of the |armor of /gi, '').split(' ').slice(0,3).join(' ');
+    var shortName = name.replace(/armadura do |armor of the |armor of /gi, '').split(' ').slice(0, 3).join(' ');
     var tip = name + ' (' + count + '/8)';
     html += '<span class="badge-pvp" title="' + esc(tip) + '" style="margin-left:3px">⚔ ' + count + (isPT ? ' PvP' : ' PvP') + '</span>';
   });
@@ -179,9 +197,9 @@ function applyI18n() {
 }
 
 function cnCell(c) {
-  var _cfg  = getAPICfg();
-  var _gp   = _cfg.region + '/' + _cfg.realm + '/' + _cfg.guild;
-  var href  = 'char.html?name=' + encodeURIComponent(c.name) + '&realm=' + encodeURIComponent(c.realm || 'azralon') + '&guild=' + _gp;
+  var _cfg = getAPICfg();
+  var _gp = _cfg.region + '/' + _cfg.realm + '/' + _cfg.guild;
+  var href = 'char.html?name=' + encodeURIComponent(c.name) + '&realm=' + encodeURIComponent(c.realm || 'azralon') + '&guild=' + _gp;
   return '<a class="cn" href="' + href + '"><img src="' + getClassIcon(c.class) + '" onerror="this.style.display=\'none\'" alt="">' +
     '<div><span class="cn-name" style="color:' + getClassColor(c.class) + '">' + esc(c.name) + '</span>' +
     '<span class="cn-realm">' + esc(c.realm || '') + '</span>' +
@@ -197,7 +215,7 @@ function updateStats() {
   if (!roster.length) return;
   var ilvls = roster.map(function (c) { return c.ilvl || 0; }).filter(Boolean);
   document.getElementById('st-t').textContent = roster.length;
-  document.getElementById('st-a').textContent = ilvls.length ? (ilvls.reduce(function (a, b) { return a + b; }, 0) / ilvls.length).toFixed(2) : '—';
+  document.getElementById('st-a').textContent = ilvls.length ? (ilvls.reduce(function (a, b) { return a + b; }, 0) / ilvls.length).toFixed(1) : '—';
   document.getElementById('st-m').textContent = ilvls.length ? Math.max.apply(null, ilvls) : '—';
   var issCount = roster.filter(function (c) { return c.issues?.length > 0; }).length;
   document.getElementById('st-r').textContent = roster.length - issCount;
@@ -274,21 +292,21 @@ function renderOverview() {
   });
   var el = document.getElementById('ovTable');
   if (!data.length) { el.innerHTML = '<div class="empty"><div class="empty-i">⚔️</div><div class="empty-t">' + T('no_data') + '</div><div class="empty-s">' + T('import_or_demo') + '</div></div>'; return; }
-  var isTh  = CFG.si ? ovSth('issues', T('issues')) : '';
-  var vTh   = CFG.sv ? '<th>' + T('vault') + '</th>' : '';
-  var rTh   = CFG.sr ? ovSth('mythicRating', T('m_rating')) : '';
-  var nTh   = CFG.sn ? '<th>' + T('note') + '</th>' : '';
-  var stTh  = CFG.st ? '<th title="Head · Shoulder · Chest · Gloves · Legs">' + T('tier_pieces') + '</th>' : '';
+  var isTh = CFG.si ? ovSth('issues', T('issues')) : '';
+  var vTh = CFG.sv ? '<th>' + T('vault') + '</th>' : '';
+  var rTh = CFG.sr ? ovSth('mythicRating', T('m_rating')) : '';
+  var nTh = CFG.sn ? '<th>' + T('note') + '</th>' : '';
+  var stTh = CFG.st ? '<th title="Head · Shoulder · Chest · Gloves · Legs">' + T('tier_pieces') + '</th>' : '';
   var minIlvl = CFG.ilvlMin || 0;
   var rows = data.map(function (c, i) {
     var id = cid(c);
     var isUnder = minIlvl > 0 && (c.ilvl || 0) < minIlvl;
-    var isTd  = CFG.si ? '<td>' + (c.issues?.length ? '<span style="color:var(--red);font-weight:600">' + c.issues.length + '</span>' : '<span class="it it-ok">✓</span>') + '</td>' : '';
-    var vTd   = CFG.sv ? '<td style="color:var(--text-dim)">' + fmtVault(c) + '</td>' : '';
-    var rTd   = CFG.sr ? '<td><span style="font-weight:700;color:' + ratingCol(c.mythicRating) + '">' + (c.mythicRating || '—') + '</span></td>' : '';
-    var nTd   = CFG.sn ? '<td><span class="note-c" onclick="editNote(\'' + id + '\')">' + (c.note ? esc(c.note) : '<span style="opacity:.3">+</span>') + '</span></td>' : '';
-    var stTd  = CFG.st ? '<td>' + tierBadge(c) + '</td>' : '';
-    return '<tr' + (isUnder ? ' class="row-under-min"' : '') + '><td style="color:var(--text-dim);width:35px">' + (i + 1) + '</td><td>' + cnCell(c) + '</td><td>' + roleBadge(c.role) + '</td><td><span class="ilvl ' + ilvlC(c.ilvl) + '">' + (c.ilvl || '—') + '</span></td>' + isTd + vTd + rTd + stTd + nTd + '</tr>';
+    var isTd = CFG.si ? '<td>' + (c.issues?.length ? '<span style="color:var(--red);font-weight:600">' + c.issues.length + '</span>' : '<span class="it it-ok">✓</span>') + '</td>' : '';
+    var vTd = CFG.sv ? '<td style="color:var(--text-dim)">' + fmtVault(c) + '</td>' : '';
+    var rTd = CFG.sr ? '<td><span style="font-weight:700;color:' + ratingCol(c.mythicRating) + '">' + (c.mythicRating || '—') + '</span></td>' : '';
+    var nTd = CFG.sn ? '<td><span class="note-c" onclick="editNote(\'' + id + '\')">' + (c.note ? esc(c.note) : '<span style="opacity:.3">+</span>') + '</span></td>' : '';
+    var stTd = CFG.st ? '<td>' + tierBadge(c) + '</td>' : '';
+    return '<tr' + (isUnder ? ' class="row-under-min"' : '') + '><td style="color:var(--text-dim);width:35px">' + (i + 1) + '</td><td>' + cnCell(c) + '</td><td>' + roleBadge(c.role) + '</td><td><span class="ilvl ' + ilvlC(c.ilvl) + '">' + fmtIlvl(c.ilvl) + '</span></td>' + isTd + vTd + rTd + stTd + nTd + '</tr>';
   }).join('');
   el.innerHTML = '<table><thead><tr><th>#</th>' + ovSth('name', T('character')) + ovSth('role', T('role')) + ovSth('ilvl', T('ilvl')) + isTh + vTh + rTh + stTh + nTh + '</tr></thead><tbody>' + rows + '</tbody></table>';
 }
@@ -310,8 +328,8 @@ function renderRoster() {
   var el = document.getElementById('rosterTable');
   if (!filtered.length) { el.innerHTML = '<div class="empty"><div class="empty-i">👥</div><div class="empty-t">' + T('no_data') + '</div></div>'; return; }
   var isTh = CFG.si ? sth('issues', T('issues')) : '';
-  var rTh  = CFG.sr ? sth('mythicRating', T('m_rating')) : '';
-  var nTh  = CFG.sn ? sth('note', T('note')) : '';
+  var rTh = CFG.sr ? sth('mythicRating', T('m_rating')) : '';
+  var nTh = CFG.sn ? sth('note', T('note')) : '';
   var stTh = CFG.st ? '<th title="Head · Shoulder · Chest · Gloves · Legs">' + T('tier_pieces') + '</th>' : '';
   var rmTh = hasPerm('officer') ? '<th></th>' : '';
   var canEditRole = hasPerm('officer');
@@ -320,14 +338,14 @@ function renderRoster() {
     var id = cid(c);
     var isUnder = minIlvl > 0 && (c.ilvl || 0) < minIlvl;
     var isTd = CFG.si ? '<td><div style="display:flex;flex-wrap:wrap;gap:3px">' + (c.issues?.length ? c.issues.slice(0, 2).map(function (i) { var t = translateIssue(i); var short = (i.includes(':') && !i.startsWith('embellishment:') && !i.startsWith('tierset:')) ? t.replace(/.*: /, '') : t; return '<span class="it it-e">' + short + '</span>'; }).join('') + (c.issues.length > 2 ? '<span class="it" style="color:var(--text-dim);border:1px solid var(--border)">+' + (c.issues.length - 2) + '</span>' : '') : '<span class="it it-ok">✓</span>') + '</div></td>' : '';
-    var rTd  = CFG.sr ? '<td><span style="font-weight:700;color:' + ratingCol(c.mythicRating) + '">' + (c.mythicRating || '—') + '</span></td>' : '';
-    var nTd  = CFG.sn ? '<td><span class="note-c" onclick="editNote(\'' + id + '\')">' + (c.note ? esc(c.note) : '<span style="opacity:.3">+</span>') + '</span></td>' : '';
+    var rTd = CFG.sr ? '<td><span style="font-weight:700;color:' + ratingCol(c.mythicRating) + '">' + (c.mythicRating || '—') + '</span></td>' : '';
+    var nTd = CFG.sn ? '<td><span class="note-c" onclick="editNote(\'' + id + '\')">' + (c.note ? esc(c.note) : '<span style="opacity:.3">+</span>') + '</span></td>' : '';
     var stTd = CFG.st ? '<td>' + tierBadge(c) + '</td>' : '';
     var roleCell = canEditRole
       ? '<select class="rs" onchange="changeRole(\'' + id + '\',this.value)"><option ' + (c.role === ROLE_TANK ? 'selected' : '') + '>Tank</option><option ' + (c.role === ROLE_HEALER ? 'selected' : '') + '>Healer</option><option ' + (c.role === ROLE_DPS_MELEE ? 'selected' : '') + '>DPS Melee</option><option ' + (c.role === ROLE_DPS_RANGE ? 'selected' : '') + '>DPS Ranged</option></select>'
       : roleBadge(c.role);
     var rmTd = hasPerm('officer') ? '<td><button class="btn btn-danger btn-sm" onclick="rmMember(\'' + id + '\')">✕</button></td>' : '';
-    return '<tr' + (isUnder ? ' class="row-under-min"' : '') + '><td>' + cnCell(c) + '</td><td>' + roleCell + '</td><td><span class="ilvl ' + ilvlC(c.ilvl) + '">' + (c.ilvl || '—') + '</span></td>' + isTd + rTd + stTd + nTd + rmTd + '</tr>';
+    return '<tr' + (isUnder ? ' class="row-under-min"' : '') + '><td>' + cnCell(c) + '</td><td>' + roleCell + '</td><td><span class="ilvl ' + ilvlC(c.ilvl) + '">' + fmtIlvl(c.ilvl) + '</span></td>' + isTd + rTd + stTd + nTd + rmTd + '</tr>';
   }).join('');
   el.innerHTML = '<table><thead><tr>' + sth('name', T('character')) + sth('role', T('role')) + sth('ilvl', T('ilvl')) + isTh + rTh + stTh + nTh + rmTh + '</tr></thead><tbody>' + rows + '</tbody></table>';
 }
@@ -338,7 +356,7 @@ function renderVault() {
   var sorted = roster.slice().sort(function (a, b) { return (b.ilvl || 0) - (a.ilvl || 0); });
   var rows = sorted.map(function (c) {
     var v = c.vault || {};
-    return '<tr><td>' + cnCell(c) + '</td><td><span class="ilvl ' + ilvlC(c.ilvl) + '">' + (c.ilvl || '—') + '</span></td><td style="color:var(--text-dim)">' + (v.mythic || 0) + '/8</td><td style="color:var(--text-dim)">' + (v.raid || 0) + '/10</td></tr>';
+    return '<tr><td>' + cnCell(c) + '</td><td><span class="ilvl ' + ilvlC(c.ilvl) + '">' + fmtIlvl(c.ilvl) + '</span></td><td style="color:var(--text-dim)">' + (v.mythic || 0) + '/8</td><td style="color:var(--text-dim)">' + (v.raid || 0) + '/10</td></tr>';
   }).join('');
   el.innerHTML = '<table><thead><tr><th>' + T('character') + '</th><th>' + T('ilvl') + '</th><th>M+ Runs</th><th>Raid Bosses</th></tr></thead><tbody>' + rows + '</tbody></table>';
 }
@@ -416,9 +434,9 @@ function renderAll() {
   if (roster.length) {
     var g = roster[0];
     var hmeta = document.getElementById('hmeta');
-    var rts   = document.getElementById('rts');
+    var rts = document.getElementById('rts');
     if (hmeta) hmeta.textContent = roster.length + ' ' + T('members');
-    if (rts)   rts.textContent   = relativeTime(g.lastUpdated);
+    if (rts) rts.textContent = relativeTime(g.lastUpdated);
   }
   // Guild title is set by app.js init() from URL params — don't overwrite here
 }

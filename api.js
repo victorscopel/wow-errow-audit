@@ -10,42 +10,42 @@ function getAPICfg() {
     // Supports two URL formats:
     // 1. ?guild=us/azralon/errow  (GitHub Pages)
     // 2. /us/azralon/errow        (custom domain with proper routing)
-    var params     = new URLSearchParams(window.location.search);
+    var params = new URLSearchParams(window.location.search);
     var guildParam = params.get('guild') || '';
     var region, realm, guild;
 
     if (guildParam) {
-        var gp = guildParam.split('/').map(function(s){ return s.trim().toLowerCase(); });
+        var gp = guildParam.split('/').map(function (s) { return s.trim().toLowerCase(); });
         region = gp[0] || 'us';
-        realm  = gp[1] || '';
-        guild  = gp[2] || '';
+        realm = gp[1] || '';
+        guild = gp[2] || '';
     } else {
         // Fallback: try to read from pathname (custom domain with proper routing)
-        var parts       = window.location.pathname.replace(/\/+$/, '').split('/').filter(Boolean);
-        var regionCodes = ['us','eu','kr','tw'];
-        var ri          = parts.findIndex(function(p){ return regionCodes.includes(p.toLowerCase()); });
+        var parts = window.location.pathname.replace(/\/+$/, '').split('/').filter(Boolean);
+        var regionCodes = ['us', 'eu', 'kr', 'tw'];
+        var ri = parts.findIndex(function (p) { return regionCodes.includes(p.toLowerCase()); });
         if (ri >= 0) {
             region = parts[ri];
-            realm  = parts[ri+1] || '';
-            guild  = parts[ri+2] || '';
+            realm = parts[ri + 1] || '';
+            guild = parts[ri + 2] || '';
         }
         // No localStorage fallback — if no guild in URL, caller should redirect to landing
     }
 
     // Base path = repo subfolder (e.g. /wow-errow-audit)
     var pathParts = window.location.pathname.replace(/\/+$/, '').split('/').filter(Boolean);
-    var basePath  = pathParts.length >= 1 ? '/' + pathParts[0] : '';
+    var basePath = pathParts.length >= 1 ? '/' + pathParts[0] : '';
     window._basePath = basePath;
 
     var workerBase = (localStorage.getItem('ga_worker') || 'https://midnight.victorscopel.workers.dev').replace(/\/+$/, '');
 
     return {
         workerBase: workerBase,
-        basePath:   basePath,
-        region:     (region || 'us').toLowerCase(),
-        realm:      (realm  || '').toLowerCase().replace(/ /g, '-'),
-        guild:      (guild  || '').toLowerCase().replace(/ /g, '-'),
-        loc:        'en_US',
+        basePath: basePath,
+        region: (region || 'us').toLowerCase(),
+        realm: (realm || '').toLowerCase().replace(/ /g, '-'),
+        guild: (guild || '').toLowerCase().replace(/ /g, '-'),
+        loc: 'en_US',
     };
 }
 
@@ -108,14 +108,14 @@ function parseEquipment(equippedItems) {
         var slot = SLOT_MAP[item.slot?.type];
         if (!slot) continue;
 
-        var enchanted     = (item.enchantments?.length || 0) > 0;
-        var hasSockets    = (item.sockets?.length || 0) > 0;
-        var socketsTotal  = hasSockets ? item.sockets.length : 0;
+        var enchanted = (item.enchantments?.length || 0) > 0;
+        var hasSockets = (item.sockets?.length || 0) > 0;
+        var socketsTotal = hasSockets ? item.sockets.length : 0;
         var socketsFilled = hasSockets ? item.sockets.filter(function (s) { return s.item; }).length : 0;
-        var gemmed        = hasSockets && (socketsFilled === socketsTotal);
-        var limitCat      = item.limit_category || null;
+        var gemmed = hasSockets && (socketsFilled === socketsTotal);
+        var limitCat = item.limit_category || null;
         var isEmbellished = !!(limitCat && limitCat.toLowerCase().includes('embellish'));
-        var isTierSet     = !!(item.set && item.set.item_set && item.set.item_set.id);
+        var isTierSet = !!(item.set && item.set.item_set && item.set.item_set.id);
 
         // ── PvP tier set detection ────────────────────────────────────
         // Only applies to set items. Two signals are checked:
@@ -125,7 +125,7 @@ function parseEquipment(equippedItems) {
         if (isTierSet && item.set) {
             // Signal 1: spells that specifically mention "Arenas e Campos de Batalha" / "Arenas and Battlegrounds"
             // This is the exact text from the tooltip: "Equipar: aumenta o nível do item para um mínimo de X em Arenas e Campos de Batalha"
-            var spellText = (item.spells || []).map(function(s) {
+            var spellText = (item.spells || []).map(function (s) {
                 return ((s.description || '')).toLowerCase();
             }).join(' ');
             var hasPvPUpgradeSpell = spellText.includes('arenas') && (
@@ -136,10 +136,10 @@ function parseEquipment(equippedItems) {
             var setName = (item.set.item_set.name || '').toLowerCase();
             var hasPvPSetName = (
                 setName.includes('gladiator') || setName.includes('combatant') ||
-                setName.includes('aspirant')  || setName.includes('rival') ||
-                setName.includes('challenger')|| setName.includes('warmonger') ||
-                setName.includes('fomentador')|| setName.includes('gladiador') ||
-                setName.includes('combatente')|| setName.includes('desafiante') ||
+                setName.includes('aspirant') || setName.includes('rival') ||
+                setName.includes('challenger') || setName.includes('warmonger') ||
+                setName.includes('fomentador') || setName.includes('gladiador') ||
+                setName.includes('combatente') || setName.includes('desafiante') ||
                 setName.includes('contendor')
             );
 
@@ -187,7 +187,7 @@ function parseEquipment(equippedItems) {
     }
 
     var embCount = Object.values(gear).filter(function (g) { return g && g.isEmbellished; }).length;
-    if (embCount === 0)      issues.push('embellishment:none');
+    if (embCount === 0) issues.push('embellishment:none');
     else if (embCount === 1) issues.push('embellishment:only_one');
 
     var ARMOR_TIER_SLOTS = ['head', 'shoulder', 'chest', 'hands', 'legs'];
@@ -197,7 +197,28 @@ function parseEquipment(equippedItems) {
         if (missing > 0) issues.push('tierset:' + equipped + ':' + missing);
     }
 
-    return { gear: gear, issues: issues };
+    // ── Manual iLvl Calculation ──────────────────────────────
+    // 16 slots: Head, Neck, Shoulder, Back, Chest, Wrist, Hands, Waist, Legs, Feet, Finger1, Finger2, Trinket1, Trinket2, MainHand, OffHand
+    var totalIlvl = 0;
+    var slots = ['head', 'neck', 'shoulder', 'back', 'chest', 'wrist', 'hands', 'waist', 'legs', 'feet', 'finger1', 'finger2', 'trinket1', 'trinket2', 'mainhand', 'offhand'];
+
+    // Check if using a 2H weapon (counts for 2 slots if offhand is empty)
+    var is2H = false;
+    var rawMain = (equippedItems || []).find(function (i) { return i.slot?.type === 'MAIN_HAND'; });
+    if (rawMain && rawMain.inventory_type?.type) {
+        var t = rawMain.inventory_type.type;
+        if (t === 'TWOHWEAPON' || t === 'RANGED' || t === 'RANGEDRIGHT') is2H = true;
+    }
+
+    slots.forEach(function (s) {
+        var val = gear[s]?.ilvl || 0;
+        if (s === 'offhand' && val === 0 && is2H) {
+            val = gear['mainhand']?.ilvl || 0;
+        }
+        totalIlvl += val;
+    });
+
+    return { gear: gear, issues: issues, manualIlvl: totalIlvl / 16 };
 }
 
 // ── Item icons ────────────────────────────────────────────
@@ -248,8 +269,8 @@ async function fetchCharMedia(cfg, token, realm, name) {
             var res = await apiFetch(cfg, charUrl(cfg, realm, name, endpoints[i]), token);
             if (res.ok && res.json?.assets) {
                 var main = res.json.assets.find(function (a) { return a.key === 'main-raw'; }) ||
-                           res.json.assets.find(function (a) { return a.key === 'main'; }) ||
-                           res.json.assets.find(function (a) { return a.key === 'inset'; });
+                    res.json.assets.find(function (a) { return a.key === 'main'; }) ||
+                    res.json.assets.find(function (a) { return a.key === 'inset'; });
                 if (main) return main.value;
             }
         } catch (e) { }
@@ -273,7 +294,7 @@ async function fetchAllCharMedia(cfg, token) {
 function parseTalents(specJson) {
     if (!specJson) return null;
     var activeSpec = specJson.active_specialization;
-    var specs      = specJson.specializations || [];
+    var specs = specJson.specializations || [];
     var activeTree = specs.find(function (sp) {
         return sp.specialization && activeSpec && sp.specialization.id === activeSpec.id;
     });
@@ -294,13 +315,13 @@ function parseTalents(specJson) {
             return true;
         });
     }
-    var sht          = loadout.selected_hero_talent_tree;
+    var sht = loadout.selected_hero_talent_tree;
     var heroTreeName = sht ? (sht.hero_talent_tree?.name || sht.name || null) : null;
     return {
         exportString: loadout.talent_loadout_code || '',
-        class:    mapNodes(loadout.selected_class_talents),
-        spec:     mapNodes(loadout.selected_spec_talents),
-        hero:     mapNodes(loadout.selected_hero_talents),
+        class: mapNodes(loadout.selected_class_talents),
+        spec: mapNodes(loadout.selected_spec_talents),
+        hero: mapNodes(loadout.selected_hero_talents),
         heroTree: heroTreeName,
     };
 }
@@ -308,19 +329,19 @@ function parseTalents(specJson) {
 function parseStats(s) {
     if (!s) return null;
     return {
-        stamina:      s.stamina?.effective || 0,
-        intellect:    s.intellect?.effective || 0,
-        strength:     s.strength?.effective || 0,
-        agility:      s.agility?.effective || 0,
-        crit:         s.melee_crit?.value || s.ranged_crit?.value || s.spell_crit?.value || 0,
-        critRating:   s.melee_crit?.rating_normalized || s.melee_crit?.rating || s.ranged_crit?.rating_normalized || s.ranged_crit?.rating || s.spell_crit?.rating_normalized || s.spell_crit?.rating || 0,
-        haste:        s.melee_haste?.value || s.ranged_haste?.value || s.spell_haste?.value || 0,
-        hasteRating:  s.melee_haste?.rating_normalized || s.melee_haste?.rating || s.ranged_haste?.rating_normalized || s.ranged_haste?.rating || s.spell_haste?.rating_normalized || s.spell_haste?.rating || 0,
-        mastery:      s.mastery?.value || 0,
-        masteryRating:s.mastery?.rating_normalized || s.mastery?.rating || 0,
-        versatility:  s.versatility_damage_done_bonus || 0,
-        versRating:   s.versatility || 0,
-        versDR:       s.versatility_damage_taken_reduction_bonus || 0,
+        stamina: s.stamina?.effective || 0,
+        intellect: s.intellect?.effective || 0,
+        strength: s.strength?.effective || 0,
+        agility: s.agility?.effective || 0,
+        crit: s.melee_crit?.value || s.ranged_crit?.value || s.spell_crit?.value || 0,
+        critRating: s.melee_crit?.rating_normalized || s.melee_crit?.rating || s.ranged_crit?.rating_normalized || s.ranged_crit?.rating || s.spell_crit?.rating_normalized || s.spell_crit?.rating || 0,
+        haste: s.melee_haste?.value || s.ranged_haste?.value || s.spell_haste?.value || 0,
+        hasteRating: s.melee_haste?.rating_normalized || s.melee_haste?.rating || s.ranged_haste?.rating_normalized || s.ranged_haste?.rating || s.spell_haste?.rating_normalized || s.spell_haste?.rating || 0,
+        mastery: s.mastery?.value || 0,
+        masteryRating: s.mastery?.rating_normalized || s.mastery?.rating || 0,
+        versatility: s.versatility_damage_done_bonus || 0,
+        versRating: s.versatility || 0,
+        versDR: s.versatility_damage_taken_reduction_bonus || 0,
     };
 }
 
@@ -368,9 +389,9 @@ async function fetchAPI(silent) {
 
         var results = [];
         for (var i = 0; i < members.length; i++) {
-            var m        = members[i];
+            var m = members[i];
             var charRealm = (m.character.realm?.slug || cfg.realm).toLowerCase();
-            var cn        = m.character.name.toLowerCase();
+            var cn = m.character.name.toLowerCase();
             try {
                 var fetches = await Promise.all([
                     apiFetch(cfg, charUrl(cfg, charRealm, cn, '/equipment'), token),
@@ -384,34 +405,34 @@ async function fetchAPI(silent) {
                     if (!silent) lg('⚠ ' + m.character.name + ': perfil não encontrado', 'warn');
                     continue;
                 }
-                var sum      = sumR.json;
-                var parsed   = parseEquipment(eqR.json?.equipped_items);
+                var sum = sumR.json;
+                var parsed = parseEquipment(eqR.json?.equipped_items);
                 var charClass = normalizeClass(sum.character_class?.name) || normalizeClass(m.character.playable_class?.name) || '?';
-                var specId   = sum.active_spec?.id;
+                var specId = sum.active_spec?.id;
                 var specName = sum.active_spec?.name || '?';
-                var role     = inferRoleFromSpecId(specId) || inferRoleFromSpecName(specName);
+                var role = inferRoleFromSpecId(specId) || inferRoleFromSpecName(specName);
                 var existing = roster.find(function (x) {
                     return x.name.toLowerCase() === (sum.name || m.character.name).toLowerCase() && x.realm === charRealm;
                 });
 
                 results.push({
-                    name:         sum.name || m.character.name,
-                    realm:        charRealm,
-                    guild:        guildRes.json.guild?.name || cfg.guild,
-                    class:        charClass,
-                    spec:         specName,
-                    specId:       specId,
-                    role:         existing?.role || role,
-                    note:         existing?.note || '',
-                    ilvl:         sum.equipped_item_level || sum.average_item_level,
+                    name: sum.name || m.character.name,
+                    realm: charRealm,
+                    guild: guildRes.json.guild?.name || cfg.guild,
+                    class: charClass,
+                    spec: specName,
+                    specId: specId,
+                    role: existing?.role || role,
+                    note: existing?.note || '',
+                    ilvl: parsed.manualIlvl || sum.equipped_item_level || sum.average_item_level,
                     mythicRating: mpR.ok ? (mpR.json?.current_mythic_rating?.rating | 0) || null : null,
-                    vault:        mpR.ok && mpR.json ? { mythic: mpR.json.current_period?.best_runs?.length || 0, raid: 0, world: 0 } : null,
-                    gear:         parsed.gear,
-                    issues:       parsed.issues,
-                    stats:        parseStats(statsR.ok ? statsR.json : null),
-                    talents:      parseTalents(specR.ok ? specR.json : null),
-                    renderUrl:    existing?.renderUrl || null,
-                    lastUpdated:  new Date().toISOString(),
+                    vault: mpR.ok && mpR.json ? { mythic: mpR.json.current_period?.best_runs?.length || 0, raid: 0, world: 0 } : null,
+                    gear: parsed.gear,
+                    issues: parsed.issues,
+                    stats: parseStats(statsR.ok ? statsR.json : null),
+                    talents: parseTalents(specR.ok ? specR.json : null),
+                    renderUrl: existing?.renderUrl || null,
+                    lastUpdated: new Date().toISOString(),
                     customizations: [],
                 });
                 if (!silent) lg('✓ ' + (sum.name || m.character.name) + ' — iLvl ' + (sum.equipped_item_level || '?') + ' [' + specName + '] — ' + parsed.issues.length + ' issues', 'ok');
@@ -444,7 +465,7 @@ async function fetchAPI(silent) {
         saveRoster();
         renderAll();
         if (!silent) { notify(results.length + ' membros importados!'); lg('✅ Concluído: ' + results.length, 'ok'); }
-        else          notify('↻ ' + results.length + ' membros atualizados');
+        else notify('↻ ' + results.length + ' membros atualizados');
 
         getToken(cfg).then(function (tok) { fetchAllCharMedia(cfg, tok); }).catch(function () { });
 
@@ -472,9 +493,9 @@ async function refreshExisting(force) {
     try {
         var updated = 0;
         for (var i = 0; i < roster.length; i++) {
-            var c         = roster[i];
+            var c = roster[i];
             var charRealm = (c.realm || cfg.realm).toLowerCase();
-            var cn        = c.name.toLowerCase();
+            var cn = c.name.toLowerCase();
             try {
                 var fetches = await Promise.all([
                     apiFetch(cfg, charUrl(cfg, charRealm, cn, '/equipment'), token),
@@ -485,28 +506,28 @@ async function refreshExisting(force) {
                 ]);
                 var eqR = fetches[0], sumR = fetches[1], mpR = fetches[2], statsR = fetches[3], specR = fetches[4];
                 if (!sumR.ok) continue;
-                var sum    = sumR.json;
+                var sum = sumR.json;
                 var parsed = parseEquipment(eqR.json?.equipped_items);
                 // Preserve icon slugs
                 Object.entries(parsed.gear || {}).forEach(function (entry) {
-                    var item    = entry[1];
+                    var item = entry[1];
                     var oldItem = (c.gear || {})[entry[0]];
                     if (item && !item.iconSlug && oldItem && oldItem.itemId === item.itemId && oldItem.iconSlug)
                         item.iconSlug = oldItem.iconSlug;
                 });
-                c.class       = normalizeClass(sum.character_class?.name) || c.class;
-                c.spec        = sum.active_spec?.name || c.spec;
-                c.specId      = sum.active_spec?.id   || c.specId;
-                c.ilvl        = sum.equipped_item_level || sum.average_item_level || c.ilvl;
-                c.gear        = parsed.gear;
-                c.issues      = parsed.issues;
+                c.class = normalizeClass(sum.character_class?.name) || c.class;
+                c.spec = sum.active_spec?.name || c.spec;
+                c.specId = sum.active_spec?.id || c.specId;
+                c.ilvl = parsed.manualIlvl || sum.equipped_item_level || sum.average_item_level || c.ilvl;
+                c.gear = parsed.gear;
+                c.issues = parsed.issues;
                 c.lastUpdated = new Date().toISOString();
                 c.customizations = [];
                 if (mpR.ok && mpR.json) {
                     c.mythicRating = (mpR.json.current_mythic_rating?.rating | 0) || c.mythicRating;
-                    c.vault        = { mythic: mpR.json.current_period?.best_runs?.length || 0, raid: 0, world: 0 };
+                    c.vault = { mythic: mpR.json.current_period?.best_runs?.length || 0, raid: 0, world: 0 };
                 }
-                c.stats   = parseStats(statsR.ok ? statsR.json : null) || c.stats;
+                c.stats = parseStats(statsR.ok ? statsR.json : null) || c.stats;
                 c.talents = parseTalents(specR.ok ? specR.json : null) || c.talents;
                 if (!c.renderUrl) {
                     var rUrl = await fetchCharMedia(cfg, token, charRealm, cn);
@@ -528,10 +549,10 @@ async function refreshExisting(force) {
 
 // ── Add single character ──────────────────────────────────
 async function trackChar() {
-    var name  = document.getElementById('add-n').value.trim().toLowerCase();
+    var name = document.getElementById('add-n').value.trim().toLowerCase();
     var realm = (document.getElementById('add-r').value.trim() || '').toLowerCase().replace(/ /g, '-');
-    var cfg   = getAPICfg();
-    realm     = realm || cfg.realm;
+    var cfg = getAPICfg();
+    realm = realm || cfg.realm;
     if (!name) { notify(T('name_required')); return; }
     if (!cfg.workerBase) { notify('Worker não configurado.'); return; }
 
@@ -541,7 +562,7 @@ async function trackChar() {
     if (btn) { btn.textContent = '⏳ ' + (isPT ? 'Buscando...' : 'Searching...'); btn.disabled = true; }
 
     try {
-        var token   = await getToken(cfg);
+        var token = await getToken(cfg);
 
         if (btn) btn.textContent = '⏳ ' + (isPT ? 'Baixando dados...' : 'Fetching data...');
         var fetches = await Promise.all([
@@ -556,12 +577,12 @@ async function trackChar() {
             notify('"' + name + '" ' + (isPT ? 'não encontrado.' : 'not found.'));
             return;
         }
-        var sum       = sumR.json;
+        var sum = sumR.json;
         var charRealm = sum.realm?.slug || realm;
-        var parsed    = parseEquipment(eqR.json?.equipped_items);
-        var specId    = sum.active_spec?.id;
-        var specName  = sum.active_spec?.name || '?';
-        var role      = inferRoleFromSpecId(specId) || inferRoleFromSpecName(specName);
+        var parsed = parseEquipment(eqR.json?.equipped_items);
+        var specId = sum.active_spec?.id;
+        var specName = sum.active_spec?.name || '?';
+        var role = inferRoleFromSpecId(specId) || inferRoleFromSpecName(specName);
 
         if (btn) btn.textContent = '⏳ ' + (isPT ? 'Baixando imagens...' : 'Loading images...');
         var renderUrl = await fetchCharMedia(cfg, token, charRealm, name);
@@ -573,12 +594,12 @@ async function trackChar() {
             name: sum.name || name, realm: charRealm, guild: cfg.guild,
             class: normalizeClass(sum.character_class?.name) || '?',
             spec: specName, specId: specId, role: role, note: '',
-            ilvl: sum.equipped_item_level,
+            ilvl: parsed.manualIlvl || sum.equipped_item_level,
             mythicRating: mpR.ok ? (mpR.json?.current_mythic_rating?.rating | 0) || null : null,
-            vault:    mpR.ok && mpR.json ? { mythic: mpR.json.current_period?.best_runs?.length || 0, raid: 0, world: 0 } : null,
-            gear:     parsed.gear, issues: parsed.issues,
-            stats:    parseStats(statsR.ok ? statsR.json : null),
-            talents:  parseTalents(specR.ok ? specR.json : null),
+            vault: mpR.ok && mpR.json ? { mythic: mpR.json.current_period?.best_runs?.length || 0, raid: 0, world: 0 } : null,
+            gear: parsed.gear, issues: parsed.issues,
+            stats: parseStats(statsR.ok ? statsR.json : null),
+            talents: parseTalents(specR.ok ? specR.json : null),
             renderUrl: renderUrl, customizations: [], lastUpdated: new Date().toISOString(),
         };
         if (existingIdx >= 0) {
@@ -676,7 +697,7 @@ async function saveCfgKV() {
 
 // Archon: loaded globally, no guild prefix
 async function loadArchonStats() {
-    var cfg  = getAPICfg();
+    var cfg = getAPICfg();
     var diff = (CFG.archonDiff || 'heroic');
     try {
         var r = await fetch(pbUrl(cfg) + '/api/archon/' + diff + '?t=' + Date.now());
